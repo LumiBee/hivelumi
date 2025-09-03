@@ -2,9 +2,31 @@ import axios from 'axios'
 import { useAuthStore } from '@/store/auth'
 import { getSafeUserFromStorage, debugId } from '@/utils/bigint-helper'
 
+// 获取API基础URL
+const getApiBaseUrl = () => {
+  const envApiUrl = import.meta.env.VITE_API_URL
+  
+  if (envApiUrl) {
+    // 如果环境变量包含完整URL，直接使用
+    if (envApiUrl.includes('/api')) {
+      return envApiUrl
+    }
+    // 如果不包含/api，则添加
+    return `${envApiUrl}/api`
+  }
+  
+  // 开发环境默认
+  if (import.meta.env.DEV) {
+    return 'http://localhost:8090/api'
+  }
+  
+  // 生产环境默认（需要用户配置）
+  return 'https://your-aliyun-server.com/api'
+}
+
 // 创建axios实例
 const request = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8090/api', // 后端API地址（已包含/api前缀）
+  baseURL: getApiBaseUrl(), // 后端API地址（已包含/api前缀）
   timeout: 30000, // 请求超时时间增加到30秒
   withCredentials: true, // 允许携带cookie（用于Spring Security会话）
   headers: {
