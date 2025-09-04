@@ -20,8 +20,8 @@ const getApiBaseUrl = () => {
     return 'http://localhost:8090/api'
   }
   
-  // 生产环境默认（需要用户配置）
-  return 'https://your-aliyun-server.com/api'
+  // 生产环境使用相对路径，让Vercel代理到后端
+  return '/api'
 }
 
 // 创建axios实例
