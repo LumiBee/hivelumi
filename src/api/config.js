@@ -20,7 +20,8 @@ const getApiBaseUrl = () => {
     return 'http://localhost:8090/api'
   }
   
-  // 生产环境直接使用域名
+  // 生产环境：如果没有配置VITE_API_URL，使用默认域名
+  // 建议在Vercel环境变量中配置VITE_API_URL为您的后端服务器地址
   return 'https://www.hivelumi.com/api'
 }
 
