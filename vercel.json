@@ -12,7 +12,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://www.hivelumi.com/api/$1"
+      "destination": "https://your-aliyun-server-ip:8090/api/$1"
     },
     {
       "source": "/(.*)",
