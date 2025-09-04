@@ -20,8 +20,8 @@ const getApiBaseUrl = () => {
     return 'http://localhost:8090/api'
   }
   
-  // 生产环境使用相对路径，让Vercel代理到后端
-  return '/api'
+  // 生产环境直接使用域名
+  return 'https://www.hivelumi.com/api'
 }
 
 // 创建axios实例
