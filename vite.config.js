@@ -22,7 +22,7 @@ export default defineConfig(({ mode }) => {
     }
     
     // 生产环境默认（需要用户配置）
-    return 'https://your-aliyun-server.com'
+    return 'https://www.hivelumi.com'
   }
 
   const backendUrl = getBackendUrl()
