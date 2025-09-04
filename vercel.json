@@ -15,6 +15,10 @@
       "destination": "http://8.155.48.212:8090/api/$1"
     },
     {
+      "source": "/uploads/(.*)",
+      "destination": "http://8.155.48.212:8090/uploads/$1"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
