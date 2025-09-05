@@ -676,7 +676,7 @@ const initBookAnimation = () => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   height: fit-content;
   position: sticky;
-  top: 100px;
+  top: 90px; /* 为固定导航栏预留空间 (70px + 20px) */
 }
 
 .sidebar-header {

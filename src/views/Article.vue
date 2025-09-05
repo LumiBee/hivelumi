@@ -1288,7 +1288,7 @@ onBeforeUnmount(() => {
 
 .sidebar-sticky {
   position: sticky;
-  top: 20px; /* 减少顶部距离，让目录更早显示 */
+  top: 90px; /* 为固定导航栏预留空间 (70px + 20px) */
 }
 
 /* 左侧快捷按钮样式 */
@@ -1485,6 +1485,11 @@ onBeforeUnmount(() => {
   .sidebar-sticky {
     position: static;
     margin-top: 2rem;
+  }
+  
+  /* 移动端目录卡片顶部间距 */
+  .toc-card {
+    margin-top: 1rem;
   }
   
   .article-quick-actions {
