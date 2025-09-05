@@ -43,6 +43,7 @@
             accept="image/*"
             @change="handleCoverUpload"
             :disabled="isLoading"
+            style="pointer-events: auto;"
           >
         </div>
       </div>
@@ -877,6 +878,7 @@ onMounted(() => {
   background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
   min-height: 100vh;
   position: relative;
+  padding-top: 70px; /* 为固定导航栏预留空间 */
   /* 移除 will-change 和 transform，减少重绘开销 */
 }
 
@@ -1036,10 +1038,11 @@ onMounted(() => {
   position: absolute;
   top: 25px;
   right: 0px;
-  z-index: 10;
+  z-index: 20; /* 提高z-index确保按钮在最上层 */
   opacity: 0.95;
   /* 简化过渡效果 */
   transition: all 0.2s ease;
+  pointer-events: auto; /* 确保按钮可以点击 */
 }
 
 .cover-edit-btn .btn-modern {
@@ -1054,6 +1057,12 @@ onMounted(() => {
   border: 1px solid rgba(255,255,255,0.4);
   backdrop-filter: blur(5px); /* 减少模糊效果 */
   letter-spacing: 0.5px;
+  cursor: pointer; /* 确保鼠标指针正确 */
+  min-width: 120px; /* 确保按钮有足够的点击区域 */
+  min-height: 44px; /* 符合移动端最小点击区域标准 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .cover-edit-btn:hover {
@@ -1068,6 +1077,21 @@ onMounted(() => {
 
 .cover-edit-btn .btn-modern.uploading:hover {
   transform: none;
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+  .cover-edit-btn {
+    top: 15px;
+    right: 15px;
+  }
+  
+  .cover-edit-btn .btn-modern {
+    padding: 10px 20px;
+    font-size: 0.85rem;
+    min-width: 100px;
+    min-height: 40px;
+  }
 }
 
 /* 个人资料容器 */
