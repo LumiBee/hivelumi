@@ -8,7 +8,8 @@ import '@fortawesome/fontawesome-free/css/all.min.css'
 import './assets/styles/main.scss'
 import toastPlugin from '@/plugins/toast'
 
-// 暂时移除所有性能优化，确保基本功能正常
+// 添加最小化的性能优化 - 只做最安全的优化
+import { minimalImageOptimization } from '@/utils/minimal-image-optimization'
 
 const app = createApp(App)
 
