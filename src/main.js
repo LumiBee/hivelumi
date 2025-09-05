@@ -8,23 +8,7 @@ import '@fortawesome/fontawesome-free/css/all.min.css'
 import './assets/styles/main.scss'
 import toastPlugin from '@/plugins/toast'
 
-// 导入性能优化工具
-import { initImageOptimization } from '@/utils/imageOptimizer'
-import { initResourcePreloading } from '@/utils/resourcePreloader'
-import { initPerformanceMonitoring, initVisibilityPerformanceMonitoring, initUnloadPerformanceMonitoring } from '@/utils/performanceMonitor'
-import { performanceMonitor } from '@/utils/performance'
-
-// 初始化性能优化
-initImageOptimization()
-initResourcePreloading()
-initPerformanceMonitoring()
-initVisibilityPerformanceMonitoring()
-initUnloadPerformanceMonitoring()
-
-// 初始化性能监控
-performanceMonitor.initWebVitals()
-performanceMonitor.observeResourceTiming()
-performanceMonitor.observeLongTasks()
+// 暂时移除性能优化工具，确保基本功能正常
 
 const app = createApp(App)
 

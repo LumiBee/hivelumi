@@ -123,63 +123,25 @@ export default defineConfig(({ mode }) => {
       },
     build: {
     outDir: 'dist',
-    sourcemap: false, // 生产环境关闭sourcemap
-    minify: 'terser', // 使用terser进行更彻底的压缩
+    sourcemap: false,
+    minify: 'terser',
     terserOptions: {
       compress: {
-        drop_console: true, // 移除console.log
-        drop_debugger: true, // 移除debugger
-        pure_funcs: ['console.log', 'console.info', 'console.debug'], // 移除特定函数调用
-        passes: 2, // 多次压缩优化
-        unsafe: true, // 启用不安全的优化
-        unsafe_comps: true,
-        unsafe_math: true,
-        unsafe_proto: true
-      },
-      mangle: {
-        toplevel: true, // 混淆顶级作用域
-        properties: {
-          regex: /^_/ // 混淆以下划线开头的属性
-        }
+        drop_console: true,
+        drop_debugger: true
       }
     },
     rollupOptions: {
       output: {
-        // 更智能的代码分割
-        manualChunks: (id) => {
-          // Vue核心库
-          if (id.includes('vue') || id.includes('vue-router') || id.includes('pinia')) {
-            return 'vue-vendor'
-          }
-          // UI框架
-          if (id.includes('bootstrap')) {
-            return 'bootstrap-vendor'
-          }
-          // 工具库
-          if (id.includes('axios') || id.includes('dompurify')) {
-            return 'utils-vendor'
-          }
-          // 图标库
-          if (id.includes('fontawesome')) {
-            return 'icons-vendor'
-          }
-          // 其他第三方库
-          if (id.includes('node_modules') && !id.includes('vue') && !id.includes('bootstrap') && !id.includes('axios') && !id.includes('fontawesome')) {
-            return 'other-vendor'
-          }
-        },
-        // 文件名优化
-        chunkFileNames: 'assets/js/[name]-[hash].js',
-        entryFileNames: 'assets/js/[name]-[hash].js',
-        assetFileNames: 'assets/[ext]/[name]-[hash].[ext]'
+        manualChunks: {
+          'vue-vendor': ['vue', 'vue-router', 'pinia'],
+          'bootstrap-vendor': ['bootstrap', 'bootstrap-vue-next'],
+          'utils-vendor': ['axios', 'dompurify']
+        }
       }
     },
-    // 禁用CSS代码分割，确保样式正确加载
     cssCodeSplit: false,
-    // 设置块大小警告限制
-    chunkSizeWarningLimit: 1000,
-    // 启用压缩
-    reportCompressedSize: true
+    chunkSizeWarningLimit: 1000
   },
     // 预构建优化
     optimizeDeps: {
