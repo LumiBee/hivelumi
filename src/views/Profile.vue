@@ -371,7 +371,31 @@ const fileInput = ref(null)
 const showDeleteModal = ref(false)
 const articleToDelete = ref(null)
 
-const isOwner = computed(() => profileData.value.isOwner)
+const isOwner = computed(() => {
+  // 如果profileData.isOwner存在，使用它
+  if (profileData.value.isOwner !== undefined) {
+    console.log('使用profileData.isOwner:', profileData.value.isOwner)
+    return profileData.value.isOwner
+  }
+  
+  // 否则根据用户名判断
+  if (authStore.isAuthenticated && username.value && authStore.userName) {
+    const isOwnerByUsername = username.value === authStore.userName
+    console.log('根据用户名判断isOwner:', {
+      username: username.value,
+      authStoreUserName: authStore.userName,
+      isOwner: isOwnerByUsername
+    })
+    return isOwnerByUsername
+  }
+  
+  console.log('isOwner为false，原因:', {
+    authStoreIsAuthenticated: authStore.isAuthenticated,
+    username: username.value,
+    authStoreUserName: authStore.userName
+  })
+  return false
+})
 const articles = computed(() => profileData.value.articles?.records || [])
 const hasNextPage = computed(() => {
   if (!profileData.value.articles) return false
@@ -576,6 +600,14 @@ const fetchProfileData = async (forceRefresh = false) => {
     }
     
     profileData.value = response
+    
+    // 添加调试信息
+    console.log('个人资料数据加载完成:', {
+      isOwner: response.isOwner,
+      user: response.user,
+      username: username.value,
+      authStoreUserName: authStore.userName
+    })
   } catch (error) {
     console.error('获取个人资料失败:', error)
     // 显示更详细的错误信息
