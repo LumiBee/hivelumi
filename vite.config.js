@@ -128,7 +128,8 @@ export default defineConfig(({ mode }) => {
     terserOptions: {
       compress: {
         drop_console: true,
-        drop_debugger: true
+        drop_debugger: true,
+        pure_funcs: ['console.log', 'console.info', 'console.debug']
       }
     },
     rollupOptions: {
@@ -137,11 +138,17 @@ export default defineConfig(({ mode }) => {
           'vue-vendor': ['vue', 'vue-router', 'pinia'],
           'bootstrap-vendor': ['bootstrap', 'bootstrap-vue-next'],
           'utils-vendor': ['axios', 'dompurify']
-        }
+        },
+        // 优化文件名
+        chunkFileNames: 'assets/js/[name]-[hash].js',
+        entryFileNames: 'assets/js/[name]-[hash].js',
+        assetFileNames: 'assets/[ext]/[name]-[hash].[ext]'
       }
     },
     cssCodeSplit: false,
-    chunkSizeWarningLimit: 1000
+    chunkSizeWarningLimit: 1000,
+    // 启用压缩
+    reportCompressedSize: true
   },
     // 预构建优化
     optimizeDeps: {
