@@ -32,18 +32,23 @@
       <div class="container position-relative h-100">
         <!-- 如果是页面所有者，显示更换封面按钮 -->
         <div v-if="isOwner" class="cover-edit-btn">
-          <label for="coverUpload" class="btn btn-light btn-modern" :class="{ 'uploading': isLoading }">
+          <button 
+            class="btn btn-light btn-modern" 
+            :class="{ 'uploading': isLoading }"
+            @click="triggerFileUpload"
+            :disabled="isLoading"
+          >
             <i class="fas" :class="isLoading ? 'fa-spinner fa-spin' : 'fa-crop'"></i>
             <span class="ms-2">{{ isLoading ? '上传中...' : '更换封面' }}</span>
-          </label>
+          </button>
           <input 
+            ref="fileInput"
             type="file" 
             id="coverUpload" 
             class="d-none" 
             accept="image/*"
             @change="handleCoverUpload"
             :disabled="isLoading"
-            style="pointer-events: auto;"
           >
         </div>
       </div>
@@ -360,6 +365,7 @@ const errorMessage = ref('') // 添加错误信息
 const showCropper = ref(false)
 const selectedImage = ref(null)
 const croppedImageData = ref(null)
+const fileInput = ref(null)
 
 // 删除相关
 const showDeleteModal = ref(false)
@@ -628,14 +634,31 @@ const toggleFollow = async () => {
   }
 }
 
+// 触发文件选择
+const triggerFileUpload = () => {
+  console.log('触发文件上传按钮点击')
+  if (fileInput.value) {
+    fileInput.value.click()
+  } else {
+    console.error('文件输入框引用不存在')
+  }
+}
+
 // 处理图片选择
 const handleCoverUpload = (event) => {
+  console.log('文件选择事件触发:', event.target.files)
   const file = event.target.files[0]
-  if (!file) return
+  if (!file) {
+    console.log('没有选择文件')
+    return
+  }
+  
+  console.log('选择的文件:', file.name, file.type, file.size)
   
   // 验证文件类型
   const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
   if (!allowedTypes.includes(file.type)) {
+    console.log('文件类型不支持:', file.type)
     window.$toast?.error('请选择有效的图片文件（JPG、PNG、GIF、WebP）')
     event.target.value = ''
     return
@@ -644,15 +667,20 @@ const handleCoverUpload = (event) => {
   // 验证文件大小（5MB）
   const maxSize = 5 * 1024 * 1024
   if (file.size > maxSize) {
+    console.log('文件大小超限:', file.size)
     window.$toast?.error('图片文件大小不能超过5MB')
     event.target.value = ''
     return
   }
   
+  console.log('文件验证通过，准备显示裁剪器')
+  
   // 创建图片URL并显示裁剪界面
   const imageUrl = URL.createObjectURL(file)
   selectedImage.value = imageUrl
   showCropper.value = true
+  
+  console.log('裁剪器状态:', showCropper.value, '图片URL:', imageUrl)
   
   // 清空文件输入，允许再次选择同一文件
   event.target.value = ''
@@ -1063,10 +1091,23 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative; /* 确保按钮在正确的位置 */
+  z-index: 30; /* 确保按钮在最上层 */
+  user-select: none; /* 防止文本选择 */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 .cover-edit-btn:hover {
   transform: translateY(-2px); /* 减少悬停移动距离 */
+}
+
+.cover-edit-btn .btn-modern:active {
+  transform: translateY(0);
+  box-shadow: 
+    0 4px 15px rgba(0,0,0,0.2),
+    0 2px 5px rgba(0,0,0,0.15);
 }
 
 .cover-edit-btn .btn-modern.uploading {
