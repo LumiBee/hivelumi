@@ -16,6 +16,12 @@
     <!-- 预加载关键字体 -->
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
     
+    <!-- 预加载关键图片 -->
+    <link rel="preload" href="/img/logo.png" as="image" fetchpriority="high">
+    
+    <!-- 预加载关键API数据 -->
+    <link rel="preload" href="https://api.hivelumi.com/api/home" as="fetch" crossorigin>
+    
     <!-- 关键CSS内联 - 立即渲染 -->
     <style>
       /* 关键布局样式 - 减少渲染阻塞 */
@@ -85,6 +91,54 @@
       @keyframes spin { 
         0% { transform: rotate(0deg); } 
         100% { transform: rotate(360deg); } 
+      }
+      
+      /* 文章卡片样式 */
+      .article-card {
+        margin-bottom: 1.5rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        border: none;
+        border-radius: 0.5rem;
+        overflow: hidden;
+      }
+      .article-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      }
+      .article-card-body {
+        padding: 1.25rem;
+      }
+      .article-card-title {
+        font-size: 1.25rem;
+        margin-bottom: 0.75rem;
+        font-weight: 600;
+        color: #333;
+      }
+      .article-card-text {
+        color: #6c757d;
+        margin-bottom: 1rem;
+        line-height: 1.5;
+      }
+      .article-card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 1.25rem;
+        background-color: rgba(0,0,0,0.03);
+      }
+      
+      /* 导航栏响应式样式 */
+      @media (max-width: 768px) {
+        .navbar-brand {
+          font-size: 1.2rem;
+        }
+        .navbar-toggler {
+          padding: 0.25rem 0.5rem;
+          font-size: 1rem;
+        }
+        .navbar-nav {
+          margin-top: 0.5rem;
+        }
       }
     </style>
     

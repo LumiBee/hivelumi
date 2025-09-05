@@ -8,10 +8,11 @@ import '@fortawesome/fontawesome-free/css/all.min.css'
 import './assets/styles/main.scss'
 import toastPlugin from '@/plugins/toast'
 
-// 添加最小化的性能优化 - 只做最安全的优化
+// 添加性能优化工具
 import { minimalImageOptimization } from '@/utils/minimal-image-optimization'
 import { safeAPIPreloader } from '@/utils/safe-api-preloader'
 import { smartPreloader } from '@/utils/smart-preloader'
+import { imageOptimizer } from '@/utils/image-optimizer'
 
 const app = createApp(App)
 
