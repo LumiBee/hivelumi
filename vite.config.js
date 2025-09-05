@@ -128,21 +128,7 @@ export default defineConfig(({ mode }) => {
     terserOptions: {
       compress: {
         drop_console: true,
-        drop_debugger: true,
-        pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.warn'],
-        passes: 2,
-        unsafe: true,
-        unsafe_comps: true,
-        unsafe_math: true,
-        unsafe_proto: true,
-        dead_code: true,
-        unused: true
-      },
-      mangle: {
-        toplevel: true,
-        properties: {
-          regex: /^_/
-        }
+        drop_debugger: true
       }
     },
     rollupOptions: {
