@@ -355,7 +355,7 @@ if (article.value?.content) {
     const langClass = language ? ` class="language-${language}"` : '';
     return `<div class="code-block-wrapper">
               <pre${langClass}>
-                <code${langClass} style="color: #333333;">${code}</code>
+                <code${langClass} style="color: #ffffff;">${code}</code>
               </pre>
             </div>`;
   };
@@ -761,8 +761,9 @@ onBeforeUnmount(() => {
   margin: 1.5rem 0;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  border: 1px solid #eaeaea;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid #4a5568;
+  background: #2d3748;
 }
 
 /* 移除了代码语言标签样式 */
@@ -773,9 +774,10 @@ onBeforeUnmount(() => {
   position: relative;
   margin: 0;
   padding: 1.2rem;
-  background: #f8f9fa;
+  background: #2d3748;
   border-radius: 8px;
   overflow-x: auto;
+  color: #ffffff;
 }
 
 .markdown-content pre code {
@@ -783,6 +785,7 @@ onBeforeUnmount(() => {
   background: transparent;
   margin-top: 0.5rem;
   display: block;
+  color: #ffffff;
 }
 .article-page {
   padding: 70px 0 2rem 0; /* 为固定导航栏预留空间 */
@@ -1220,18 +1223,18 @@ onBeforeUnmount(() => {
 }
 
 .markdown-content pre {
-  background: #f8f9fa;
-  color: #212529;
+  background: #2d3748;
+  color: #ffffff;
   padding: 1rem;
   border-radius: 8px;
   overflow-x: auto;
   position: relative;
-  border: 1px solid #e9ecef;
+  border: 1px solid #4a5568;
 }
 
 .markdown-content pre code {
   background: none;
-  color: #212529;
+  color: #ffffff;
   padding: 0;
   font-family: 'Fira Code', Consolas, Monaco, 'Andale Mono', monospace;
   font-size: 0.95rem;
