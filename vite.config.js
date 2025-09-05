@@ -146,17 +146,27 @@ export default defineConfig(({ mode }) => {
     rollupOptions: {
       output: {
         // 更智能的代码分割
-        manualChunks: {
+        manualChunks: (id) => {
           // Vue核心库
-          'vue-vendor': ['vue', 'vue-router', 'pinia'],
+          if (id.includes('vue') || id.includes('vue-router') || id.includes('pinia')) {
+            return 'vue-vendor'
+          }
           // UI框架
-          'bootstrap-vendor': ['bootstrap', 'bootstrap-vue-next'],
+          if (id.includes('bootstrap')) {
+            return 'bootstrap-vendor'
+          }
           // 工具库
-          'utils-vendor': ['axios', 'dompurify'],
+          if (id.includes('axios') || id.includes('dompurify')) {
+            return 'utils-vendor'
+          }
           // 图标库
-          'icons-vendor': ['@fortawesome/fontawesome-free'],
+          if (id.includes('fontawesome')) {
+            return 'icons-vendor'
+          }
           // 其他第三方库
-          'other-vendor': ['marked', 'highlight.js']
+          if (id.includes('node_modules') && !id.includes('vue') && !id.includes('bootstrap') && !id.includes('axios') && !id.includes('fontawesome')) {
+            return 'other-vendor'
+          }
         },
         // 文件名优化
         chunkFileNames: 'assets/js/[name]-[hash].js',
