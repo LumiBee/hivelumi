@@ -205,7 +205,7 @@
                   <ul class="toc-list">
                     <li v-for="(item, index) in tableOfContents" :key="index" :class="['toc-item', `toc-level-${item.level}`]">
                       <a :href="`#${item.id}`" class="toc-link" @click.prevent="scrollToHeading(item.id)">
-                        {{ item.text }}
+                        {{ cleanText(item.text) }}
                       </a>
                     </li>
                   </ul>
@@ -639,6 +639,15 @@ const formatDate = (dateString) => {
     day: 'numeric'
   })
 }
+
+// 清理文本，移除HTML标签
+const cleanText = (text) => {
+  if (!text) return '';
+  // 创建一个临时div元素来解析HTML
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = text;
+  return tempDiv.textContent || tempDiv.innerText || '';
+};
 
 // 滚动到指定标题
 const scrollToHeading = (headingId) => {
