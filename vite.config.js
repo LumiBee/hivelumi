@@ -174,8 +174,8 @@ export default defineConfig(({ mode }) => {
         assetFileNames: 'assets/[ext]/[name]-[hash].[ext]'
       }
     },
-    // 启用CSS代码分割
-    cssCodeSplit: true,
+    // 禁用CSS代码分割，确保样式正确加载
+    cssCodeSplit: false,
     // 设置块大小警告限制
     chunkSizeWarningLimit: 1000,
     // 启用压缩
