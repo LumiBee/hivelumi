@@ -12,6 +12,7 @@ import toastPlugin from '@/plugins/toast'
 import { initImageOptimization } from '@/utils/imageOptimizer'
 import { initResourcePreloading } from '@/utils/resourcePreloader'
 import { initPerformanceMonitoring, initVisibilityPerformanceMonitoring, initUnloadPerformanceMonitoring } from '@/utils/performanceMonitor'
+import { performanceMonitor } from '@/utils/performance'
 
 // 初始化性能优化
 initImageOptimization()
@@ -19,6 +20,11 @@ initResourcePreloading()
 initPerformanceMonitoring()
 initVisibilityPerformanceMonitoring()
 initUnloadPerformanceMonitoring()
+
+// 初始化性能监控
+performanceMonitor.initWebVitals()
+performanceMonitor.observeResourceTiming()
+performanceMonitor.observeLongTasks()
 
 const app = createApp(App)
 

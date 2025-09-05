@@ -20,7 +20,7 @@
                 @click="$router.push(`/article/${article.slug}`)"
               >
                 <div class="carousel-image-wrapper">
-                  <img 
+                  <LazyImage 
                     :src="article.backgroundUrl || '/img/demo/1.jpg'" 
                     :alt="article.title"
                     class="carousel-image"
@@ -31,7 +31,7 @@
                 <div class="modern-carousel-content">
                   <div class="carousel-meta">
                     <div class="carousel-author">
-                      <img 
+                      <LazyImage 
                         :src="getAuthorAvatarUrl(article.avatarUrl)" 
                         :alt="article.userName || '匿名'"
                         class="carousel-author-avatar"
@@ -301,6 +301,7 @@ import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { articleAPI, tagAPI } from '@/api'
 import { getAuthorAvatarUrl } from '@/utils/avatar-helper'
+import LazyImage from '@/components/LazyImage.vue'
 
 const router = useRouter()
 
