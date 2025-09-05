@@ -11,6 +11,7 @@ import toastPlugin from '@/plugins/toast'
 // 添加最小化的性能优化 - 只做最安全的优化
 import { minimalImageOptimization } from '@/utils/minimal-image-optimization'
 import { safeAPIPreloader } from '@/utils/safe-api-preloader'
+import { smartPreloader } from '@/utils/smart-preloader'
 
 const app = createApp(App)
 
