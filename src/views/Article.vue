@@ -785,7 +785,7 @@ onBeforeUnmount(() => {
   display: block;
 }
 .article-page {
-  padding: 0 0 2rem 0;
+  padding: 70px 0 2rem 0; /* 为固定导航栏预留空间 */
   background-color: #f8f9fa;
 }
 

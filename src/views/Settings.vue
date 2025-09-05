@@ -676,7 +676,7 @@ onMounted(async () => {
 .settings-page {
   min-height: 100vh;
   background: var(--bg-soft);
-  padding: 1.5rem 0;
+  padding: 71.5px 0 1.5rem 0; /* 为固定导航栏预留空间 */
   position: relative;
 }
 

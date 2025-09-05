@@ -411,6 +411,7 @@ const handleClickOutside = (event) => {
 .tag-articles-page {
   background-color: #f8f9fa;
   min-height: 100vh;
+  padding-top: 70px; /* 为固定导航栏预留空间 */
 }
 
 /* ===== Hero Section ===== */

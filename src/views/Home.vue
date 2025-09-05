@@ -723,6 +723,7 @@ onBeforeUnmount(() => {
 .home-page {
   background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
   min-height: 100vh;
+  padding-top: 70px; /* 为固定导航栏预留空间 */
 }
 
 .hero-section {

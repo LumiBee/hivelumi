@@ -1800,13 +1800,13 @@ onUnmounted(() => {
 <style scoped>
 .publish-page {
   background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-  height: calc(100vh - 80px);
+  height: calc(100vh - 70px);
   padding: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   position: fixed;
-  top: 80px;
+  top: 70px; /* 更新为正确的导航栏高度 */
   left: 0;
   right: 0;
   bottom: 0;

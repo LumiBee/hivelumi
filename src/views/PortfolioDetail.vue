@@ -375,7 +375,7 @@ const handleClickOutside = (event) => {
 
 /* ===== 整体布局 ===== */
 .portfolio-detail-page {
-  padding: 0 0 2rem 0;
+  padding: 70px 0 2rem 0; /* 为固定导航栏预留空间 */
   background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
   min-height: 100vh;
 }

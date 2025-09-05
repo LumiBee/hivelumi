@@ -615,7 +615,7 @@ const initBookAnimation = () => {
 @import '/css/favorites.css';
 
 .favorites-page {
-  padding: 0;
+  padding: 70px 0 0 0; /* 为固定导航栏预留空间 */
   background: #ffffff;
   min-height: 100vh;
 }
