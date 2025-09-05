@@ -21,7 +21,7 @@
               >
                 <div class="carousel-image-wrapper">
                   <LazyImage 
-                    :src="article.backgroundUrl || '/img/demo/1.jpg'" 
+                    :src="getProcessedImageUrl(article.backgroundUrl) || '/img/demo/1.jpg'" 
                     :alt="article.title"
                     class="carousel-image"
                   />
@@ -355,6 +355,18 @@ const loadHomeData = async (page = 1) => {
     featuredArticles.value = homeRes.featuredArticles || []
     tags.value = homeRes.tags || []
     
+    // 调试信息
+    console.log('首页数据加载完成:', {
+      articles: articles.value.length,
+      featuredArticles: featuredArticles.value.length,
+      popularArticles: popularArticles.value.length,
+      tags: tags.value.length
+    })
+    
+    if (featuredArticles.value.length > 0) {
+      console.log('特色文章数据:', featuredArticles.value[0])
+    }
+    
     // 初始化智能标签云
     initSmartTagCloud()
     
@@ -391,6 +403,23 @@ const formatTime = (dateString) => {
 
 const navigateToTag = (tagName) => {
   router.push({ name: 'Tags', hash: `#${encodeURIComponent(tagName)}` })
+}
+
+// 处理图片URL的函数
+const getProcessedImageUrl = (url) => {
+  if (!url) return '/img/demo/1.jpg'
+  
+  // 如果是完整的后端URL，转换为相对路径以使用Vite代理
+  if (url.startsWith('http://localhost:8090/')) {
+    url = url.replace('http://localhost:8090', '')
+  }
+  
+  // 如果是相对路径的uploads，需要添加/api前缀（因为后端设置了全局API前缀）
+  if (url.startsWith('/uploads/')) {
+    url = '/api' + url
+  }
+  
+  return url
 }
 
 // 智能泡泡标签云实现

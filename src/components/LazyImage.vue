@@ -50,17 +50,37 @@ export default {
     const loadImage = () => {
       if (isLoaded.value || hasError.value) return
       
+      // 处理图片URL
+      let imageUrl = props.src
+      if (!imageUrl) {
+        hasError.value = true
+        emit('error')
+        return
+      }
+      
+      // 如果是完整的后端URL，转换为相对路径以使用Vite代理
+      if (imageUrl.startsWith('http://localhost:8090/')) {
+        imageUrl = imageUrl.replace('http://localhost:8090', '')
+      }
+      
+      // 如果是相对路径的uploads，需要添加/api前缀
+      if (imageUrl.startsWith('/uploads/')) {
+        imageUrl = '/api' + imageUrl
+      }
+      
       const img = new Image()
       img.onload = () => {
-        actualSrc.value = props.src
+        actualSrc.value = imageUrl
         isLoaded.value = true
         emit('load')
       }
       img.onerror = () => {
         hasError.value = true
+        // 设置默认图片
+        actualSrc.value = '/img/default.jpg'
         emit('error')
       }
-      img.src = props.src
+      img.src = imageUrl
     }
 
     const onLoad = () => {
