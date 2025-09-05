@@ -13,6 +13,12 @@ import { initImageOptimization } from '@/utils/imageOptimizer'
 import { initResourcePreloading } from '@/utils/resourcePreloader'
 import { initPerformanceMonitoring, initVisibilityPerformanceMonitoring, initUnloadPerformanceMonitoring } from '@/utils/performanceMonitor'
 import { performanceMonitor } from '@/utils/performance'
+import { criticalCSS } from '@/utils/critical-css'
+import { resourcePreloader } from '@/utils/resource-preloader'
+import { codeSplitting } from '@/utils/code-splitting'
+
+// 立即内联关键CSS - 必须在其他资源加载前
+criticalCSS.inlineCriticalCSS()
 
 // 初始化性能优化
 initImageOptimization()
@@ -25,6 +31,12 @@ initUnloadPerformanceMonitoring()
 performanceMonitor.initWebVitals()
 performanceMonitor.observeResourceTiming()
 performanceMonitor.observeLongTasks()
+
+// 初始化资源预加载
+resourcePreloader.init()
+
+// 初始化代码分割
+codeSplitting.init()
 
 const app = createApp(App)
 

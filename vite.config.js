@@ -129,7 +129,18 @@ export default defineConfig(({ mode }) => {
       compress: {
         drop_console: true, // 移除console.log
         drop_debugger: true, // 移除debugger
-        pure_funcs: ['console.log', 'console.info', 'console.debug'] // 移除特定函数调用
+        pure_funcs: ['console.log', 'console.info', 'console.debug'], // 移除特定函数调用
+        passes: 2, // 多次压缩优化
+        unsafe: true, // 启用不安全的优化
+        unsafe_comps: true,
+        unsafe_math: true,
+        unsafe_proto: true
+      },
+      mangle: {
+        toplevel: true, // 混淆顶级作用域
+        properties: {
+          regex: /^_/ // 混淆以下划线开头的属性
+        }
       }
     },
     rollupOptions: {
