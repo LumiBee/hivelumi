@@ -13,6 +13,7 @@ import { minimalImageOptimization } from '@/utils/minimal-image-optimization'
 import { safeAPIPreloader } from '@/utils/safe-api-preloader'
 import { smartPreloader } from '@/utils/smart-preloader'
 import { imageOptimizer } from '@/utils/image-optimizer'
+import { performanceMonitor } from '@/utils/advanced-performance'
 
 const app = createApp(App)
 

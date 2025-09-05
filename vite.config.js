@@ -125,37 +125,77 @@ export default defineConfig(({ mode }) => {
     outDir: 'dist',
     sourcemap: false,
     minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true,
-        pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.warn'],
-        passes: 2,
-        dead_code: true,
-        unused: true
-      },
-      mangle: {
-        toplevel: true
-      }
-    },
+            terserOptions: {
+          compress: {
+            drop_console: true,
+            drop_debugger: true,
+            pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.warn'],
+            passes: 3,
+            dead_code: true,
+            unused: true,
+            unsafe: true,
+            unsafe_comps: true,
+            unsafe_math: true,
+            unsafe_proto: true,
+            unsafe_regexp: true,
+            unsafe_undefined: true,
+            conditionals: true,
+            evaluate: true,
+            booleans: true,
+            loops: true,
+            sequences: true,
+            properties: true,
+            comparisons: true,
+            typeofs: true,
+            collapse_vars: true,
+            reduce_vars: true,
+            hoist_funs: true,
+            hoist_vars: true,
+            keep_fargs: false,
+            keep_infinity: true,
+            side_effects: false
+          },
+          mangle: {
+            toplevel: true,
+            properties: {
+              regex: /^_/
+            }
+          },
+          format: {
+            comments: false
+          }
+        },
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          // Vue核心库
+          // Vue核心库 - 最高优先级
           if (id.includes('vue') || id.includes('vue-router') || id.includes('pinia')) {
             return 'vue-vendor'
           }
-          // UI框架
+          // UI框架 - 高优先级
           if (id.includes('bootstrap')) {
             return 'bootstrap-vendor'
           }
-          // 工具库
+          // 工具库 - 高优先级
           if (id.includes('axios') || id.includes('dompurify')) {
             return 'utils-vendor'
           }
-          // 图标库
+          // 图标库 - 中优先级
           if (id.includes('fontawesome')) {
             return 'icons-vendor'
+          }
+          // 页面组件 - 按路由分割
+          if (id.includes('/views/')) {
+            const viewName = id.split('/views/')[1].split('.')[0]
+            return `page-${viewName}`
+          }
+          // 工具函数 - 按功能分割
+          if (id.includes('/utils/')) {
+            return 'utils'
+          }
+          // 组件 - 按类型分割
+          if (id.includes('/components/')) {
+            return 'components'
           }
         },
         // 优化文件名
