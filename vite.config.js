@@ -134,10 +134,23 @@ export default defineConfig(({ mode }) => {
     },
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vue-vendor': ['vue', 'vue-router', 'pinia'],
-          'bootstrap-vendor': ['bootstrap', 'bootstrap-vue-next'],
-          'utils-vendor': ['axios', 'dompurify']
+        manualChunks: (id) => {
+          // Vue核心库
+          if (id.includes('vue') || id.includes('vue-router') || id.includes('pinia')) {
+            return 'vue-vendor'
+          }
+          // UI框架
+          if (id.includes('bootstrap')) {
+            return 'bootstrap-vendor'
+          }
+          // 工具库
+          if (id.includes('axios') || id.includes('dompurify')) {
+            return 'utils-vendor'
+          }
+          // 图标库
+          if (id.includes('fontawesome')) {
+            return 'icons-vendor'
+          }
         },
         // 优化文件名
         chunkFileNames: 'assets/js/[name]-[hash].js',
