@@ -52,145 +52,70 @@ export default defineConfig(({ mode }) => {
           target: backendUrl,
           changeOrigin: true,
           secure: isHttps,
-          configure: (proxy, _options) => {
-            proxy.on('error', (err, _req, _res) => {
-              console.log('proxy error', err);
-            });
-            proxy.on('proxyReq', (proxyReq, req, _res) => {
-              console.log('Sending Request to the Target:', req.method, req.url);
-            });
-            proxy.on('proxyRes', (proxyRes, req, _res) => {
-              console.log('Received Response from the Target:', proxyRes.statusCode, req.url);
-            });
-          }
-        },
-        // 认证相关代理
-        '/login': {
-          target: backendUrl,
-          changeOrigin: true,
-          secure: isHttps,
-        },
-        '/signup': {
-          target: backendUrl,
-          changeOrigin: true,
-          secure: isHttps,
-        },
-        '/logout': {
-          target: backendUrl,
-          changeOrigin: true,
-          secure: isHttps,
-        },
-        // OAuth2代理
-        '/oauth2': {
-          target: backendUrl,
-          changeOrigin: true,
-          secure: isHttps,
-        },
-        '/login-process': {
-          target: backendUrl,
-          changeOrigin: true,
-          secure: isHttps,
-        },
-        // 文件上传代理
-        '/uploads': {
-          target: backendUrl,
-          changeOrigin: true,
-          secure: isHttps,
-          configure: (proxy, _options) => {
-            proxy.on('error', (err, _req, _res) => {
-              console.log('uploads proxy error', err);
-            });
-            proxy.on('proxyReq', (proxyReq, req, _res) => {
-              console.log('Sending uploads Request to the Target:', req.method, req.url);
-            });
-            proxy.on('proxyRes', (proxyRes, req, _res) => {
-              console.log('Received uploads Response from the Target:', proxyRes.statusCode, req.url);
-            });
-          }
-        },
-        // 内容页面代理（用于SSR内容获取）
-        '/api/article': {
-          target: backendUrl,
-          changeOrigin: true,
-          secure: isHttps,
-        },
-        '/search': {
-          target: backendUrl,
-          changeOrigin: true,
-          secure: isHttps,
         }
       }
-      },
+    },
     build: {
-    outDir: 'dist',
-    sourcemap: false,
-    minify: 'terser',
-            terserOptions: {
-          compress: {
-            drop_console: true,
-            drop_debugger: true,
-            pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.warn'],
-            passes: 2,
-            dead_code: true,
-            unused: true
+      outDir: 'dist',
+      sourcemap: false,
+      minify: 'terser',
+      terserOptions: {
+        compress: {
+          drop_console: true,
+          drop_debugger: true,
+          pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.warn'],
+          passes: 2,
+          dead_code: true,
+          unused: true
+        },
+        mangle: {
+          toplevel: true
+        }
+      },
+      // 确保正确的MIME类型
+      assetsInlineLimit: 4096,
+      rollupOptions: {
+        output: {
+          manualChunks: (id) => {
+            // Vue核心库 - 最高优先级
+            if (id.includes('vue') || id.includes('vue-router') || id.includes('pinia')) {
+              return 'vue-vendor'
+            }
+            // UI框架 - 高优先级
+            if (id.includes('bootstrap')) {
+              return 'bootstrap-vendor'
+            }
+            // 工具库 - 高优先级
+            if (id.includes('axios') || id.includes('dompurify')) {
+              return 'utils-vendor'
+            }
+            // 图标库 - 中优先级
+            if (id.includes('fontawesome')) {
+              return 'icons-vendor'
+            }
+            // 页面组件 - 按路由分割
+            if (id.includes('/views/')) {
+              const viewName = id.split('/views/')[1].split('.')[0]
+              return `page-${viewName}`
+            }
+            // 工具函数 - 按功能分割
+            if (id.includes('/utils/')) {
+              return 'utils'
+            }
+            // 组件 - 按类型分割
+            if (id.includes('/components/')) {
+              return 'components'
+            }
           },
-          mangle: {
-            toplevel: true
-          }
-        },
-    rollupOptions: {
-      output: {
-        manualChunks: (id) => {
-          // Vue核心库 - 最高优先级
-          if (id.includes('vue') || id.includes('vue-router') || id.includes('pinia')) {
-            return 'vue-vendor'
-          }
-          // UI框架 - 高优先级
-          if (id.includes('bootstrap')) {
-            return 'bootstrap-vendor'
-          }
-          // 工具库 - 高优先级
-          if (id.includes('axios') || id.includes('dompurify')) {
-            return 'utils-vendor'
-          }
-          // 图标库 - 中优先级
-          if (id.includes('fontawesome')) {
-            return 'icons-vendor'
-          }
-          // 页面组件 - 按路由分割
-          if (id.includes('/views/')) {
-            const viewName = id.split('/views/')[1].split('.')[0]
-            return `page-${viewName}`
-          }
-          // 工具函数 - 按功能分割
-          if (id.includes('/utils/')) {
-            return 'utils'
-          }
-          // 组件 - 按类型分割
-          if (id.includes('/components/')) {
-            return 'components'
-          }
-        },
-        // 优化文件名
-        chunkFileNames: 'assets/js/[name]-[hash].js',
-        entryFileNames: 'assets/js/[name]-[hash].js',
-        assetFileNames: 'assets/[ext]/[name]-[hash].[ext]'
-      }
-    },
-    cssCodeSplit: false,
-    chunkSizeWarningLimit: 1000,
-    // 启用压缩
-    reportCompressedSize: true
-  },
-    // 预构建优化
-    optimizeDeps: {
-      include: ['vue', 'vue-router', 'pinia', 'axios', 'bootstrap', 'bootstrap-vue-next'],
-      exclude: ['@fortawesome/fontawesome-free'] // 排除大体积的图标库
-    },
-    // 环境变量配置
-    define: {
-      __VUE_OPTIONS_API__: true,
-      __VUE_PROD_DEVTOOLS__: false
+          // 优化文件名
+          chunkFileNames: 'assets/js/[name]-[hash].js',
+          entryFileNames: 'assets/js/[name]-[hash].js',
+          assetFileNames: 'assets/[ext]/[name]-[hash].[ext]'
+        }
+      },
+      cssCodeSplit: false, // 禁用CSS代码分割，避免样式问题
+      chunkSizeWarningLimit: 1000,
+      reportCompressedSize: true
     }
   }
 })
