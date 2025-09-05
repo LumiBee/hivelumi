@@ -1021,6 +1021,7 @@ onMounted(() => {
     rgba(0,0,0,0.6) 100%
   );
   backdrop-filter: blur(2px);
+  pointer-events: none; /* 允许点击事件穿透 */
 }
 
 .cover-pattern {
@@ -1036,6 +1037,7 @@ onMounted(() => {
   background-size: 60px 60px, 40px 40px, 100% 100%;
   opacity: 0.3;
   z-index: 1;
+  pointer-events: none; /* 允许点击事件穿透 */
   /* 移除复杂的浮动动画，减少性能消耗 */
 }
 
@@ -1098,7 +1100,7 @@ onMounted(() => {
   position: absolute;
   top: 25px;
   right: 0px;
-  z-index: 20; /* 提高z-index确保按钮在最上层 */
+  z-index: 50; /* 进一步提高z-index确保按钮在最上层 */
   opacity: 0.95;
   /* 简化过渡效果 */
   transition: all 0.2s ease;
@@ -1113,8 +1115,8 @@ onMounted(() => {
   box-shadow: 
     0 8px 25px rgba(0,0,0,0.15),
     0 4px 10px rgba(0,0,0,0.1);
-  background: rgba(255,255,255,0.9);
-  border: 1px solid rgba(255,255,255,0.4);
+  background: rgba(255,255,255,0.95); /* 提高不透明度，增强可见性 */
+  border: 2px solid rgba(255,255,255,0.8); /* 增强边框 */
   backdrop-filter: blur(5px); /* 减少模糊效果 */
   letter-spacing: 0.5px;
   cursor: pointer; /* 确保鼠标指针正确 */
@@ -1124,15 +1126,25 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   position: relative; /* 确保按钮在正确的位置 */
-  z-index: 30; /* 确保按钮在最上层 */
+  z-index: 60; /* 进一步提高z-index */
   user-select: none; /* 防止文本选择 */
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
+  transition: all 0.3s ease; /* 增强过渡效果 */
 }
 
 .cover-edit-btn:hover {
   transform: translateY(-2px); /* 减少悬停移动距离 */
+}
+
+.cover-edit-btn .btn-modern:hover {
+  background: rgba(255,255,255,1); /* 悬停时完全不透明 */
+  border-color: rgba(246, 213, 92, 0.8); /* 悬停时边框变为金色 */
+  box-shadow: 
+    0 12px 35px rgba(0,0,0,0.2),
+    0 6px 15px rgba(0,0,0,0.15);
+  transform: translateY(-1px);
 }
 
 .cover-edit-btn .btn-modern:active {
