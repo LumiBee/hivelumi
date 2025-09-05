@@ -130,39 +130,12 @@ export default defineConfig(({ mode }) => {
             drop_console: true,
             drop_debugger: true,
             pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.warn'],
-            passes: 3,
+            passes: 2,
             dead_code: true,
-            unused: true,
-            unsafe: true,
-            unsafe_comps: true,
-            unsafe_math: true,
-            unsafe_proto: true,
-            unsafe_regexp: true,
-            unsafe_undefined: true,
-            conditionals: true,
-            evaluate: true,
-            booleans: true,
-            loops: true,
-            sequences: true,
-            properties: true,
-            comparisons: true,
-            typeofs: true,
-            collapse_vars: true,
-            reduce_vars: true,
-            hoist_funs: true,
-            hoist_vars: true,
-            keep_fargs: false,
-            keep_infinity: true,
-            side_effects: false
+            unused: true
           },
           mangle: {
-            toplevel: true,
-            properties: {
-              regex: /^_/
-            }
-          },
-          format: {
-            comments: false
+            toplevel: true
           }
         },
     rollupOptions: {
