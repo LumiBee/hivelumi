@@ -602,16 +602,8 @@ const initVditor = () => {
           // 修复表格中的多余粗体标记
           if (entering && node.type === 'tableCell') {
             if (node.text && typeof node.text === 'string') {
-              // 清理表格单元格中的多余粗体标记
-              node.text = node.text.replace(/\*\*(.*?)\*\*/g, '$1')
-            }
-          }
-          
-          // 修复段落中的多余粗体标记
-          if (entering && node.type === 'paragraph') {
-            if (node.text && typeof node.text === 'string') {
-              // 只清理段落开头的多余粗体标记，不影响正常的粗体格式
-              node.text = node.text.replace(/^(\s*)\*\*([^*\n]+)\*\*(\s*)$/gm, '$1$2$3')
+              // 只清理表格单元格中的多余粗体标记
+              node.text = node.text.replace(/\| \*\*(.*?)\*\* \|/g, '| $1 |')
             }
           }
           
@@ -771,11 +763,15 @@ const initVditor = () => {
               editorElement.addEventListener('input', () => {
                 const currentContent = vditor.getValue()
                 if (currentContent !== articleForm.value.content) {
-                  // 清理Markdown内容
+                  // 只在检测到明显问题时才进行清理
                   const cleanedContent = cleanMarkdownContent(currentContent)
                   if (cleanedContent !== currentContent) {
-                    vditor.setValue(cleanedContent)
-                    articleForm.value.content = cleanedContent
+                    // 使用防抖，避免频繁更新
+                    clearTimeout(cleanTimeout)
+                    cleanTimeout = setTimeout(() => {
+                      vditor.setValue(cleanedContent)
+                      articleForm.value.content = cleanedContent
+                    }, 500)
                   } else {
                     articleForm.value.content = currentContent
                   }
@@ -965,26 +961,31 @@ const initVditor = () => {
   })
 }
 
-// 清理Markdown内容
+// 防抖定时器
+let cleanTimeout = null
+
+// 清理Markdown内容 - 保守版本
 const cleanMarkdownContent = (content) => {
   if (!content) return content
   
   let cleanedContent = content
   
-  // 1. 清理表格中的多余粗体标记
+  // 只清理明显的问题，不处理正常的粗体格式
+  
+  // 1. 清理表格中的多余粗体标记（只处理表格行）
   cleanedContent = cleanedContent.replace(/\| \*\*(.*?)\*\* \|/g, '| $1 |')
   
-  // 2. 清理段落开头的多余粗体标记（只处理段落开头的情况）
-  cleanedContent = cleanedContent.replace(/^(\s*)\*\*([^*\n]+)\*\*(\s*)$/gm, '$1$2$3')
-  
-  // 3. 清理代码块第一行空行
+  // 2. 清理代码块第一行空行
   cleanedContent = cleanedContent.replace(/```(\w+)?\n\s*\n/g, '```$1\n')
   
-  // 4. 清理多余的空行
+  // 3. 清理多余的空行
   cleanedContent = cleanedContent.replace(/\n{3,}/g, '\n\n')
   
-  // 5. 清理重复的粗体标记
+  // 4. 清理重复的粗体标记（****内容**** -> **内容**）
   cleanedContent = cleanedContent.replace(/\*\*\*\*([^*]+)\*\*\*\*/g, '**$1**')
+  
+  // 暂时禁用段落开头的清理，避免误处理
+  // TODO: 需要更精确的检测逻辑
   
   return cleanedContent
 }
