@@ -591,12 +591,44 @@ const initVditor = () => {
       theme: 'classic',
       icon: 'material',
       customRenders: {
-        // 自定义渲染器，强制左对齐
+        // 自定义渲染器，修复Markdown渲染问题
         render: (node, entering) => {
+          // 强制左对齐
           if (entering && node.type === 'paragraph') {
             node.style = node.style || {}
             node.style.textAlign = 'left'
           }
+          
+          // 修复表格中的多余粗体标记
+          if (entering && node.type === 'tableCell') {
+            if (node.text && typeof node.text === 'string') {
+              // 清理表格单元格中的多余粗体标记
+              node.text = node.text.replace(/\*\*(.*?)\*\*/g, '$1')
+            }
+          }
+          
+          // 修复段落中的多余粗体标记
+          if (entering && node.type === 'paragraph') {
+            if (node.text && typeof node.text === 'string') {
+              // 清理段落中的多余粗体标记，但保留正常的粗体
+              node.text = node.text.replace(/\*\*([^*]+)\*\*/g, (match, content) => {
+                // 如果内容已经是粗体，则不重复添加
+                if (content.includes('<strong>') || content.includes('<b>')) {
+                  return content
+                }
+                return `<strong>${content}</strong>`
+              })
+            }
+          }
+          
+          // 修复代码块第一行空行问题
+          if (entering && node.type === 'codeBlock') {
+            if (node.text && typeof node.text === 'string') {
+              // 清理代码内容，移除首尾空白和多余空行
+              node.text = node.text.trim()
+            }
+          }
+          
           return true
         }
       },
@@ -745,7 +777,14 @@ const initVditor = () => {
               editorElement.addEventListener('input', () => {
                 const currentContent = vditor.getValue()
                 if (currentContent !== articleForm.value.content) {
-                  articleForm.value.content = currentContent
+                  // 清理Markdown内容
+                  const cleanedContent = cleanMarkdownContent(currentContent)
+                  if (cleanedContent !== currentContent) {
+                    vditor.setValue(cleanedContent)
+                    articleForm.value.content = cleanedContent
+                  } else {
+                    articleForm.value.content = currentContent
+                  }
                   updateWordCount()
                   // 只有在有实际内容时才标记为未保存
                   if (currentContent && currentContent.trim().length > 0) {
@@ -757,12 +796,46 @@ const initVditor = () => {
               })
             }
             
+            // 添加粘贴事件监听器
+            if (editorElement) {
+              editorElement.addEventListener('paste', (e) => {
+                // 延迟处理，确保粘贴内容已经更新
+                setTimeout(() => {
+                  const currentContent = vditor.getValue()
+                  if (currentContent !== articleForm.value.content) {
+                    // 清理Markdown内容
+                    const cleanedContent = cleanMarkdownContent(currentContent)
+                    if (cleanedContent !== currentContent) {
+                      vditor.setValue(cleanedContent)
+                      articleForm.value.content = cleanedContent
+                    } else {
+                      articleForm.value.content = currentContent
+                    }
+                    updateWordCount()
+                    // 只有在有实际内容时才标记为未保存
+                    if (currentContent && currentContent.trim().length > 0) {
+                      hasUnsavedChanges.value = true
+                      // 触发智能自动保存
+                      triggerSmartAutoSave()
+                    }
+                  }
+                }, 200)
+              })
+            }
+            
             // 定期检查内容变化（作为备用方案）
             const contentCheckInterval = setInterval(() => {
               if (vditor && typeof vditor.getValue === 'function') {
                 const currentContent = vditor.getValue()
                 if (currentContent !== articleForm.value.content) {
-                  articleForm.value.content = currentContent
+                  // 清理Markdown内容
+                  const cleanedContent = cleanMarkdownContent(currentContent)
+                  if (cleanedContent !== currentContent) {
+                    vditor.setValue(cleanedContent)
+                    articleForm.value.content = cleanedContent
+                  } else {
+                    articleForm.value.content = currentContent
+                  }
                   updateWordCount()
                   // 只有在有实际内容时才标记为未保存
                   if (currentContent && currentContent.trim().length > 0) {
@@ -896,6 +969,33 @@ const initVditor = () => {
     reject(error)
   }
   })
+}
+
+// 清理Markdown内容
+const cleanMarkdownContent = (content) => {
+  if (!content) return content
+  
+  let cleanedContent = content
+  
+  // 1. 清理表格中的多余粗体标记
+  cleanedContent = cleanedContent.replace(/\| \*\*(.*?)\*\* \|/g, '| $1 |')
+  
+  // 2. 清理段落中的多余粗体标记
+  cleanedContent = cleanedContent.replace(/\*\*([^*]+)\*\*/g, (match, content) => {
+    // 如果内容已经是粗体，则不重复添加
+    if (content.includes('<strong>') || content.includes('<b>')) {
+      return content
+    }
+    return `**${content}**`
+  })
+  
+  // 3. 清理代码块第一行空行
+  cleanedContent = cleanedContent.replace(/```(\w+)?\n\s*\n/g, '```$1\n')
+  
+  // 4. 清理多余的空行
+  cleanedContent = cleanedContent.replace(/\n{3,}/g, '\n\n')
+  
+  return cleanedContent
 }
 
 // 方法
