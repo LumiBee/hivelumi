@@ -350,19 +350,66 @@ if (article.value?.content) {
     return `<h${level} id="${id}">${text}</h${level}>`;
   };
   
-  // 自定义代码块渲染 - 简洁版
+  // 自定义代码块渲染 - 修复第一行空行问题
   renderer.code = (code, language) => {
     const langClass = language ? ` class="language-${language}"` : '';
+    // 清理代码内容，移除首尾空白和多余空行
+    const cleanCode = code.trim();
     return `<div class="code-block-wrapper">
               <pre${langClass}>
-                <code${langClass} style="color: #ffffff;">${code}</code>
+                <code${langClass} style="color: #ffffff;">${cleanCode}</code>
               </pre>
             </div>`;
   };
   
+  // 自定义表格渲染 - 修复表格中的粗体问题
+  renderer.table = (header, body) => {
+    return `<table class="table table-striped table-hover">
+              <thead>${header}</thead>
+              <tbody>${body}</tbody>
+            </table>`;
+  };
+  
+  // 自定义表格单元格渲染 - 移除多余的粗体标记
+  renderer.tablecell = (content, flags) => {
+    const type = flags.header ? 'th' : 'td';
+    const align = flags.align ? ` style="text-align: ${flags.align}"` : '';
+    // 清理内容中的多余粗体标记
+    const cleanContent = content.replace(/\*\*(.*?)\*\*/g, '$1');
+    return `<${type}${align}>${cleanContent}</${type}>`;
+  };
+  
+  // 自定义段落渲染 - 修复段落中的多余粗体标记
+  renderer.paragraph = (text) => {
+    // 清理段落中的多余粗体标记，但保留正常的粗体
+    const cleanText = text.replace(/\*\*([^*]+)\*\*/g, (match, content) => {
+      // 如果内容已经是粗体，则不重复添加
+      if (content.includes('<strong>') || content.includes('<b>')) {
+        return content;
+      }
+      return `<strong>${content}</strong>`;
+    });
+    return `<p>${cleanText}</p>`;
+  };
+  
+  // 配置marked选项
+  const markedOptions = {
+    renderer: renderer,
+    gfm: true, // GitHub风格Markdown
+    breaks: false, // 不将换行符转换为<br>
+    pedantic: false, // 不严格模式
+    sanitize: false, // 不使用内置的sanitize（我们用DOMPurify）
+    smartLists: true, // 智能列表
+    smartypants: false, // 不转换引号
+    xhtml: false // 不使用XHTML
+  };
+  
   // 使用配置好的渲染器渲染Markdown
-  const rawHtml = marked.parse(article.value.content, { renderer });
-  renderedContent.value = DOMPurify.sanitize(rawHtml);
+  const rawHtml = marked.parse(article.value.content, markedOptions);
+  renderedContent.value = DOMPurify.sanitize(rawHtml, {
+    ALLOWED_TAGS: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'br', 'strong', 'em', 'u', 's', 'code', 'pre', 'blockquote', 'ul', 'ol', 'li', 'a', 'img', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'div', 'span'],
+    ALLOWED_ATTR: ['id', 'class', 'href', 'src', 'alt', 'title', 'target', 'rel']
+  });
   
   // 更新目录数据
   tableOfContents.value = headings;
