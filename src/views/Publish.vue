@@ -88,9 +88,9 @@
         </div>
       </div>
       
-      <!-- Vditor Markdown编辑器 -->
+      <!-- Toast UI Markdown编辑器 -->
       <div class="content-editor-wrapper" ref="editorWrapper">
-        <div id="vditor" ref="vditorContainer"></div>
+        <div id="toastUiEditor" ref="editorContainer"></div>
       </div>
     </div>
 
@@ -403,26 +403,12 @@ import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
 import { articleAPI, portfolioAPI, aiAPI } from '@/api'
-import Vditor from 'vditor'
-import 'vditor/dist/index.css'
+import Editor from '@toast-ui/editor'
+import '@toast-ui/editor/dist/toastui-editor.css'
+import codeSyntaxHighlight from '@toast-ui/editor-plugin-code-syntax-highlight'
+import 'highlight.js/styles/github.css'
 
-// 确保Vditor CSS和图标字体正确加载
-const vditorCSS = document.createElement('link')
-vditorCSS.rel = 'stylesheet'
-vditorCSS.href = 'https://unpkg.com/vditor@3.11.1/dist/index.css'
-document.head.appendChild(vditorCSS)
-
-// 加载Vditor图标字体
-const vditorIcons = document.createElement('link')
-vditorIcons.rel = 'stylesheet'
-vditorIcons.href = 'https://unpkg.com/vditor@3.11.1/dist/css/content-theme/ant.css'
-document.head.appendChild(vditorIcons)
-
-// 加载Material Icons字体
-const materialIcons = document.createElement('link')
-materialIcons.rel = 'stylesheet'
-materialIcons.href = 'https://fonts.googleapis.com/icon?family=Material+Icons'
-document.head.appendChild(materialIcons)
+// Toast UI Editor 已通过import加载CSS
 
 // 加载Font Awesome字体
 const fontAwesome = document.createElement('link')
@@ -476,8 +462,8 @@ const portfolioSelectContainer = ref(null)
 
 // 编辑器相关
 const editorWrapper = ref(null)
-const vditorContainer = ref(null)
-let vditor = null
+const editorContainer = ref(null)
+let editorInstance = null
 
 // 编辑模式
 const isEditMode = ref(false)
@@ -496,496 +482,263 @@ const canActuallyPublish = computed(() => {
          articleForm.value.excerpt.trim()
 })
 
-// 初始化Vditor编辑器
-const initVditor = () => {
+// 初始化Toast UI编辑器
+const initEditor = () => {
   return new Promise((resolve, reject) => {
     try {
-      // 确保DOM元素存在
-      const vditorElement = document.getElementById('vditor')
-      if (!vditorElement) {
-        console.error('Vditor容器元素不存在')
-        reject(new Error('Vditor容器元素不存在'))
+      const editorElement = document.getElementById('toastUiEditor')
+      if (!editorElement) {
+        console.error('Toast UI Editor容器元素不存在')
+        reject(new Error('Toast UI Editor容器元素不存在'))
         return
       }
       
-      if (vditor) {
-        vditor.destroy()
+      if (editorInstance) {
+        editorInstance.destroy()
       }
     
-    // 动态计算编辑器高度，基于真实DOM元素
-    const calculateEditorHeight = () => {
-      // 获取当前窗口高度
-      const windowHeight = window.innerHeight
-      
-      // 获取页面顶部到编辑器容器的距离
-      const getEditorTopOffset = () => {
-        const editorContainer = document.querySelector('.content-editor-wrapper')
-        if (!editorContainer) return 200 // 默认值
+      // 动态计算编辑器高度
+      const calculateEditorHeight = () => {
+        const windowHeight = window.innerHeight
+        const windowWidth = window.innerWidth
         
-        const rect = editorContainer.getBoundingClientRect()
-        return rect.top
+        // 根据窗口宽度调整最小高度
+        let minHeight = 500
+        if (windowWidth < 768) {
+          minHeight = 400  // 移动端
+        } else if (windowWidth < 1200) {
+          minHeight = 450  // 平板
+        } else {
+          minHeight = 500  // 桌面端
+        }
+        
+        const editorContainer = document.querySelector('.publish-page-wrapper')
+        const rect = editorContainer ? editorContainer.getBoundingClientRect() : { top: 200 }
+        const availableHeight = windowHeight - rect.top - 100
+        
+        return Math.max(minHeight, availableHeight)
       }
       
-      // 计算底部边距
-      const bottomMargin = 30
-      
-      // 动态计算可用高度 = 窗口高度 - 编辑器顶部偏移 - 底部边距
-      const availableHeight = windowHeight - getEditorTopOffset() - bottomMargin
-      
-      // 确保至少有最小高度
-      return Math.max(500, availableHeight)
-    }
-    
-    vditor = new Vditor('vditor', {
-      height: calculateEditorHeight(),
-      mode: 'ir', // 即时渲染模式，类似Typora
-      placeholder: '请输入文章内容，支持Markdown语法...',
-      toolbar: [
-        'bold', 'italic', 'strike', 'link', 
-        '|', 'headings', 'list', 'ordered-list', 'check',
-        '|', 'quote', 'line', 'code', 'inline-code',
-        '|', 'upload', 'table',
-        '|', 'undo', 'redo',
-        '|', 'edit-mode', 'fullscreen',
-        '|', 'preview'
-      ],
-      typewriterMode: false, // 关闭打字机模式，保持左对齐
-      outline: {
-        enable: false, // 禁用大纲功能
-        position: 'left' 
-      },
-      upload: {
-        handler: (files) => {
-          // 处理图片上传
-          const promises = files.map(file => {
-            return new Promise((resolve) => {
-              const reader = new FileReader()
-              reader.onload = (e) => {
-                resolve({
-                  msg: '上传成功',
-                  code: 0,
-                  data: {
-                    errFiles: [],
-                    succMap: {
-                      [file.name]: e.target.result
-                    }
-                  }
-                })
-              }
-              reader.readAsDataURL(file)
-            })
-          })
-          return Promise.all(promises)
-        }
-      },
-      cache: {
-        enable: false
-      },
-      preview: {
-        delay: 1000,
-        show: false
-      },
-      counter: {
-        enable: false
-      },
-      theme: 'classic',
-      icon: 'material',
-      customRenders: {
-        // 自定义渲染器，修复Markdown渲染问题
-        render: (node, entering) => {
-          // 强制左对齐
-          if (entering && node.type === 'paragraph') {
-            node.style = node.style || {}
-            node.style.textAlign = 'left'
-          }
-          
-          // 修复表格中的多余粗体标记
-          if (entering && node.type === 'tableCell') {
-            if (node.text && typeof node.text === 'string') {
-              // 只清理表格单元格中的多余粗体标记
-              node.text = node.text.replace(/\| \*\*(.*?)\*\* \|/g, '| $1 |')
-            }
-          }
-          
-          // 修复代码块第一行空行问题
-          if (entering && node.type === 'codeBlock') {
-            if (node.text && typeof node.text === 'string') {
-              // 清理代码内容，移除首尾空白和多余空行
-              node.text = node.text.trim()
-            }
-          }
-          
-          return true
-        }
-      },
-      customIcons: {},
-      classes: {
-        preview: 'vditor-reset',
-      },
-      tab: '  ', // 使用两个空格作为缩进
-      after: () => {
-        // 检查工具栏是否存在
-        const toolbar = document.querySelector('#vditor .vditor-toolbar')
-        
-        // 强制显示工具栏
-        if (toolbar) {
-          toolbar.style.display = 'flex'
-          toolbar.style.visibility = 'visible'
-          toolbar.style.opacity = '1'
-          
-          // 强制显示所有工具栏项
-          const toolbarItems = toolbar.querySelectorAll('.vditor-toolbar__item')
-          toolbarItems.forEach(item => {
-            item.style.display = 'flex'
-            item.style.visibility = 'visible'
-            item.style.opacity = '1'
-            
-            // 检查并修复按钮图标
-            const buttons = item.querySelectorAll('button')
-            buttons.forEach(button => {
-              button.style.display = 'inline-flex'
-              button.style.alignItems = 'center'
-              button.style.justifyContent = 'center'
-              button.style.minWidth = '32px'
-              button.style.minHeight = '32px'
-              button.style.padding = '8px'
-              
-              // 检查是否有图标内容
-              const iconContent = button.querySelector('svg, .anticon, [class*="icon"], .material-icons')
-              if (!iconContent) {
-                // 根据按钮的data-type或data-tag属性添加对应的图标
-                const buttonType = button.getAttribute('data-type') || 
-                                  button.getAttribute('data-tag') || 
-                                  button.getAttribute('data-mode')
-                
-                if (buttonType) {
-                  // 为不同类型的按钮添加Material Icons图标
-                  let iconName = ''
-                  
-                  // 根据按钮类型设置图标
-                  switch(buttonType) {
-                    case 'h1': iconName = 'looks_one'; break;
-                    case 'h2': iconName = 'looks_two'; break;
-                    case 'h3': iconName = 'looks_3'; break;
-                    case 'h4': iconName = 'looks_4'; break;
-                    case 'h5': iconName = 'looks_5'; break;
-                    case 'h6': iconName = 'looks_6'; break;
-                    case 'wysiwyg': iconName = 'visibility'; break;
-                    case 'ir': iconName = 'edit'; break;
-                    case 'sv': iconName = 'code'; break;
-                    default: iconName = 'text_fields';
-                  }
-                  
-                  // 添加Material Icons图标
-                  button.innerHTML = `<i class="material-icons" style="font-size: 18px;">${iconName}</i>`
-                } else {
-                  // 如果无法确定按钮类型，则使用按钮标题作为文本
-                  const buttonText = button.getAttribute('title') || button.textContent || ''
-                  if (buttonText) {
-                    button.innerHTML = `<span>${buttonText}</span>`
-                  }
-                }
-              }
-            })
-          })
-          
-          // 延迟添加文本标签和检查图标
-          setTimeout(() => {
-            const buttons = toolbar.querySelectorAll('button')
-            buttons.forEach((button, index) => {
-              // 检查按钮是否有任何内容
-              if (button.innerHTML.trim() === '') {
-                const buttonType = button.getAttribute('data-type') || 
-                                  button.getAttribute('data-tag') || 
-                                  button.getAttribute('data-mode')
-                
-                // 根据按钮类型设置图标
-                let iconName = ''
-                switch(buttonType) {
-                  case 'h1': iconName = 'looks_one'; break;
-                  case 'h2': iconName = 'looks_two'; break;
-                  case 'h3': iconName = 'looks_3'; break;
-                  case 'h4': iconName = 'looks_4'; break;
-                  case 'h5': iconName = 'looks_5'; break;
-                  case 'h6': iconName = 'looks_6'; break;
-                  case 'wysiwyg': iconName = 'visibility'; break;
-                  case 'ir': iconName = 'edit'; break;
-                  case 'sv': iconName = 'code'; break;
-                  default: iconName = 'text_fields';
-                }
-                
-                // 添加Material Icons图标
-                button.innerHTML = `<i class="material-icons" style="font-size: 18px;">${iconName}</i>`
-              }
-              
-              // 为按钮添加title提示
-              if (!button.title) {
-                const buttonType = button.getAttribute('data-type') || 
-                                  button.getAttribute('data-tag') || 
-                                  button.getAttribute('data-mode')
-                if (buttonType) {
-                  button.title = buttonType.charAt(0).toUpperCase() + buttonType.slice(1)
-                }
-              }
-            })
-            
-            // 再次检查是否有按钮缺少图标
-            const emptyButtons = Array.from(buttons).filter(btn => btn.innerHTML.trim() === '')
-          }, 500)
-        }
-        
-        // 编辑器初始化完成后的回调
-        if (articleForm.value.content) {
-          vditor.setValue(articleForm.value.content)
-        }
-        
-        // 监听内容变化 - 使用正确的API
-        try {
-          // 使用Vditor 3.x的正确事件监听方式
-          if (vditor && vditor.vditor) {
-            // 设置内容变化的回调函数
-            const originalSetValue = vditor.setValue.bind(vditor)
-            vditor.setValue = (value) => {
-              originalSetValue(value)
-              articleForm.value.content = value
-              updateWordCount()
-              // 只有在有实际内容时才标记为未保存
-              if (value && value.trim().length > 0) {
-                hasUnsavedChanges.value = true
-                // 触发智能自动保存
-                triggerSmartAutoSave()
-              }
-            }
-            
-            // 监听编辑器输入事件
-            const editorElement = vditor.vditor.element
-            if (editorElement) {
-              editorElement.addEventListener('input', () => {
-                const currentContent = vditor.getValue()
-                if (currentContent !== articleForm.value.content) {
-                  // 只在检测到明显问题时才进行清理
-                  const cleanedContent = cleanMarkdownContent(currentContent)
-                  if (cleanedContent !== currentContent) {
-                    // 使用防抖，避免频繁更新
-                    clearTimeout(cleanTimeout)
-                    cleanTimeout = setTimeout(() => {
-                      vditor.setValue(cleanedContent)
-                      articleForm.value.content = cleanedContent
-                    }, 500)
-                  } else {
-                    articleForm.value.content = currentContent
-                  }
-                  updateWordCount()
-                  // 只有在有实际内容时才标记为未保存
-                  if (currentContent && currentContent.trim().length > 0) {
-                    hasUnsavedChanges.value = true
-                    // 触发智能自动保存
-                    triggerSmartAutoSave()
-                  }
-                }
-              })
-            }
-            
-            // 添加粘贴事件监听器
-            if (editorElement) {
-              editorElement.addEventListener('paste', (e) => {
-                // 延迟处理，确保粘贴内容已经更新
-                setTimeout(() => {
-                  const currentContent = vditor.getValue()
-                  if (currentContent !== articleForm.value.content) {
-                    // 清理Markdown内容
-                    const cleanedContent = cleanMarkdownContent(currentContent)
-                    if (cleanedContent !== currentContent) {
-                      vditor.setValue(cleanedContent)
-                      articleForm.value.content = cleanedContent
-                    } else {
-                      articleForm.value.content = currentContent
-                    }
-                    updateWordCount()
-                    // 只有在有实际内容时才标记为未保存
-                    if (currentContent && currentContent.trim().length > 0) {
-                      hasUnsavedChanges.value = true
-                      // 触发智能自动保存
-                      triggerSmartAutoSave()
-                    }
-                  }
-                }, 200)
-              })
-            }
-            
-            // 定期检查内容变化（作为备用方案）
-            const contentCheckInterval = setInterval(() => {
-              if (vditor && typeof vditor.getValue === 'function') {
-                const currentContent = vditor.getValue()
-                if (currentContent !== articleForm.value.content) {
-                  // 清理Markdown内容
-                  const cleanedContent = cleanMarkdownContent(currentContent)
-                  if (cleanedContent !== currentContent) {
-                    vditor.setValue(cleanedContent)
-                    articleForm.value.content = cleanedContent
-                  } else {
-                    articleForm.value.content = currentContent
-                  }
-                  updateWordCount()
-                  // 只有在有实际内容时才标记为未保存
-                  if (currentContent && currentContent.trim().length > 0) {
-                    hasUnsavedChanges.value = true
-                    // 触发智能自动保存
-                    triggerSmartAutoSave()
-                  }
-                }
-              } else {
-                clearInterval(contentCheckInterval)
-              }
-            }, 2000) // 降低检查频率到2秒
-            
-            // 存储定时器引用，在组件卸载时清除
-            window.contentCheckIntervalRef = contentCheckInterval
-          }
-        } catch (error) {
-          console.warn('Vditor事件监听器设置失败:', error)
-        }
-        
-        // 延迟检查工具栏状态
-        setTimeout(() => {
-          const toolbarAfter = document.querySelector('#vditor .vditor-toolbar')
-          
-          // 强制设置编辑器左对齐
-          const editorElements = document.querySelectorAll('#vditor .vditor-ir, #vditor .vditor-sv, #vditor .vditor-wysiwyg')
-          editorElements.forEach(element => {
-            element.style.textAlign = 'left'
-            element.style.paddingLeft = '0'
-            element.style.marginLeft = '0'
-            
-            // 设置内部编辑器元素，留一点左侧空间
-            const innerEditor = element.querySelector('.vditor-ir__editor, .vditor-sv__editor, .vditor-wysiwyg__editor')
-            if (innerEditor) {
-              innerEditor.style.textAlign = 'left'
-              innerEditor.style.paddingLeft = '20px'
-              innerEditor.style.marginLeft = '0'
-            }
-          })
-          
-          // 简化样式设置，避免性能问题
-          const applyEditorStyles = () => {
-            // 只设置必要的样式，避免过度操作
-            const editorSelectors = [
-              '#vditor .vditor-ir__editor',
-              '#vditor .vditor-sv__editor',
-              '#vditor .vditor-wysiwyg__editor'
-            ]
-            
-            editorSelectors.forEach(selector => {
-              const elements = document.querySelectorAll(selector)
-              elements.forEach(element => {
-                // 只在需要时设置样式，避免重复设置
-                if (element.style.textAlign !== 'left') {
-                  element.style.setProperty('text-align', 'left', 'important')
-                }
-                if (element.style.fontSize !== '16px') {
-                  element.style.setProperty('font-size', '16px', 'important')
-                }
-                if (element.style.lineHeight !== '1.8') {
-                  element.style.setProperty('line-height', '1.8', 'important')
-                }
-              })
-            })
-          }
-          
-          // 只在初始化时执行一次
-          applyEditorStyles()
-          
-          // 延迟执行多次，确保样式生效
-          setTimeout(applyEditorStyles, 1000)
-          setTimeout(applyEditorStyles, 2000)
-          setTimeout(applyEditorStyles, 3000)
-          
-
-          
-          // 简化的样式调整功能
-          const adjustEditorStyles = (options = {}) => {
-            const {
-              fontSize = '16px',
-              lineHeight = '1.8'
-            } = options
-            
-            const editorSelectors = [
-              '#vditor .vditor-ir__editor',
-              '#vditor .vditor-sv__editor', 
-              '#vditor .vditor-wysiwyg__editor'
-            ]
-            
-            editorSelectors.forEach(selector => {
-              const elements = document.querySelectorAll(selector)
-              elements.forEach(element => {
-                element.style.setProperty('font-size', fontSize, 'important')
-                element.style.setProperty('line-height', lineHeight, 'important')
-              })
-            })
-          }
-          
-          // 将调整函数暴露到全局，方便调试
-          window.adjustEditorStyles = adjustEditorStyles
-          
-          // 监听窗口大小变化，自动调整编辑器高度
-          const handleResize = () => {
-            if (vditor) {
-              // 延迟执行，确保DOM已更新
-              setTimeout(() => {
-                const newHeight = calculateEditorHeight()
-                if (vditor && typeof vditor.setHeight === 'function') {
-                  vditor.setHeight(newHeight)
-                } else if (vditor && vditor.vditor && typeof vditor.vditor.setHeight === 'function') {
-                  vditor.vditor.setHeight(newHeight)
-                }
-              }, 100)
-            }
-          }
-          
-          // 添加窗口大小变化监听器
-          window.addEventListener('resize', handleResize)
-          
-          // 存储监听器引用，在组件卸载时移除
-          const handleResizeRef = handleResize
-        }, 1000)
-        
-        // Vditor初始化完成，resolve Promise
-        resolve()
+      // 配置代码高亮插件
+      const editorPlugins = []
+      if (codeSyntaxHighlight && typeof hljs !== 'undefined') {
+        editorPlugins.push([codeSyntaxHighlight, { hljs }])
       }
-    })
+      
+      editorInstance = new Editor({
+        el: editorElement,
+        height: `${calculateEditorHeight()}px`,
+        initialEditType: 'markdown',
+        previewStyle: 'vertical',
+        initialValue: articleForm.value.content || '',
+        placeholder: '请输入文章内容，支持Markdown语法...',
+        usageStatistics: false,
+        plugins: editorPlugins,
+        theme: 'light',
+        toolbarItems: [
+          ['heading', 'bold', 'italic', 'strike'],
+          ['hr', 'quote'],
+          ['ul', 'ol', 'task', 'indent', 'outdent'],
+          ['table', 'image', 'link'],
+          ['code', 'codeblock'],
+          ['scrollSync']
+        ],
+        hooks: {
+          addImageBlobHook: async (blob, callback) => {
+            console.log("捕获到图片文件:", blob)
+            
+            const formData = new FormData()
+            formData.append('file', blob)
+            
+            try {
+              const response = await fetch('/api/article/upload-image', {
+                method: 'POST',
+                headers: {
+                  'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData,
+              })
+              
+              const result = await response.json()
+              
+              if (!response.ok) {
+                throw new Error(result.error || '服务器返回了错误')
+              }
+              
+              const imageUrl = result.url
+              console.log("图片上传成功, URL:", imageUrl)
+              callback(imageUrl, 'image')
+              
+            } catch (error) {
+              console.error('图片上传失败:', error)
+              alert('图片上传失败: ' + error.message)
+            }
+          }
+        }
+      })
+      
+      // 监听内容变化
+      editorInstance.on('change', () => {
+        const content = editorInstance.getMarkdown()
+        articleForm.value.content = content
+        updateWordCount()
+        
+        if (content && content.trim().length > 0) {
+          hasUnsavedChanges.value = true
+          triggerSmartAutoSave()
+        }
+      })
+      
+      // 监听窗口大小变化
+      const handleResize = () => {
+        if (editorInstance) {
+          const newHeight = calculateEditorHeight()
+          editorInstance.setHeight(`${newHeight}px`)
+        }
+      }
+      
+      window.addEventListener('resize', handleResize)
+      window.editorResizeHandler = handleResize
+      
+      // 动态应用字体样式和修复黑色区域
+      setTimeout(() => {
+        const editorElement = document.querySelector('.toastui-editor')
+        if (editorElement) {
+          // 强制修复黑色区域 - 使用更激进的方法
+          editorElement.style.setProperty('background', 'white', 'important')
+          editorElement.style.setProperty('background-color', 'white', 'important')
+          editorElement.style.setProperty('color', '#333', 'important')
+          
+          // 查找并修复所有可能的黑色区域
+          const allElements = editorElement.querySelectorAll('*')
+          allElements.forEach(el => {
+            // 强制设置背景色
+            el.style.setProperty('background', 'white', 'important')
+            el.style.setProperty('background-color', 'white', 'important')
+            
+            // 设置文字颜色（代码块除外）
+            if (el.tagName !== 'CODE' && !el.classList.contains('hljs')) {
+              el.style.setProperty('color', '#333', 'important')
+            }
+            
+            // 特别处理可能的黑色边框
+            if (el.style.borderColor === 'black' || el.style.border === 'black') {
+              el.style.setProperty('border-color', '#ddd', 'important')
+            }
+            
+            // 特别处理可能的黑色背景
+            if (el.style.background === 'black' || el.style.backgroundColor === 'black' ||
+                el.style.background === '#000' || el.style.backgroundColor === '#000') {
+              el.style.setProperty('background', 'white', 'important')
+              el.style.setProperty('background-color', 'white', 'important')
+            }
+          })
+          
+          // 特别修复可能的黑色小区域
+          const possibleBlackElements = editorElement.querySelectorAll('div, span, input, textarea, button')
+          possibleBlackElements.forEach(el => {
+            if (el.style.background === 'black' || el.style.backgroundColor === 'black' ||
+                el.style.background === '#000' || el.style.backgroundColor === '#000' ||
+                el.style.background === 'rgb(0, 0, 0)' || el.style.backgroundColor === 'rgb(0, 0, 0)') {
+              el.style.setProperty('background', 'white', 'important')
+              el.style.setProperty('background-color', 'white', 'important')
+            }
+          })
+          
+          // 应用编辑器整体字体
+          editorElement.style.setProperty('font-size', '18px', 'important')
+          
+          // 应用ProseMirror编辑器字体
+          const proseMirror = editorElement.querySelector('.ProseMirror')
+          if (proseMirror) {
+            proseMirror.style.fontSize = '18px'
+            proseMirror.style.lineHeight = '1.8'
+            proseMirror.style.background = 'white'
+            proseMirror.style.color = '#333'
+          }
+          
+          // 应用预览内容字体
+          const previewContents = editorElement.querySelector('.toastui-editor-contents')
+          if (previewContents) {
+            previewContents.style.fontSize = '18px'
+            previewContents.style.lineHeight = '1.8'
+            previewContents.style.background = 'white'
+            previewContents.style.color = '#333'
+          }
+          
+          // 应用段落样式
+          const paragraphs = editorElement.querySelectorAll('p')
+          paragraphs.forEach(p => {
+            p.style.fontSize = '18px'
+            p.style.lineHeight = '1.8'
+            p.style.marginBottom = '1.2em'
+            p.style.color = '#333'
+          })
+          
+          // 应用标题样式
+          const headings = editorElement.querySelectorAll('h1, h2, h3, h4, h5, h6')
+          headings.forEach(h => {
+            h.style.color = '#333'
+            const tagName = h.tagName.toLowerCase()
+            switch(tagName) {
+              case 'h1':
+                h.style.fontSize = '2.2em'
+                h.style.fontWeight = '700'
+                break
+              case 'h2':
+                h.style.fontSize = '1.8em'
+                h.style.fontWeight = '600'
+                break
+              case 'h3':
+                h.style.fontSize = '1.5em'
+                h.style.fontWeight = '600'
+                break
+              case 'h4':
+                h.style.fontSize = '1.3em'
+                h.style.fontWeight = '600'
+                break
+              case 'h5':
+                h.style.fontSize = '1.1em'
+                h.style.fontWeight = '600'
+                break
+              case 'h6':
+                h.style.fontSize = '1em'
+                h.style.fontWeight = '600'
+                break
+            }
+          })
+        }
+      }, 1000)
+      
+      resolve()
     
   } catch (error) {
-    console.error('Vditor初始化失败:', error)
+      console.error('Toast UI Editor初始化失败:', error)
     reject(error)
   }
   })
 }
 
-// 防抖定时器
-let cleanTimeout = null
-
-// 清理Markdown内容 - 保守版本
+// 清理Markdown内容
 const cleanMarkdownContent = (content) => {
   if (!content) return content
   
   let cleanedContent = content
   
-  // 只清理明显的问题，不处理正常的粗体格式
-  
-  // 1. 清理表格中的多余粗体标记（只处理表格行）
+  // 1. 清理表格中的多余粗体标记
   cleanedContent = cleanedContent.replace(/\| \*\*(.*?)\*\* \|/g, '| $1 |')
   
-  // 2. 清理代码块第一行空行
+  // 2. 清理段落开头的多余粗体标记（只处理段落开头的情况）
+  cleanedContent = cleanedContent.replace(/^(\s*)\*\*([^*\n]+)\*\*(\s*)$/gm, '$1$2$3')
+  
+  // 3. 清理代码块第一行空行
   cleanedContent = cleanedContent.replace(/```(\w+)?\n\s*\n/g, '```$1\n')
   
-  // 3. 清理多余的空行
+  // 4. 清理多余的空行
   cleanedContent = cleanedContent.replace(/\n{3,}/g, '\n\n')
   
-  // 4. 清理重复的粗体标记（****内容**** -> **内容**）
+  // 5. 清理重复的粗体标记
   cleanedContent = cleanedContent.replace(/\*\*\*\*([^*]+)\*\*\*\*/g, '**$1**')
-  
-  // 暂时禁用段落开头的清理，避免误处理
-  // TODO: 需要更精确的检测逻辑
   
   return cleanedContent
 }
@@ -1715,8 +1468,8 @@ onMounted(async () => {
   // 等待DOM完全渲染后再初始化Vditor
   await nextTick()
   
-  // 初始化Vditor编辑器
-  await initVditor()
+  // 初始化Toast UI编辑器
+  await initEditor()
   
   loadPortfolios()
   
@@ -1881,10 +1634,10 @@ onUnmounted(() => {
     autoSaveTimeout.value = null
   }
   
-  // 销毁Vditor编辑器
-  if (vditor) {
-    vditor.destroy()
-    vditor = null
+  // 销毁Toast UI编辑器
+  if (editorInstance) {
+    editorInstance.destroy()
+    editorInstance = null
   }
 })
 </script>
@@ -3109,6 +2862,103 @@ onUnmounted(() => {
   margin: 6rem auto 2rem auto;
   position: relative;
   z-index: 1051;
+}
+
+/* Toast UI Editor 样式修复 - 去除黑色区域 */
+:deep(.toastui-editor) {
+  border: 1px solid #e9ecef !important;
+  border-radius: 0.375rem !important;
+  background: white !important;
+  background-color: white !important;
+}
+
+/* 修复编辑器内部所有可能的黑色区域 */
+:deep(.toastui-editor *),
+:deep(.toastui-editor *:before),
+:deep(.toastui-editor *:after) {
+  background: white !important;
+  background-color: white !important;
+}
+
+/* 特别修复编辑器容器 */
+:deep(.toastui-editor .toastui-editor-md-container) {
+  background: white !important;
+  background-color: white !important;
+}
+
+:deep(.toastui-editor .toastui-editor-md-container .toastui-editor) {
+  background: white !important;
+  background-color: white !important;
+}
+
+/* 修复编辑器内容区域 */
+:deep(.toastui-editor .toastui-editor-contents) {
+  background: white !important;
+  background-color: white !important;
+  color: #333 !important;
+}
+
+:deep(.toastui-editor .toastui-editor-contents *:not(code):not(.hljs)) {
+  background: white !important;
+  background-color: white !important;
+  color: #333 !important;
+}
+
+/* 修复ProseMirror编辑器 */
+:deep(.toastui-editor .ProseMirror) {
+  background: white !important;
+  background-color: white !important;
+  color: #333 !important;
+}
+
+:deep(.toastui-editor .ProseMirror *) {
+  background: white !important;
+  background-color: white !important;
+  color: #333 !important;
+}
+
+/* 修复工具栏可能的黑色区域 */
+:deep(.toastui-editor .toastui-editor-toolbar) {
+  background: white !important;
+  background-color: white !important;
+  border-bottom: 1px solid #e9ecef !important;
+}
+
+:deep(.toastui-editor .toastui-editor-toolbar *) {
+  background: white !important;
+  background-color: white !important;
+}
+
+/* 修复编辑器模式切换按钮 */
+:deep(.toastui-editor .toastui-editor-mode-switch) {
+  background: white !important;
+  background-color: white !important;
+}
+
+:deep(.toastui-editor .toastui-editor-mode-switch *) {
+  background: white !important;
+  background-color: white !important;
+}
+
+/* 强制覆盖所有可能的黑色边框 */
+:deep(.toastui-editor *[style*="background: black"]) {
+  background: white !important;
+  background-color: white !important;
+}
+
+:deep(.toastui-editor *[style*="background-color: black"]) {
+  background: white !important;
+  background-color: white !important;
+}
+
+:deep(.toastui-editor *[style*="background: #000"]) {
+  background: white !important;
+  background-color: white !important;
+}
+
+:deep(.toastui-editor *[style*="background-color: #000"]) {
+  background: white !important;
+  background-color: white !important;
 }
 
 /* 响应式模态框优化 */
