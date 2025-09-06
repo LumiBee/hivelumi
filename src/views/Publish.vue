@@ -610,14 +610,8 @@ const initVditor = () => {
           // 修复段落中的多余粗体标记
           if (entering && node.type === 'paragraph') {
             if (node.text && typeof node.text === 'string') {
-              // 清理段落中的多余粗体标记，但保留正常的粗体
-              node.text = node.text.replace(/\*\*([^*]+)\*\*/g, (match, content) => {
-                // 如果内容已经是粗体，则不重复添加
-                if (content.includes('<strong>') || content.includes('<b>')) {
-                  return content
-                }
-                return `<strong>${content}</strong>`
-              })
+              // 只清理段落开头的多余粗体标记，不影响正常的粗体格式
+              node.text = node.text.replace(/^(\s*)\*\*([^*\n]+)\*\*(\s*)$/gm, '$1$2$3')
             }
           }
           
@@ -980,20 +974,17 @@ const cleanMarkdownContent = (content) => {
   // 1. 清理表格中的多余粗体标记
   cleanedContent = cleanedContent.replace(/\| \*\*(.*?)\*\* \|/g, '| $1 |')
   
-  // 2. 清理段落中的多余粗体标记
-  cleanedContent = cleanedContent.replace(/\*\*([^*]+)\*\*/g, (match, content) => {
-    // 如果内容已经是粗体，则不重复添加
-    if (content.includes('<strong>') || content.includes('<b>')) {
-      return content
-    }
-    return `**${content}**`
-  })
+  // 2. 清理段落开头的多余粗体标记（只处理段落开头的情况）
+  cleanedContent = cleanedContent.replace(/^(\s*)\*\*([^*\n]+)\*\*(\s*)$/gm, '$1$2$3')
   
   // 3. 清理代码块第一行空行
   cleanedContent = cleanedContent.replace(/```(\w+)?\n\s*\n/g, '```$1\n')
   
   // 4. 清理多余的空行
   cleanedContent = cleanedContent.replace(/\n{3,}/g, '\n\n')
+  
+  // 5. 清理重复的粗体标记
+  cleanedContent = cleanedContent.replace(/\*\*\*\*([^*]+)\*\*\*\*/g, '**$1**')
   
   return cleanedContent
 }
