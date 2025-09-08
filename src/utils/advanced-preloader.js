@@ -1,4 +1,6 @@
 // 高级资源预加载工具
+import request from '@/api/config'
+
 export class AdvancedPreloader {
   constructor() {
     this.preloadedResources = new Set()
@@ -14,10 +16,12 @@ export class AdvancedPreloader {
   }
 
   preloadCriticalResources() {
+    // 使用统一的API基础URL配置
+    const baseURL = request.defaults.baseURL
     const criticalResources = [
       // 关键API端点
-      { url: 'https://api.hivelumi.com/api/home', type: 'fetch' },
-      { url: 'https://api.hivelumi.com/api/tags', type: 'fetch' },
+      { url: `${baseURL}/home`, type: 'fetch' },
+      { url: `${baseURL}/tags`, type: 'fetch' },
       
       // 关键图片
       { url: '/img/logo.png', type: 'image' },
@@ -110,11 +114,13 @@ export class AdvancedPreloader {
   }
 
   preloadRouteResources(route) {
+    // 使用统一的API基础URL配置
+    const baseURL = request.defaults.baseURL
     const routeResources = {
-      '/tags': ['https://api.hivelumi.com/api/tags'],
-      '/portfolio': ['https://api.hivelumi.com/api/portfolio'],
-      '/favorites': ['https://api.hivelumi.com/api/favorites'],
-      '/profile': ['https://api.hivelumi.com/api/user/profile']
+      '/tags': [`${baseURL}/tags`],
+      '/portfolio': [`${baseURL}/portfolio`],
+      '/favorites': [`${baseURL}/favorites`],
+      '/profile': [`${baseURL}/user/profile`]
     }
 
     const resources = routeResources[route] || []

@@ -28,7 +28,7 @@ const getApiBaseUrl = () => {
 // 创建axios实例
 const request = axios.create({
   baseURL: getApiBaseUrl(), // 后端API地址（已包含/api前缀）
-  timeout: 30000, // 请求超时时间增加到30秒
+  timeout: 600000, // 请求超时时间增加到10分钟（AI生成长内容需要更长时间）
   withCredentials: true, // 允许携带cookie（用于Spring Security会话）
   headers: {
     'Content-Type': 'application/json;charset=UTF-8'

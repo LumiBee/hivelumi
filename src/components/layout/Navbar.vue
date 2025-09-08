@@ -89,6 +89,12 @@
 
           <!-- 已登录状态 -->
           <template v-else>
+            <!-- AI对话按钮 -->
+            <router-link to="/ai-chat" class="btn btn-primary ai-chat-btn">
+              <i class="fas fa-robot"></i>
+              <span>AI对话</span>
+            </router-link>
+            
             <!-- 发布文章按钮 -->
             <router-link to="/publish" class="btn btn-warning publish-btn">
               <i class="fas fa-edit"></i>
@@ -119,6 +125,8 @@
                 <li><router-link class="dropdown-item" :to="`/profile/${authStore.userName}`" @click="closeUserDropdown"><i class="fas fa-user"></i>个人中心</router-link></li>
                 <li><router-link class="dropdown-item" to="/drafts" @click="closeUserDropdown"><i class="fas fa-file-alt"></i>草稿箱</router-link></li>
                 <li><router-link class="dropdown-item" to="/messages" @click="closeUserDropdown"><i class="fas fa-envelope"></i>私信</router-link></li>
+                <li><router-link class="dropdown-item" to="/ai-chat" @click="closeUserDropdown"><i class="fas fa-robot"></i>AI对话</router-link></li>
+                <li><router-link class="dropdown-item" to="/java-guide" @click="closeUserDropdown"><i class="fas fa-code"></i>Java指导</router-link></li>
                 <li><hr class="dropdown-divider" /></li>
                 <li><router-link class="dropdown-item" to="/settings" @click="closeUserDropdown"><i class="fas fa-cog"></i>设置</router-link></li>
                 <li><a class="dropdown-item text-danger" href="#" @click="handleLogout"><i class="fas fa-sign-out-alt"></i>退出登录</a></li>
@@ -147,6 +155,8 @@
       <router-link to="/portfolio" class="mobile-nav-link" @click="closeMobileMenu">作品集</router-link>
       <router-link to="/favorites" class="mobile-nav-link" @click="closeMobileMenu">收藏夹</router-link>
       <router-link :to="`/profile/${authStore.userName}`" class="mobile-nav-link" @click="closeMobileMenu">个人中心</router-link>
+      <router-link v-if="authStore.isAuthenticated" to="/ai-chat" class="mobile-nav-link" @click="closeMobileMenu">AI对话</router-link>
+      <router-link v-if="authStore.isAuthenticated" to="/java-guide" class="mobile-nav-link" @click="closeMobileMenu">Java指导</router-link>
     </div>
   </nav>
 </template>
@@ -657,6 +667,28 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+}
+
+/* AI对话按钮样式 */
+.ai-chat-btn {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  color: white;
+  border: none;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ai-chat-btn:hover {
+  background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 123, 255, 0.4);
+  color: white;
+}
+
+.ai-chat-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
 }
 
 /* 按钮涟漪效果 */

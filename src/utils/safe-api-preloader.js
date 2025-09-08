@@ -1,4 +1,6 @@
 // 安全的API预加载工具
+import request from '@/api/config'
+
 export class SafeAPIPreloader {
   constructor() {
     this.preloadedAPIs = new Set()
@@ -11,9 +13,11 @@ export class SafeAPIPreloader {
   }
 
   preloadCriticalAPIs() {
+    // 使用统一的API基础URL配置
+    const baseURL = request.defaults.baseURL
     const criticalAPIs = [
-      'https://api.hivelumi.com/api/home',
-      'https://api.hivelumi.com/api/tags'
+      `${baseURL}/home`,
+      `${baseURL}/tags`
     ]
 
     criticalAPIs.forEach(api => {

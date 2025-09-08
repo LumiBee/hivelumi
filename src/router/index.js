@@ -17,6 +17,8 @@ import Search from '@/views/Search.vue'
 import Settings from '@/views/Settings.vue'
 import Drafts from '@/views/Drafts.vue'
 import Messages from '@/views/Messages.vue'
+import AiChat from '@/views/AiChat.vue'
+import JavaGuide from '@/views/JavaGuide.vue'
 import NotFound from '@/views/error/NotFound.vue'
 
 const routes = [
@@ -113,6 +115,18 @@ const routes = [
     name: 'Messages',
     component: Messages,
     meta: { title: '私信', requiresAuth: true }
+  },
+  {
+    path: '/ai-chat',
+    name: 'AiChat',
+    component: AiChat,
+    meta: { title: 'AI对话中心', requiresAuth: true }
+  },
+  {
+    path: '/java-guide',
+    name: 'JavaGuide',
+    component: JavaGuide,
+    meta: { title: 'Java学习指导', requiresAuth: true }
   },
   {
     path: '/:pathMatch(.*)*',

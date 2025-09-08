@@ -1,4 +1,6 @@
 // 智能资源预加载工具
+import request from '@/api/config'
+
 export class SmartPreloader {
   constructor() {
     this.preloadedResources = new Set()
@@ -106,11 +108,13 @@ export class SmartPreloader {
   }
 
   preloadRouteResources(route) {
+    // 使用统一的API基础URL配置
+    const baseURL = request.defaults.baseURL
     const routeResources = {
-      '/tags': ['https://api.hivelumi.com/api/tags'],
-      '/portfolio': ['https://api.hivelumi.com/api/portfolio'],
-      '/favorites': ['https://api.hivelumi.com/api/favorites'],
-      '/profile': ['https://api.hivelumi.com/api/user/profile']
+      '/tags': [`${baseURL}/tags`],
+      '/portfolio': [`${baseURL}/portfolio`],
+      '/favorites': [`${baseURL}/favorites`],
+      '/profile': [`${baseURL}/user/profile`]
     }
 
     const resources = routeResources[route] || []
