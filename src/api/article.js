@@ -64,15 +64,6 @@ export const articleAPI = {
     })
   },
 
-  /**
-   * 获取精选文章
-   */
-  getFeaturedArticles() {
-    return request({
-      url: '/articles/featured',
-      method: 'get'
-    })
-  },
 
   /**
    * 获取相关文章
