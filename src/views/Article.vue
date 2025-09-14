@@ -273,6 +273,8 @@ import DOMPurify from 'dompurify'
 import FavoriteModal from '@/components/FavoriteModal.vue'
 import { ensureBigIntAsString, debugId } from '@/utils/bigint-helper'
 import { getAuthorAvatarUrl } from '@/utils/avatar-helper'
+import hljs from 'highlight.js'
+import 'highlight.js/styles/github.css'
 
 const route = useRoute()
 const authStore = useAuthStore()
@@ -355,11 +357,7 @@ if (article.value?.content) {
     const langClass = language ? ` class="language-${language}"` : '';
     // 清理代码内容，移除首尾空白和多余空行
     const cleanCode = code.trim();
-    return `<div class="code-block-wrapper">
-              <pre${langClass}>
-                <code${langClass} style="color: #ffffff;">${cleanCode}</code>
-              </pre>
-            </div>`;
+    return `<div class="code-block-wrapper"><pre${langClass}><code${langClass}>${cleanCode}</code></pre></div>`;
   };
   
   // 自定义表格渲染 - 修复表格中的粗体问题
@@ -406,19 +404,42 @@ if (article.value?.content) {
   
   // 使用配置好的渲染器渲染Markdown
   const rawHtml = marked.parse(article.value.content, markedOptions);
-  renderedContent.value = DOMPurify.sanitize(rawHtml, {
+  
+  // 先处理代码块，保护其中的XML标签不被过滤
+  const processedHtml = rawHtml.replace(/<pre[^>]*><code[^>]*>([\s\S]*?)<\/code><\/pre>/g, (match, codeContent) => {
+    // 将代码块中的尖括号转义，避免被DOMPurify过滤
+    const protectedCode = codeContent.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return match.replace(codeContent, protectedCode);
+  });
+  
+  renderedContent.value = DOMPurify.sanitize(processedHtml, {
     ALLOWED_TAGS: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'br', 'strong', 'em', 'u', 's', 'code', 'pre', 'blockquote', 'ul', 'ol', 'li', 'a', 'img', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'div', 'span'],
     ALLOWED_ATTR: ['id', 'class', 'href', 'src', 'alt', 'title', 'target', 'rel']
   });
   
   // 更新目录数据
   tableOfContents.value = headings;
+  
+  // 等待DOM更新后应用语法高亮
+  await nextTick();
+  // 高亮所有代码块
+  document.querySelectorAll('pre code').forEach(block => {
+    hljs.highlightElement(block);
+  });
       }
       
-      // 获取相关文章
+      // 获取相关文章 - 暂时使用热门文章作为相关文章
       if (article.value?.articleId) {
-        const relatedResponse = await articleAPI.getRelatedArticles(article.value.articleId)
-        relatedArticles.value = relatedResponse || []
+        try {
+          const relatedResponse = await articleAPI.getPopularArticles(6)
+          // 过滤掉当前文章
+          relatedArticles.value = (relatedResponse || []).filter(related => 
+            related.articleId !== article.value.articleId
+          ).slice(0, 6)
+        } catch (error) {
+          console.warn('获取相关文章失败，使用空列表:', error)
+          relatedArticles.value = []
+        }
       }
       
     } catch (error) {
@@ -811,15 +832,73 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-/* 代码块样式 */
+/* 全局覆盖 highlight.js 样式 */
+:deep(.hljs) {
+  background: #f1f5f9 !important;
+  background-color: #f1f5f9 !important;
+  color: #1e293b !important;
+}
+
+:deep(pre.hljs) {
+  background: #f1f5f9 !important;
+  background-color: #f1f5f9 !important;
+  color: #1e293b !important;
+}
+
+:deep(pre code.hljs) {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: #1e293b !important;
+}
+
+/* 代码块样式 - 覆盖 highlight.js 样式 */
 .code-block-wrapper {
   position: relative;
   margin: 1.5rem 0;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  border: 1px solid #4a5568;
-  background: #2d3748;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  background: #f1f5f9 !important;
+}
+
+.code-block-wrapper pre {
+  position: relative;
+  margin: 0;
+  padding: 1.2rem;
+  background: #f1f5f9 !important;
+  background-color: #f1f5f9 !important;
+  border-radius: 8px;
+  overflow-x: auto;
+  color: #1e293b !important;
+  border: none;
+}
+
+.code-block-wrapper pre code {
+  padding: 0;
+  background: transparent !important;
+  background-color: transparent !important;
+  margin: 0;
+  display: block;
+  color: #1e293b !important;
+  font-family: 'Fira Code', Consolas, Monaco, 'Andale Mono', monospace;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  text-shadow: none;
+  font-weight: 500;
+}
+
+/* 覆盖 highlight.js 的全局样式 */
+.code-block-wrapper pre.hljs,
+.code-block-wrapper pre code.hljs {
+  background: #f1f5f9 !important;
+  background-color: #f1f5f9 !important;
+  color: #1e293b !important;
+}
+
+.code-block-wrapper pre code.hljs {
+  background: transparent !important;
+  background-color: transparent !important;
 }
 
 /* 移除了代码语言标签样式 */
@@ -830,10 +909,10 @@ onBeforeUnmount(() => {
   position: relative;
   margin: 0;
   padding: 1.2rem;
-  background: #2d3748;
+  background: #f7fafc;
   border-radius: 8px;
   overflow-x: auto;
-  color: #ffffff;
+  color: #2d3748;
 }
 
 .markdown-content pre code {
@@ -841,7 +920,7 @@ onBeforeUnmount(() => {
   background: transparent;
   margin-top: 0.5rem;
   display: block;
-  color: #ffffff;
+  color: #2d3748;
 }
 .article-page {
   padding: 70px 0 2rem 0; /* 为固定导航栏预留空间 */
@@ -1279,24 +1358,40 @@ onBeforeUnmount(() => {
 }
 
 .markdown-content pre {
-  background: #2d3748;
-  color: #ffffff;
+  background: #f1f5f9 !important;
+  background-color: #f1f5f9 !important;
+  color: #1e293b !important;
   padding: 1rem;
   border-radius: 8px;
   overflow-x: auto;
   position: relative;
-  border: 1px solid #4a5568;
+  border: 1px solid #e2e8f0;
 }
 
 .markdown-content pre code {
-  background: none;
-  color: #ffffff;
+  background: none !important;
+  background-color: transparent !important;
+  color: #1e293b !important;
   padding: 0;
   font-family: 'Fira Code', Consolas, Monaco, 'Andale Mono', monospace;
   font-size: 0.95rem;
   line-height: 1.6;
   text-shadow: none;
   font-weight: 500;
+}
+
+/* 覆盖所有可能的 highlight.js 样式 */
+.markdown-content pre.hljs,
+.markdown-content pre code.hljs,
+.markdown-content .hljs {
+  background: #f1f5f9 !important;
+  background-color: #f1f5f9 !important;
+  color: #1e293b !important;
+}
+
+.markdown-content pre code.hljs {
+  background: transparent !important;
+  background-color: transparent !important;
 }
 
 .author-card, .toc-card, .related-articles {

@@ -261,17 +261,18 @@ li p {
     text-indent: 0;
 }
 
-/* 代码块美化 */
+/* 代码块美化 - 强制覆盖为灰色背景 */
 .article-content pre {
-    background-color: #f6f8fa;
+    background-color: #f7fafc !important;
+    background: #f7fafc !important;
     border-radius: 8px;
     font-size: 0.9rem;
-    font-color: #000000;
+    color: #2d3748 !important;
     line-height: 1.5;
     overflow: auto;
     padding: 1rem;
     margin: 1.5rem 0;
-    border: 1px solid #eaeaea;
+    border: 1px solid #e2e8f0 !important;
     position: relative;
     text-indent: 0;
 }
@@ -286,8 +287,9 @@ li p {
 }
 
 .article-content pre code {
-    background-color: transparent;
-    color: inherit;
+    background-color: transparent !important;
+    background: transparent !important;
+    color: #2d3748 !important;
     padding: 0;
     text-indent: 0;
 }
@@ -621,10 +623,11 @@ article:first-letter {
     color: #333;
 }
 
-/* 代码块样式 */
+/* 代码块样式 - 强制覆盖为灰色背景 */
 .article-content pre {
     position: relative;
-    background-color: #f8f9fa;
+    background-color: #f7fafc !important;
+    background: #f7fafc !important;
     border-radius: 5px;
     padding: 1rem;
     margin: 1.5rem 0;
@@ -637,9 +640,11 @@ article:first-letter {
     display: block;
     font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     font-size: 0.9rem;
-    color: #333;
+    color: #2d3748 !important;
     line-height: 1.6;
     text-indent: 0;
+    background-color: transparent !important;
+    background: transparent !important;
 }
 
 /* 复制按钮样式 */

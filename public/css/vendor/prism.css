@@ -6,6 +6,20 @@ Conversion: Bram de Haan (http://atelierbram.github.io/Base2Tone-prism/output/pr
 Generated with Base16 Builder (https://github.com/base16-builder/base16-builder)
 */
 
+/* 强制覆盖代码块样式为灰色背景 */
+code[class*="language-"],
+pre[class*="language-"] {
+  background: #f7fafc !important;
+  background-color: #f7fafc !important;
+  color: #2d3748 !important;
+}
+
+pre[class*="language-"] {
+  background: #f7fafc !important;
+  background-color: #f7fafc !important;
+  color: #2d3748 !important;
+}
+
 code[class*="language-"],
 pre[class*="language-"] {
   font-family: Consolas, Menlo, Monaco, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", "Courier New", Courier, monospace;

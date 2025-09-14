@@ -1,6 +1,22 @@
 // 主样式文件 - 基于原有设计风格
 // =============================================================================
 
+// 代码块样式覆盖 - 强制覆盖 highlight.js 样式
+.hljs,
+pre.hljs,
+code.hljs,
+pre code.hljs {
+  background: #f1f5f9 !important;
+  background-color: #f1f5f9 !important;
+  color: #1e293b !important;
+}
+
+pre code.hljs {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: #1e293b !important;
+}
+
 // 颜色变量 - 保持原有主题
 :root {
   // 主色调 - 沿用原有的黄色主题

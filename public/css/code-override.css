@@ -1,0 +1,72 @@
+/* 代码块样式强制覆盖 - 确保灰色背景生效 */
+
+/* 覆盖所有可能的代码块选择器 */
+pre,
+code,
+pre code,
+.hljs,
+pre.hljs,
+code.hljs,
+pre code.hljs,
+[class*="language-"],
+pre[class*="language-"],
+code[class*="language-"],
+pre code[class*="language-"],
+.article-content pre,
+.article-content code,
+.article-content pre code,
+.markdown-content pre,
+.markdown-content code,
+.markdown-content pre code,
+.code-block-wrapper pre,
+.code-block-wrapper code,
+.code-block-wrapper pre code {
+  background: #f1f5f9 !important;
+  background-color: #f1f5f9 !important;
+  color: #1e293b !important;
+}
+
+/* 确保代码块内的代码元素背景透明 */
+pre code,
+pre code.hljs,
+pre code[class*="language-"],
+.article-content pre code,
+.markdown-content pre code,
+.code-block-wrapper pre code {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: #1e293b !important;
+}
+
+/* 覆盖 highlight.js 特定样式 */
+.hljs-comment,
+.hljs-quote,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion,
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link,
+.hljs-attribute,
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition,
+.hljs-title,
+.hljs-section,
+.hljs-keyword,
+.hljs-selector-tag {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: #1e293b !important;
+}
