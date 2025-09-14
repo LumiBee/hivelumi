@@ -20,8 +20,8 @@
 
       <!-- 右侧：搜索框 + 用户操作 -->
       <div class="navbar-right">
-        <!-- 搜索框 -->
-        <div class="search-container">
+        <!-- 搜索框 - 桌面端完整搜索框 -->
+        <div class="search-container desktop-search">
           <div class="search-input-wrapper">
             <input
               type="text"
@@ -79,6 +79,11 @@
           </div>
         </div>
 
+        <!-- 搜索按钮 - 移动端和小屏幕 -->
+        <button class="search-button-mobile" @click="openSearchModal" title="搜索">
+          <i class="fas fa-search"></i>
+        </button>
+
         <!-- 用户操作区域 -->
         <div class="user-actions">
           <!-- 未登录状态 -->
@@ -125,8 +130,6 @@
                 <li><router-link class="dropdown-item" :to="`/profile/${authStore.userName}`" @click="closeUserDropdown"><i class="fas fa-user"></i>个人中心</router-link></li>
                 <li><router-link class="dropdown-item" to="/drafts" @click="closeUserDropdown"><i class="fas fa-file-alt"></i>草稿箱</router-link></li>
                 <li><router-link class="dropdown-item" to="/messages" @click="closeUserDropdown"><i class="fas fa-envelope"></i>私信</router-link></li>
-                <li><router-link class="dropdown-item" to="/ai-chat" @click="closeUserDropdown"><i class="fas fa-robot"></i>AI对话</router-link></li>
-                <li><router-link class="dropdown-item" to="/java-guide" @click="closeUserDropdown"><i class="fas fa-code"></i>Java指导</router-link></li>
                 <li><hr class="dropdown-divider" /></li>
                 <li><router-link class="dropdown-item" to="/settings" @click="closeUserDropdown"><i class="fas fa-cog"></i>设置</router-link></li>
                 <li><a class="dropdown-item text-danger" href="#" @click="handleLogout"><i class="fas fa-sign-out-alt"></i>退出登录</a></li>
@@ -155,8 +158,77 @@
       <router-link to="/portfolio" class="mobile-nav-link" @click="closeMobileMenu">作品集</router-link>
       <router-link to="/favorites" class="mobile-nav-link" @click="closeMobileMenu">收藏夹</router-link>
       <router-link :to="`/profile/${authStore.userName}`" class="mobile-nav-link" @click="closeMobileMenu">个人中心</router-link>
-      <router-link v-if="authStore.isAuthenticated" to="/ai-chat" class="mobile-nav-link" @click="closeMobileMenu">AI对话</router-link>
-      <router-link v-if="authStore.isAuthenticated" to="/java-guide" class="mobile-nav-link" @click="closeMobileMenu">Java指导</router-link>
+    </div>
+
+    <!-- 搜索模态框 -->
+    <div v-if="showSearchModal" class="search-modal-overlay" @click="closeSearchModal">
+      <div class="search-modal" @click.stop>
+        <div class="search-modal-header">
+          <h3>搜索文章</h3>
+          <button class="search-modal-close" @click="closeSearchModal">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="search-modal-body">
+          <div class="search-modal-input-wrapper">
+            <input
+              type="text"
+              v-model="modalSearchQuery"
+              @input="handleModalSearchInput"
+              @keyup.enter="performModalSearch"
+              class="search-modal-input"
+              placeholder="输入关键词搜索..."
+              autocomplete="off"
+              ref="modalSearchInput"
+            />
+            <button class="search-modal-btn" @click="performModalSearch">
+              <i class="fas fa-search"></i>
+            </button>
+          </div>
+          
+          <!-- 搜索结果 -->
+          <div v-if="modalSearchResults.length > 0" class="search-modal-results">
+            <router-link
+              v-for="article in modalSearchResults"
+              :key="article.id"
+              :to="`/article/${article.slug}`"
+              class="search-modal-result-item"
+              @click="closeSearchModal"
+            >
+              <div class="search-modal-result-avatar">
+                <img v-if="article.avatarUrl" :src="getAuthorAvatarUrl(article.avatarUrl)" alt="作者头像" />
+                <span v-else>{{ (article.userName || '匿名').charAt(0).toUpperCase() }}</span>
+              </div>
+              <div class="search-modal-result-content">
+                <div class="search-modal-result-title">{{ article.title }}</div>
+                <div class="search-modal-result-meta">
+                  <span class="author-name">{{ article.userName || '匿名用户' }}</span>
+                  <div class="stats">
+                    <span class="stat-item">
+                      <i class="fas fa-eye"></i>
+                      <span class="stat-value">{{ formatNumber(article.viewCount || 0) }}</span>
+                    </span>
+                    <span class="stat-item">
+                      <i class="fas fa-heart"></i>
+                      <span class="stat-value">{{ formatNumber(article.likes || 0) }}</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </router-link>
+          </div>
+          
+          <!-- 搜索状态 -->
+          <div v-if="modalSearchLoading" class="search-modal-status">
+            <i class="fas fa-spinner fa-spin"></i>
+            <span>正在搜索...</span>
+          </div>
+          <div v-if="!modalSearchLoading && modalSearchQuery && modalSearchResults.length === 0" class="search-modal-status">
+            <i class="fas fa-search"></i>
+            <span>未找到相关文章</span>
+          </div>
+        </div>
+      </div>
     </div>
   </nav>
 </template>
@@ -177,6 +249,13 @@ const searchResults = ref([])
 const searchLoading = ref(false)
 const showSearchResults = ref(false)
 let searchTimeout = null
+
+// 搜索模态框相关状态
+const showSearchModal = ref(false)
+const modalSearchQuery = ref('')
+const modalSearchResults = ref([])
+const modalSearchLoading = ref(false)
+let modalSearchTimeout = null
 
 // 移动端菜单状态
 const mobileMenuOpen = ref(false)
@@ -227,6 +306,59 @@ const performSearch = () => {
   }
 }
 
+// 搜索模态框处理函数
+const closeSearchModal = () => {
+  showSearchModal.value = false
+  modalSearchQuery.value = ''
+  modalSearchResults.value = []
+  if (modalSearchTimeout) {
+    clearTimeout(modalSearchTimeout)
+  }
+}
+
+// 打开搜索模态框
+const openSearchModal = () => {
+  showSearchModal.value = true
+  // 等待DOM更新后聚焦到输入框
+  setTimeout(() => {
+    const input = document.querySelector('.search-modal-input')
+    if (input) {
+      input.focus()
+    }
+  }, 100)
+}
+
+const handleModalSearchInput = () => {
+  if (modalSearchTimeout) {
+    clearTimeout(modalSearchTimeout)
+  }
+  
+  if (!modalSearchQuery.value.trim()) {
+    modalSearchResults.value = []
+    return
+  }
+  
+  modalSearchTimeout = setTimeout(async () => {
+    try {
+      modalSearchLoading.value = true
+      const response = await articleAPI.searchArticles(modalSearchQuery.value)
+      modalSearchResults.value = response || []
+    } catch (error) {
+      console.error('搜索失败:', error)
+      modalSearchResults.value = []
+    } finally {
+      modalSearchLoading.value = false
+    }
+  }, 300)
+}
+
+const performModalSearch = () => {
+  if (modalSearchQuery.value.trim()) {
+    router.push({ name: 'Search', query: { query: modalSearchQuery.value } })
+    closeSearchModal()
+  }
+}
+
 // 处理登出
 const handleLogout = async () => {
   try {
@@ -267,6 +399,11 @@ const formatNumber = (num) => {
 
 // 使用全局工具函数，移除本地定义
 
+// 获取作者头像URL
+const getAuthorAvatarUrl = (avatarUrl) => {
+  return getAvatarUrl(avatarUrl)
+}
+
 // 点击外部隐藏搜索结果和移动端菜单
 const handleClickOutside = (event) => {
   const searchContainer = event.target.closest('.search-container')
@@ -283,6 +420,11 @@ const handleClickOutside = (event) => {
   if (!userDropdown) {
     userDropdownOpen.value = false
   }
+
+  const searchModal = event.target.closest('.search-modal, .search-button-mobile')
+  if (!searchModal) {
+    showSearchModal.value = false
+  }
 }
 
 onMounted(() => {
@@ -295,6 +437,9 @@ onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
   if (searchTimeout) {
     clearTimeout(searchTimeout)
+  }
+  if (modalSearchTimeout) {
+    clearTimeout(modalSearchTimeout)
   }
 })
 </script>
@@ -401,7 +546,7 @@ onUnmounted(() => {
   padding-right: 20px;
 }
 
-/* Logo样式 */
+/* Logo样式 - 固定大小，不随页面缩放 */
 .navbar-logo-link {
   display: flex;
   align-items: center;
@@ -410,12 +555,15 @@ onUnmounted(() => {
   margin-left: -0.5rem;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   background-color: white;
+  flex-shrink: 0; /* 防止logo被压缩 */
 }
 
 .navbar-logo {
   height: 42px;
   width: auto;
+  min-width: 42px; /* 确保最小宽度 */
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  object-fit: contain; /* 保持图片比例 */
 }
 
 .navbar-logo:hover {
@@ -484,10 +632,39 @@ onUnmounted(() => {
   gap: 1rem;
 }
 
-/* 搜索容器 */
+/* 搜索容器 - 响应式宽度 */
 .search-container {
   position: relative;
   width: 280px;
+  min-width: 160px; /* 最小宽度 */
+  flex-shrink: 1; /* 允许搜索框缩小 */
+}
+
+/* 搜索按钮 - 移动端显示 */
+.search-button-mobile {
+  display: none;
+  background: linear-gradient(135deg, #ffc107 0%, #ffda58 100%);
+  border: none;
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  color: #2c3e50;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+.search-button-mobile:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 4px 16px rgba(255, 193, 7, 0.4);
+  background: linear-gradient(135deg, #e8ca0f 0%, #d4af37 100%);
+}
+
+.search-button-mobile:active {
+  transform: translateY(0) scale(0.95);
 }
 
 .search-input-wrapper {
@@ -505,6 +682,7 @@ onUnmounted(() => {
   font-size: 1rem;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   backdrop-filter: blur(10px);
+  min-width: 0; /* 允许输入框缩小 */
 }
 
 .search-input:focus {
@@ -1094,6 +1272,7 @@ onUnmounted(() => {
   
   .search-container {
     width: 240px;
+    min-width: 180px; /* 保持最小可用宽度 */
   }
   
   .user-actions .btn span {
@@ -1102,10 +1281,12 @@ onUnmounted(() => {
   
   .navbar-left {
     padding-right: 10px;
+    flex-shrink: 0; /* 防止左侧区域被压缩 */
   }
   
   .navbar-right {
     padding-left: 10px;
+    flex-shrink: 1; /* 允许右侧区域缩小 */
   }
   
   .publish-btn {
@@ -1123,21 +1304,29 @@ onUnmounted(() => {
   }
   
   .navbar-logo {
-    height: 38px;
+    height: 42px; /* 保持logo固定大小 */
+    width: auto;
+    min-width: 42px;
   }
   
   .navbar-logo-link {
     margin-left: -0.25rem;
     margin-right: 1.5rem;
+    flex-shrink: 0; /* 确保logo不被压缩 */
   }
   
-  .search-container {
-    width: 200px;
-    margin-right: 8px;
+  /* 隐藏桌面端搜索框，显示搜索按钮 */
+  .desktop-search {
+    display: none;
+  }
+  
+  .search-button-mobile {
+    display: flex;
   }
   
   .navbar-right {
     gap: 0.5rem;
+    flex-shrink: 1; /* 允许右侧区域缩小 */
   }
   
   .btn {
@@ -1155,26 +1344,27 @@ onUnmounted(() => {
   }
 }
 
+
 @media (max-width: 576px) {
   .navbar-container {
     padding: 0 0.75rem;
   }
   
   .navbar-logo {
-    height: 36px;
+    height: 42px; /* 保持logo固定大小 */
+    width: auto;
+    min-width: 42px;
   }
   
-  .search-container {
-    width: 160px;
+  .navbar-logo-link {
+    flex-shrink: 0; /* 确保logo不被压缩 */
+    margin-right: 0.75rem; /* 减少右边距为搜索按钮让出空间 */
   }
   
-  .search-input {
-    padding: 0.6rem 0.75rem 0.6rem 2rem;
-    font-size: 0.85rem;
-  }
-  
-  .search-btn {
-    left: 0.5rem;
+  .search-button-mobile {
+    width: 38px;
+    height: 38px;
+    font-size: 1rem;
   }
   
   .btn {
@@ -1187,53 +1377,6 @@ onUnmounted(() => {
     height: 36px;
   }
   
-  .search-results {
-    border-radius: 6px;
-    margin-top: 0.25rem;
-  }
-  
-  .search-result-item {
-    padding: 0.75rem;
-  }
-  
-  .search-result-item:hover {
-    background: #f1f3f4;
-    transform: translateX(0);
-    box-shadow: inset 1px 0 0 #6c757d;
-  }
-  
-  .search-result-avatar {
-    width: 24px;
-    height: 24px;
-    font-size: 0.7rem;
-    margin-right: 0.5rem;
-  }
-  
-  .search-result-title {
-    font-size: 0.8rem;
-    margin-bottom: 0.25rem;
-  }
-  
-  .search-result-meta {
-    font-size: 0.7rem;
-  }
-  
-  .stats {
-    gap: 0.5rem;
-  }
-  
-  .stat-item {
-    gap: 0.2rem;
-  }
-  
-  .stat-item i {
-    font-size: 0.65rem;
-  }
-  
-  .stat-value {
-    font-size: 0.65rem;
-  }
-  
   .mobile-menu {
     padding: 1rem;
   }
@@ -1241,6 +1384,272 @@ onUnmounted(() => {
   .mobile-nav-link {
     padding: 0.875rem 1rem;
     font-size: 0.95rem;
+  }
+}
+
+/* 搜索模态框样式 */
+.search-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  z-index: 1050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: modalFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(8px);
+  }
+}
+
+.search-modal {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow: hidden;
+  animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.search-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #f0f0f0;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.search-modal-header h3 {
+  margin: 0;
+  color: #2c3e50;
+  font-weight: 600;
+  font-size: 1.25rem;
+}
+
+.search-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #6c757d;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-modal-close:hover {
+  background: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+  transform: scale(1.1);
+}
+
+.search-modal-body {
+  padding: 2rem;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.search-modal-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.search-modal-input {
+  width: 100%;
+  padding: 1rem 1.5rem 1rem 3rem;
+  border: 2px solid #e9ecef;
+  border-radius: 25px;
+  font-size: 1.1rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #f8f9fa;
+}
+
+.search-modal-input:focus {
+  outline: none;
+  border-color: #ffc107;
+  background: white;
+  box-shadow: 0 4px 20px rgba(255, 193, 7, 0.2);
+  transform: translateY(-1px);
+}
+
+.search-modal-btn {
+  position: absolute;
+  left: 1rem;
+  background: none;
+  border: none;
+  color: #6c757d;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.search-modal-btn:hover {
+  color: #ffc107;
+  transform: scale(1.1);
+}
+
+.search-modal-results {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.search-modal-result-item {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  text-decoration: none;
+  color: inherit;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  margin-bottom: 0.5rem;
+}
+
+.search-modal-result-item:hover {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  transform: translateX(4px);
+  border-color: #ffc107;
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.2);
+  text-decoration: none;
+  color: inherit;
+}
+
+.search-modal-result-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6c757d;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-right: 1rem;
+  flex-shrink: 0;
+  border: 2px solid #e9ecef;
+}
+
+.search-modal-result-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.search-modal-result-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.search-modal-result-title {
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.search-modal-result-meta {
+  font-size: 0.85rem;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.search-modal-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 2rem;
+  color: #6c757d;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.search-modal-status i {
+  font-size: 1.2rem;
+}
+
+/* 响应式搜索模态框 */
+@media (max-width: 768px) {
+  .search-modal {
+    margin: 0.5rem;
+    max-height: 90vh;
+  }
+  
+  .search-modal-header {
+    padding: 1rem 1.5rem;
+  }
+  
+  .search-modal-body {
+    padding: 1.5rem;
+  }
+  
+  .search-modal-input {
+    padding: 0.875rem 1.25rem 0.875rem 2.5rem;
+    font-size: 1rem;
+  }
+  
+  .search-modal-btn {
+    left: 0.875rem;
+    font-size: 1.1rem;
+  }
+  
+  .search-modal-result-item {
+    padding: 0.875rem;
+  }
+  
+  .search-modal-result-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 0.8rem;
+    margin-right: 0.75rem;
+  }
+  
+  .search-modal-result-title {
+    font-size: 0.9rem;
+  }
+  
+  .search-modal-result-meta {
+    font-size: 0.8rem;
   }
 }
 </style>

@@ -545,7 +545,6 @@ const initEditor = () => {
         ],
         hooks: {
           addImageBlobHook: async (blob, callback) => {
-            console.log("捕获到图片文件:", blob)
             
             const formData = new FormData()
             formData.append('file', blob)
@@ -566,7 +565,6 @@ const initEditor = () => {
               }
               
               const imageUrl = result.url
-              console.log("图片上传成功, URL:", imageUrl)
               callback(imageUrl, 'image')
               
             } catch (error) {
@@ -769,41 +767,32 @@ const handleImageUpload = (event) => {
     isImageUploading.value = true
     const reader = new FileReader()
     reader.onload = (e) => {
-      // 在Vditor编辑器中插入图片
-      if (vditor) {
+      // 在Toast UI Editor中插入图片
+      if (editorInstance) {
         try {
-          // 使用Vditor的API插入图片
+          // 使用Toast UI Editor的API插入图片
           const imageMarkdown = `![${file.name}](${e.target.result})`
-          let currentValue = ''
-          
-          // 获取当前内容
-          if (typeof vditor.getValue === 'function') {
-            currentValue = vditor.getValue()
-          } else if (vditor.vditor && typeof vditor.vditor.getValue === 'function') {
-            currentValue = vditor.vditor.getValue()
-          }
-          
+          const currentValue = editorInstance.getMarkdown()
           const newValue = currentValue + '\n' + imageMarkdown + '\n'
           
           // 设置新内容
-          if (typeof vditor.setValue === 'function') {
-            vditor.setValue(newValue)
-          } else if (vditor.vditor && typeof vditor.vditor.setValue === 'function') {
-            vditor.vditor.setValue(newValue)
-          } else if (vditor.vditor && vditor.vditor.lute) {
-            vditor.vditor.lute.WYSIWYGSetContent(newValue)
-          }
+          editorInstance.setMarkdown(newValue)
           
           // 更新表单内容
           articleForm.value.content = newValue
           updateWordCount()
         } catch (error) {
-          console.warn('在Vditor中插入图片失败:', error)
+          console.warn('在Toast UI Editor中插入图片失败:', error)
           // 备用方案：直接更新表单内容
           const imageMarkdown = `![${file.name}](${e.target.result})`
           articleForm.value.content += '\n' + imageMarkdown + '\n'
           updateWordCount()
         }
+      } else {
+        // 如果编辑器未初始化，直接更新表单内容
+        const imageMarkdown = `![${file.name}](${e.target.result})`
+        articleForm.value.content += '\n' + imageMarkdown + '\n'
+        updateWordCount()
       }
       
       isImageUploading.value = false
@@ -921,7 +910,6 @@ const saveDraft = async () => {
 
   try {
     isSaving.value = true
-    console.log('开始保存草稿...')
     
     // 准备草稿数据，确保字段名与后端DTO匹配
     const draftData = {
@@ -935,16 +923,13 @@ const saveDraft = async () => {
         portfolios.value.find(p => p.id === articleForm.value.portfolioId)?.title : null
     }
     
-    console.log('准备发送的草稿数据:', draftData)
     
     try {
       // 尝试保存到服务器
       const response = await articleAPI.saveDraft(draftData)
-      console.log('保存草稿响应:', response)
       
       // 判断响应是否成功
       if (response && response.articleId) {
-        console.log('草稿保存成功，articleId:', response.articleId)
         // 始终使用返回的articleId更新当前草稿ID
         currentDraftId.value = response.articleId
         showNotification('草稿保存成功！', 'success')
@@ -964,11 +949,9 @@ const saveDraft = async () => {
         // 更新自动保存状态显示
         updateAutoSaveStatus(`已保存 ${formatTime(lastSavedTime.value)}`)
       } else {
-        console.error('保存草稿返回未知响应:', response)
         showNotification('保存失败，请重试', 'danger')
       }
     } catch (apiError) {
-      console.error('API调用错误:', apiError)
       let errorMessage = '保存失败'
       
       if (apiError.response) {
@@ -990,10 +973,8 @@ const saveDraft = async () => {
           errorMessage += `: ${apiError.response.data?.message || apiError.response.statusText}`
         }
         
-        console.error('API错误响应:', apiError.response)
       } else if (apiError.request) {
         errorMessage = '网络请求失败'
-        console.error('API请求错误:', apiError.request)
       } else {
         errorMessage += `: ${apiError.message || '未知错误'}`
       }
@@ -1001,7 +982,6 @@ const saveDraft = async () => {
       showNotification(errorMessage, 'danger')
     }
   } catch (error) {
-    console.error('保存草稿过程中发生错误:', error)
     showNotification('保存失败：' + (error.message || '未知错误'), 'danger')
   } finally {
     isSaving.value = false
@@ -1068,14 +1048,12 @@ const autoSaveDraft = async () => {
   
   // 如果标题和内容都为空，不进行自动保存
   if (!hasTitle && !hasContent) {
-    console.log('没有实际内容，跳过自动保存')
     hasUnsavedChanges.value = false // 清除未保存标记
     return
   }
 
   // 如果用户未登录，不进行自动保存
   if (!authStore.isAuthenticated) {
-    console.log('用户未登录，跳过自动保存')
     return
   }
   
@@ -1083,24 +1061,19 @@ const autoSaveDraft = async () => {
   try {
     const shouldRefresh = await authStore.shouldRefreshToken()
     if (shouldRefresh) {
-      console.log('token即将过期，尝试刷新...')
       const refreshSuccess = await authStore.refreshToken()
       if (!refreshSuccess) {
-        console.warn('token刷新失败，但继续尝试自动保存草稿')
         // 不返回，继续尝试保存草稿
       } else {
-        console.log('token刷新成功')
       }
     }
   } catch (error) {
-    console.warn('Token刷新失败，但继续尝试自动保存草稿:', error)
     // 不返回，继续尝试保存草稿
   }
 
   try {
     isAutoSaving.value = true
     updateAutoSaveStatus('正在自动保存...')
-    console.log('开始智能自动保存草稿...')
     
     // 准备草稿数据
     const draftData = {
@@ -1114,15 +1087,12 @@ const autoSaveDraft = async () => {
         portfolios.value.find(p => p.id === articleForm.value.portfolioId)?.title : null
     }
     
-    console.log('自动保存草稿数据:', draftData)
     
     // 尝试保存到服务器
     const response = await articleAPI.saveDraft(draftData)
-    console.log('自动保存草稿响应:', response)
     
     // 判断响应是否成功
     if (response && response.articleId) {
-      console.log('自动保存草稿成功，articleId:', response.articleId)
       // 始终使用返回的articleId更新当前草稿ID
       currentDraftId.value = response.articleId
       // 更新最后保存时间
@@ -1132,22 +1102,17 @@ const autoSaveDraft = async () => {
       // 更新状态提示
       updateAutoSaveStatus(`已自动保存 ${formatTime(lastSavedTime.value)}`)
     } else {
-      console.error('自动保存草稿返回未知响应:', response)
       updateAutoSaveStatus('自动保存失败')
     }
   } catch (error) {
-    console.error('自动保存草稿过程中发生错误:', error)
     updateAutoSaveStatus('自动保存失败')
     
     if (error.response) {
       const status = error.response.status
-      console.error('自动保存API错误响应:', error.response)
       
       if (status === 401) {
-        console.log('身份验证失败，跳过自动保存')
       }
     } else if (error.request) {
-      console.error('自动保存API请求错误:', error.request)
     }
   } finally {
     isAutoSaving.value = false
@@ -1170,13 +1135,7 @@ const confirmPublish = async () => {
 
   try {
     
-    // 调试：检查发布条件
-    console.log('发布条件检查:', {
-      title: articleForm.value.title,
-      content: articleForm.value.content,
-      excerpt: articleForm.value.excerpt,
-      canActuallyPublish: canActuallyPublish.value
-    })
+    // 检查发布条件
     
     isPublishing.value = true
     
@@ -1202,13 +1161,11 @@ const confirmPublish = async () => {
           }
         } catch (error) {
           // 如果AI生成失败，使用内容的前100个字符作为摘要
-          console.warn('发布时AI摘要生成失败，使用内容前100字符作为摘要:', error)
           finalExcerpt = plainTextContent.substring(0, 100).replace(/[#*`]/g, '') + '...'
           articleForm.value.excerpt = finalExcerpt
           showNotification('AI摘要生成失败，已使用文章开头作为摘要', 'warning')
         }
       } catch (aiError) {
-        console.warn('AI生成摘要失败，使用默认摘要:', aiError)
         // AI生成失败时，使用内容的前100个字符作为摘要
         finalExcerpt = articleForm.value.content.substring(0, 100).replace(/[#*`]/g, '') + '...'
         articleForm.value.excerpt = finalExcerpt
@@ -1257,7 +1214,6 @@ const confirmPublish = async () => {
       }
     }
   } catch (error) {
-    console.error('发布文章失败:', error)
     showNotification('发布失败：' + (error.message || '未知错误'), 'danger')
   } finally {
     isPublishing.value = false
@@ -1332,7 +1288,6 @@ const createNewPortfolio = async () => {
       throw new Error(`创建作品集失败: ${response?.message || '响应格式不正确'}`)
     }
   } catch (error) {
-    console.error('创建作品集失败:', error)
     showNotification('创建作品集失败：' + (error.message || '未知错误'), 'danger')
   } finally {
     isCreatingPortfolio.value = false
@@ -1369,7 +1324,6 @@ const loadPortfolios = async () => {
     }))
     
   } catch (error) {
-    console.error('加载作品集失败:', error)
   }
 }
 
@@ -1399,12 +1353,10 @@ const generateAISummary = async () => {
       }
     } catch (error) {
       // 如果AI生成失败，使用内容的前100个字符作为摘要
-      console.error('AI摘要生成失败，使用内容前100字符作为摘要:', error)
       articleForm.value.excerpt = plainTextContent.substring(0, 100).replace(/[#*`]/g, '') + '...'
       showNotification('AI摘要生成失败，已使用文章开头作为摘要', 'warning')
     }
   } catch (error) {
-    console.error('AI生成摘要失败:', error)
     showNotification('AI生成摘要失败：' + (error.message || '未知错误'), 'danger')
   } finally {
     isGeneratingSummary.value = false
@@ -1429,29 +1381,23 @@ const route = useRoute()
 
 // 处理路由变化的函数
 const handleRouteChange = async () => {
-  console.log('当前路由信息:', route)
-  console.log('路由查询参数:', route.query)
   
   if (route && route.query && route.query.edit) {
-    const editId = route.query.edit
-    console.log('进入文章编辑模式，ID:', editId)
+    const editSlug = route.query.edit
     isEditMode.value = true
-    editingArticleId.value = parseInt(editId)
     // 等待Vditor初始化完成后再加载文章
     await nextTick()
-    loadArticleForEdit(editingArticleId.value)
+    loadArticleForEdit(editSlug)
   }
   // 检查是否是草稿编辑模式
   else if (route && route.query && route.query.draft) {
     const draftId = route.query.draft
-    console.log('进入草稿编辑模式，ID:', draftId)
     // 等待Vditor初始化完成后再加载草稿
     await nextTick()
     loadDraftForEdit(draftId)
   }
   // 新文章模式
   else {
-    console.log('新文章模式')
   }
 }
 
@@ -1481,15 +1427,14 @@ onMounted(async () => {
 })
 
 // 加载文章用于编辑
-const loadArticleForEdit = async (articleId) => {
+const loadArticleForEdit = async (articleSlug) => {
   try {
-    console.log('开始加载文章用于编辑，ID:', articleId)
-    const article = await articleAPI.getArticleById(articleId)
-    console.log('获取到的文章数据:', article)
+    
+    // 直接通过slug获取文章数据
+    const article = await articleAPI.getArticleBySlug(articleSlug)
     
     // 检查数据结构，适配不同的响应格式
     const articleData = article?.data || article
-    console.log('处理后的文章数据:', articleData)
     
     if (articleData && articleData.articleId) {
       // 填充表单数据
@@ -1502,7 +1447,6 @@ const loadArticleForEdit = async (articleId) => {
         allowComments: articleData.allowComments !== false
       }
       
-      console.log('填充后的表单数据:', articleForm.value)
       
       // 设置封面图片
       if (articleData.coverImg) {
@@ -1515,28 +1459,12 @@ const loadArticleForEdit = async (articleId) => {
       }
       
       // 设置编辑器内容
-      console.log('Vditor实例状态:', vditor)
-      if (vditor && articleData.content) {
+      if (editorInstance && articleData.content) {
         try {
-          console.log('尝试设置编辑器内容:', articleData.content)
-          if (typeof vditor.setValue === 'function') {
-            vditor.setValue(articleData.content)
-            console.log('使用vditor.setValue设置内容成功')
-          } else if (vditor.vditor && typeof vditor.vditor.setValue === 'function') {
-            vditor.vditor.setValue(articleData.content)
-            console.log('使用vditor.vditor.setValue设置内容成功')
-          } else if (vditor.vditor && vditor.vditor.lute) {
-            // 直接设置内容
-            vditor.vditor.lute.WYSIWYGSetContent(articleData.content)
-            console.log('使用lute.WYSIWYGSetContent设置内容成功')
-          } else {
-            console.warn('无法找到合适的Vditor设置内容方法')
-          }
+          editorInstance.setMarkdown(articleData.content)
         } catch (error) {
-          console.warn('设置Vditor内容失败:', error)
         }
       } else {
-        console.warn('Vditor未初始化或文章内容为空')
       }
       
       // 更新字数统计
@@ -1544,11 +1472,9 @@ const loadArticleForEdit = async (articleId) => {
       
       showNotification('文章加载成功，可以开始编辑', 'success')
     } else {
-      console.error('获取到的文章数据为空')
       showNotification('文章数据为空', 'danger')
     }
   } catch (error) {
-    console.error('加载文章失败:', error)
     showNotification('加载文章失败：' + (error.message || '未知错误'), 'danger')
   }
 }
@@ -1556,13 +1482,10 @@ const loadArticleForEdit = async (articleId) => {
 // 加载草稿用于编辑
 const loadDraftForEdit = async (draftId) => {
   try {
-    console.log('开始加载草稿用于编辑，ID:', draftId)
     const draft = await articleAPI.getDraftById(draftId)
-    console.log('获取到的草稿数据:', draft)
     
     // 检查数据结构，适配不同的响应格式
     const draftData = draft?.data || draft
-    console.log('处理后的草稿数据:', draftData)
     
     if (draftData && draftData.articleId) {
       // 填充表单数据
@@ -1575,31 +1498,14 @@ const loadDraftForEdit = async (draftId) => {
         allowComments: true
       }
       
-      console.log('填充后的表单数据:', articleForm.value)
       
       // 设置编辑器内容
-      console.log('Vditor实例状态:', vditor)
-      if (vditor && draftData.content) {
+      if (editorInstance && draftData.content) {
         try {
-          console.log('尝试设置编辑器内容:', draftData.content)
-          if (typeof vditor.setValue === 'function') {
-            vditor.setValue(draftData.content)
-            console.log('使用vditor.setValue设置内容成功')
-          } else if (vditor.vditor && typeof vditor.vditor.setValue === 'function') {
-            vditor.vditor.setValue(draftData.content)
-            console.log('使用vditor.vditor.setValue设置内容成功')
-          } else if (vditor.vditor && vditor.vditor.lute) {
-            // 直接设置内容
-            vditor.vditor.lute.WYSIWYGSetContent(draftData.content)
-            console.log('使用lute.WYSIWYGSetContent设置内容成功')
-          } else {
-            console.warn('无法找到合适的Vditor设置内容方法')
-          }
+          editorInstance.setMarkdown(draftData.content)
         } catch (error) {
-          console.warn('设置Vditor内容失败:', error)
         }
       } else {
-        console.warn('Vditor未初始化或草稿内容为空')
       }
       
       // 更新字数统计
@@ -1607,11 +1513,9 @@ const loadDraftForEdit = async (draftId) => {
       
       showNotification('草稿加载成功，可以继续编辑', 'success')
     } else {
-      console.error('获取到的草稿数据为空或格式不正确')
       showNotification('草稿数据为空', 'danger')
     }
   } catch (error) {
-    console.error('加载草稿失败:', error)
     showNotification('加载草稿失败：' + (error.message || '未知错误'), 'danger')
   }
 }

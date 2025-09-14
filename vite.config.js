@@ -55,6 +55,18 @@ export default defineConfig(({ mode }) => {
         }
       }
     },
+    preview: {
+      port: 4173,
+      open: true,
+      proxy: {
+        // Preview模式也使用代理，避免CORS问题
+        '/api': {
+          target: mode === 'development' ? 'http://localhost:8090' : 'https://api.hivelumi.com',
+          changeOrigin: true,
+          secure: mode !== 'development',
+        }
+      }
+    },
     build: {
       outDir: 'dist',
       sourcemap: false,

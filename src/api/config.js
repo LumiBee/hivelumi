@@ -20,6 +20,11 @@ const getApiBaseUrl = () => {
     return 'http://localhost:8090/api'
   }
   
+  // Preview模式：使用相对路径，让vite代理处理
+  if (import.meta.env.MODE === 'preview') {
+    return '/api'
+  }
+  
   // 生产环境：如果没有配置VITE_API_URL，使用默认域名
   // 建议在Vercel环境变量中配置VITE_API_URL为您的后端服务器地址
   return 'https://api.hivelumi.com/api'

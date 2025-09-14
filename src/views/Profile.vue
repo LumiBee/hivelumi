@@ -120,7 +120,7 @@
                       <!-- 文章操作按钮 - 仅页面所有者可见 -->
                       <div v-if="isOwner" class="article-actions">
                         <router-link 
-                          :to="`/publish?edit=${article.id || article.articleId}`" 
+                          :to="`/publish?edit=${article.slug}`" 
                           class="action-btn edit-btn"
                           title="编辑文章"
                         >
