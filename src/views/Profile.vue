@@ -399,16 +399,16 @@ const isOwner = computed(() => {
 const articles = computed(() => profileData.value.articles?.records || [])
 const hasNextPage = computed(() => {
   if (!profileData.value.articles) return false
-  return currentPage.value < profileData.value.articles.pages
+  return currentPage.value < Number(profileData.value.articles.pages)
 })
 
 // 计算可见的页码
 const visiblePages = computed(() => {
-  if (!profileData.value.articles || profileData.value.articles.pages <= 1) {
+  if (!profileData.value.articles || Number(profileData.value.articles.pages) <= 1) {
     return []
   }
   
-  const totalPages = profileData.value.articles.pages
+  const totalPages = Number(profileData.value.articles.pages)
   const current = currentPage.value
   const pages = []
   
@@ -521,12 +521,26 @@ const onArticleCoverError = (article) => {
 }
 
 // 监听路由参数变化
-watch(() => route.params.name, (newName) => {
+watch(() => route.params.name, (newName, oldName) => {
   if (newName) {
     username.value = newName
+    // 重置页码到第一页
+    currentPage.value = 1
     // 使用 nextTick 优化DOM更新
     nextTick(() => {
       fetchProfileData()
+    })
+  }
+})
+
+// 监听整个路由变化，确保任何路由变化都重置页码
+watch(() => route.fullPath, (newPath, oldPath) => {
+  // 如果路径包含 profile，重置页码
+  if (newPath.includes('/profile')) {
+    currentPage.value = 1
+    // 强制重新获取数据
+    nextTick(() => {
+      fetchProfileData(true) // 强制刷新
     })
   }
 })
@@ -803,7 +817,7 @@ const loadNextPage = () => {
 const goToPage = (page) => {
   if (page === '...' || page === currentPage.value) return
   
-  const totalPages = profileData.value.articles?.pages || 1
+  const totalPages = Number(profileData.value.articles?.pages) || 1
   if (page >= 1 && page <= totalPages) {
     currentPage.value = page
     // 使用 nextTick 优化DOM更新
@@ -909,6 +923,9 @@ const preloadProfileImages = () => {
 onMounted(() => {
   // 预加载关键图片
   preloadProfileImages()
+  
+  // 重置页码到第一页
+  currentPage.value = 1
   
   // 从路由参数中获取用户名
   if (route.params.name) {

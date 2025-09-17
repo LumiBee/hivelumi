@@ -1186,7 +1186,13 @@ const confirmPublish = async () => {
     let response
     if (isEditMode.value) {
       // 编辑模式：更新文章
-      response = await articleAPI.updateArticle(editingArticleId.value, publishData)
+      // 使用当前草稿ID作为文章ID
+      const articleId = currentDraftId.value || editingArticleId.value
+      if (!articleId) {
+        showNotification('无法获取文章ID，请重试', 'danger')
+        return
+      }
+      response = await articleAPI.updateArticle(articleId, publishData)
       if (response && response.articleId) {
         showNotification('文章更新成功！', 'success')
         showPublishModal.value = false

@@ -223,9 +223,10 @@
               <div class="card-body p-0">
                 <router-link
                   v-for="relatedArticle in relatedArticles"
-                  :key="relatedArticle.id"
+                  :key="relatedArticle.articleId || relatedArticle.id"
                   :to="`/article/${relatedArticle.slug}`"
                   class="related-article-item"
+                  @click="handleRelatedArticleClick(relatedArticle)"
                 >
                   <div class="d-flex">
                     <div class="related-article-content">
@@ -265,7 +266,7 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount, nextTick, getCurrentInstance } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
 import { articleAPI, userAPI, favoriteAPI } from '@/api'
 import { marked } from 'marked'
@@ -277,6 +278,7 @@ import hljs from 'highlight.js'
 import 'highlight.js/styles/github.css'
 
 const route = useRoute()
+const router = useRouter()
 const authStore = useAuthStore()
 const { proxy } = getCurrentInstance()
 
@@ -432,10 +434,12 @@ if (article.value?.content) {
       if (article.value?.articleId) {
         try {
           const relatedResponse = await articleAPI.getPopularArticles(6)
+          console.log('获取到的相关文章数据:', relatedResponse)
           // 过滤掉当前文章
           relatedArticles.value = (relatedResponse || []).filter(related => 
             related.articleId !== article.value.articleId
           ).slice(0, 6)
+          console.log('处理后的相关文章:', relatedArticles.value)
         } catch (error) {
           console.warn('获取相关文章失败，使用空列表:', error)
           relatedArticles.value = []
@@ -809,6 +813,21 @@ const handleScroll = () => {
 const setupCodeCopyButtons = () => {
   // 功能已移除
 };
+
+// 处理相关文章点击
+const handleRelatedArticleClick = (relatedArticle) => {
+  console.log('点击相关文章:', relatedArticle)
+  console.log('目标URL:', `/article/${relatedArticle.slug}`)
+  
+  // 检查slug是否存在
+  if (!relatedArticle.slug) {
+    console.error('相关文章缺少slug:', relatedArticle)
+    return
+  }
+  
+  // 强制刷新页面到新文章
+  window.location.href = `/article/${relatedArticle.slug}`
+}
 
 onMounted(async () => {
   await loadArticle();
