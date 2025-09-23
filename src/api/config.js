@@ -25,8 +25,15 @@ const getApiBaseUrl = () => {
     return '/api'
   }
   
-  // 生产环境：如果没有配置VITE_API_URL，使用默认域名
-  // 建议在Vercel环境变量中配置VITE_API_URL为您的后端服务器地址
+  // 生产环境：使用当前域名下的API路径，避免CORS问题
+  if (typeof window !== 'undefined') {
+    const protocol = window.location.protocol
+    const hostname = window.location.hostname
+    const port = window.location.port ? `:${window.location.port}` : ''
+    return `${protocol}//${hostname}${port}/api`
+  }
+  
+  // 备用方案：使用默认域名
   return 'https://api.hivelumi.com/api'
 }
 

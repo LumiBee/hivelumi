@@ -86,6 +86,13 @@ export default defineConfig(({ mode }) => {
       },
       // 确保正确的MIME类型
       assetsInlineLimit: 4096,
+      // 修复MIME类型问题
+      target: 'es2015',
+      modulePreload: {
+        polyfill: false
+      },
+      // 确保正确的MIME类型设置
+      assetsDir: 'assets',
       rollupOptions: {
         output: {
           manualChunks: (id) => {

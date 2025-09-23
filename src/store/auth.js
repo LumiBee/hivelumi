@@ -72,27 +72,8 @@ export const useAuthStore = defineStore('auth', () => {
         return true
       }
       
-      // 尝试从后端获取当前用户信息
-      try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://api.hivelumi.com'}/api/user/current`, {
-          method: 'GET',
-          credentials: 'include',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          }
-        })
-        
-        if (response.ok) {
-          const userData = await response.json()
-          if (userData && userData.success && userData.user) {
-            setUser(userData.user)
-            return true
-          }
-        }
-      } catch (apiError) {
-        console.log('无法从后端获取用户信息，可能未登录:', apiError)
-      }
+      // 注意：由于后端没有实现user/current接口，这里不再尝试调用
+      // 用户信息只能通过登录时获取
       
       // 没有用户信息，返回false
       return false
