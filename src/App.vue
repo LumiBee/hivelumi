@@ -13,6 +13,9 @@
     
     <!-- Toast提示框 -->
     <Toast />
+    
+    <!-- Vercel Speed Insights -->
+    <SpeedInsights />
   </div>
 </template>
 
@@ -20,6 +23,7 @@
 import { onMounted, computed, onUnmounted } from 'vue'
 import { useAuthStore } from '@/store/auth'
 import { useRoute } from 'vue-router'
+import { SpeedInsights } from '@vercel/speed-insights/vue'
 import Navbar from '@/components/layout/Navbar.vue'
 import Footer from '@/components/layout/Footer.vue'
 import Toast from '@/components/Toast.vue'
