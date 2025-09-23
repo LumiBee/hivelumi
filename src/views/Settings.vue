@@ -649,16 +649,8 @@ const viewLoginHistory = () => {
 // 页面初始化时加载用户信息
 onMounted(async () => {
   try {
-    // 如果auth store中没有完整的用户信息，则从API获取
-    if (!authStore.user || !authStore.user.email) {
-      const userData = await userAPI.getCurrentUser()
-      if (userData) {
-        userInfo.userName = userData.userName || ''
-        userInfo.email = userData.email || ''
-        userInfo.bio = userData.bio || ''
-        userInfo.avatarUrl = userData.avatarUrl || ''
-      }
-    } else {
+    // 使用auth store中的用户信息
+    if (authStore.user) {
       // 使用auth store中的数据
       userInfo.userName = authStore.userName || ''
       userInfo.email = authStore.user?.email || ''

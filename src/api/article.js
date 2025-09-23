@@ -152,27 +152,7 @@ export const articleAPI = {
   async updateArticle(articleId, articleData) {
     console.log('API调用: updateArticle', articleId, articleData)
     
-    // 检查token是否需要刷新（只有在即将过期时才刷新）
-    const authStore = useAuthStore()
-    if (authStore.user?.token) {
-      try {
-        // 只有在token即将过期时才尝试刷新
-        const shouldRefresh = await authStore.shouldRefreshToken()
-        if (shouldRefresh) {
-          console.log('token即将过期，尝试刷新...')
-          const refreshSuccess = await authStore.refreshToken()
-          if (!refreshSuccess) {
-            console.warn('token刷新失败，但继续尝试更新文章')
-            // 不抛出错误，继续尝试更新文章
-          } else {
-            console.log('token刷新成功')
-          }
-        }
-      } catch (refreshError) {
-        console.warn('token刷新失败，但继续尝试更新文章:', refreshError)
-        // 不抛出错误，继续尝试更新文章
-      }
-    }
+    // 注意：由于使用Session认证，不需要JWT token刷新机制
     
     // 调用API
     const response = await request({

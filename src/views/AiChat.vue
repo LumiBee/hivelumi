@@ -147,7 +147,7 @@ import { marked } from 'marked'
 
 // 获取API基础URL
 const getApiBaseUrl = () => {
-  return import.meta.env.VITE_API_BASE_URL || 'http://localhost:8090/api'
+  return import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'https://api.hivelumi.com/api'
 }
 
 // 配置marked

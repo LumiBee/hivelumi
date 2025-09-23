@@ -20,34 +20,7 @@ export const useAuthStore = defineStore('auth', () => {
   const userName = computed(() => user.value?.name || '')
   const userAvatar = computed(() => user.value?.avatarUrl || '')
   
-  // Token自动刷新定时器
-  let tokenRefreshTimer = null
-
-  // 启动token自动刷新
-  const startTokenRefresh = () => {
-    if (tokenRefreshTimer) {
-      clearInterval(tokenRefreshTimer)
-    }
-    
-    // 每6小时检查一次token是否需要刷新
-    tokenRefreshTimer = setInterval(async () => {
-      if (user.value?.token) {
-        try {
-          await refreshToken()
-        } catch (error) {
-          console.error('自动刷新token失败:', error)
-        }
-      }
-    }, 6 * 60 * 60 * 1000) // 6小时
-  }
-
-  // 停止token自动刷新
-  const stopTokenRefresh = () => {
-    if (tokenRefreshTimer) {
-      clearInterval(tokenRefreshTimer)
-      tokenRefreshTimer = null
-    }
-  }
+  // 注意：由于后端使用Session认证，不需要JWT token刷新机制
 
   // 方法
   const setUser = (userData) => {
@@ -62,12 +35,8 @@ export const useAuthStore = defineStore('auth', () => {
     // 将用户信息保存到本地存储，实现页面刷新后的登录状态保持
     if (userData) {
       setSafeUserToStorage(userData, AUTH_USER_KEY)
-      // 启动token自动刷新
-      startTokenRefresh()
     } else {
       localStorage.removeItem(AUTH_USER_KEY)
-      // 停止token自动刷新
-      stopTokenRefresh()
     }
   }
   
@@ -83,65 +52,8 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading.value = loading
   }
   
-  // 检查token是否需要刷新
-  const shouldRefreshToken = async () => {
-    if (!user.value || !user.value.token) {
-      return false
-    }
-    
-    try {
-      // 解析JWT token获取过期时间
-      const token = user.value.token
-      const payload = JSON.parse(atob(token.split('.')[1]))
-      const expirationTime = payload.exp * 1000 // 转换为毫秒
-      const currentTime = Date.now()
-      const timeUntilExpiry = expirationTime - currentTime
-      
-      // 如果剩余时间少于1天（86400000毫秒），则需要刷新
-      const refreshThreshold = 24 * 60 * 60 * 1000 // 1天
-      return timeUntilExpiry < refreshThreshold
-    } catch (error) {
-      console.error('检查token过期时间失败:', error)
-      return false
-    }
-  }
-
-  // 刷新token
-  const refreshToken = async () => {
-    if (!user.value || !user.value.token) {
-      return false
-    }
-    
-    try {
-      const response = await authAPI.refreshToken()
-      
-      if (response && response.success) {
-        // 更新用户信息和token
-        const updatedUser = { ...user.value, ...response.user, token: response.token }
-        setUser(updatedUser)
-        return true
-      } else {
-        // 检查是否是"不需要刷新"的情况
-        if (response?.remainingTimeMinutes !== undefined && response?.remainingTimeMinutes > 0) {
-          // 这种情况不算失败，返回true
-          return true
-        }
-        
-        console.warn('Token刷新失败:', response?.message || '响应格式不正确')
-        return false
-      }
-    } catch (err) {
-      console.error('Token刷新失败:', err)
-      
-      // 如果是401或403错误，说明token已过期，清除用户状态
-      if (err.status === 401 || err.status === 403) {
-        console.log('Token已过期，清除用户状态')
-        setUser(null)
-      }
-      
-      return false
-    }
-  }
+  // 注意：由于使用Session认证，不需要JWT token刷新机制
+  // Session认证由后端自动管理，前端只需要保持用户状态即可
 
   // 检查认证状态
   const checkAuthStatus = async () => {
@@ -155,47 +67,35 @@ export const useAuthStore = defineStore('auth', () => {
       clearError()
       
       // 检查是否有用户信息在内存中
-      if (user.value && user.value.token) {
-        // 验证token是否有效
-        try {
-          const response = await authAPI.getCurrentUser()
-          if (response) {
-            // 更新用户信息，确保token是最新的
-            const updatedUser = {
-              ...user.value,
-              ...response,
-              token: response.token || user.value.token // 保持现有token或使用新的
-            }
-            setUser(updatedUser)
-            return true
-          }
-        } catch (tokenErr) {
-          console.error('Token验证失败:', tokenErr)
-          // 如果token验证失败，尝试刷新token
-          if (tokenErr.status === 401) {
-            const refreshSuccess = await refreshToken()
-            if (refreshSuccess) {
-              return true
-            }
-          }
-        }
+      if (user.value) {
+        // 用户信息已存在，直接返回
+        return true
       }
       
       // 尝试从后端获取当前用户信息
-      const response = await authAPI.getCurrentUser()
-      if (response) {
-        // 确保响应中包含token
-        const userData = {
-          ...response,
-          token: response.token || (user.value ? user.value.token : null)
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://api.hivelumi.com'}/api/user/current`, {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        })
+        
+        if (response.ok) {
+          const userData = await response.json()
+          if (userData && userData.success && userData.user) {
+            setUser(userData.user)
+            return true
+          }
         }
-        setUser(userData)
-        return true
-      } else {
-        // 如果响应为空，清除用户信息
-        user.value = null
-        return false
+      } catch (apiError) {
+        console.log('无法从后端获取用户信息，可能未登录:', apiError)
       }
+      
+      // 没有用户信息，返回false
+      return false
     } catch (err) {
       console.error('检查认证状态失败:', err)
       
@@ -237,16 +137,10 @@ export const useAuthStore = defineStore('auth', () => {
           // 清除认证检查标记，确保下次可以正常检查
           sessionStorage.removeItem('authChecked')
           
-          // 直接使用响应中的用户信息，不存储临时token
+          // 直接使用响应中的用户信息
           if (response.user) {
-            // 确保用户信息包含token
-            const userData = {
-              ...response.user,
-              token: response.user.token || response.token // 兼容不同的响应格式
-            }
-            
             // 保存用户信息到store和localStorage
-            setUser(userData)
+            setUser(response.user)
             
             // 如果不是记住我，则设置会话结束时清除标志
             if (!credentials.rememberMe) {
@@ -424,10 +318,6 @@ export const useAuthStore = defineStore('auth', () => {
     clearError,
     setLoading,
     checkAuthStatus,
-    shouldRefreshToken,
-    refreshToken,
-    startTokenRefresh,
-    stopTokenRefresh,
     login,
     register,
     logout,

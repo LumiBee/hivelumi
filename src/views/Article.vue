@@ -320,7 +320,7 @@ const showFavoriteModal = ref(false)
 
 
         // 如果用户已登录且不是自己的文章，检查关注状态
-        if (authStore.isAuthenticated && article.value.userId !== authStore.user?.id) {
+        if (authStore.isAuthenticated && article.value?.userId && article.value.userId !== authStore.user?.id) {
           try {
             const followStatus = await userAPI.isFollowing(article.value.userId)
             article.value.isFollowed = Boolean(followStatus.isFollowing)
@@ -601,6 +601,12 @@ const toggleFollow = async () => {
   }
   
   try {
+    // 确保文章和用户ID存在
+    if (!article.value?.userId) {
+      console.error('文章数据或用户ID不存在，无法执行关注操作')
+      return
+    }
+    
     // 确保用户ID作为字符串处理，避免JavaScript大整数精度丢失
     const userIdStr = ensureBigIntAsString(article.value.userId);
     debugId(article.value.userId, '文章作者ID');

@@ -1057,19 +1057,7 @@ const autoSaveDraft = async () => {
     return
   }
   
-  // 检查token是否需要刷新（只有在即将过期时才刷新）
-  try {
-    const shouldRefresh = await authStore.shouldRefreshToken()
-    if (shouldRefresh) {
-      const refreshSuccess = await authStore.refreshToken()
-      if (!refreshSuccess) {
-        // 不返回，继续尝试保存草稿
-      } else {
-      }
-    }
-  } catch (error) {
-    // 不返回，继续尝试保存草稿
-  }
+  // 注意：由于使用Session认证，不需要JWT token刷新机制
 
   try {
     isAutoSaving.value = true
@@ -1184,9 +1172,12 @@ const confirmPublish = async () => {
     }
     
     let response
-    if (isEditMode.value) {
+    // 更健壮的编辑模式判断：检查是否有编辑文章ID或当前草稿ID
+    const isEditing = isEditMode.value || editingArticleId.value || currentDraftId.value
+    
+    if (isEditing) {
       // 编辑模式：更新文章
-      // 使用当前草稿ID作为文章ID
+      // 使用当前草稿ID或编辑文章ID作为文章ID
       const articleId = currentDraftId.value || editingArticleId.value
       if (!articleId) {
         showNotification('无法获取文章ID，请重试', 'danger')
@@ -1475,6 +1466,12 @@ const loadArticleForEdit = async (articleSlug) => {
       
       // 更新字数统计
       updateWordCount()
+
+      // 设置编辑文章ID
+      editingArticleId.value = articleData.articleId
+      
+      // 重要：设置编辑模式为true，确保后续发布时调用updateArticle
+      isEditMode.value = true
       
       showNotification('文章加载成功，可以开始编辑', 'success')
     } else {

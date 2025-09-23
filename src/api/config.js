@@ -36,7 +36,8 @@ const request = axios.create({
   timeout: 600000, // 请求超时时间增加到10分钟（AI生成长内容需要更长时间）
   withCredentials: true, // 允许携带cookie（用于Spring Security会话）
   headers: {
-    'Content-Type': 'application/json;charset=UTF-8'
+    'Content-Type': 'application/json;charset=UTF-8',
+    'Accept': 'application/json'
   },
   // 添加重试配置
   retry: 3, // 重试次数

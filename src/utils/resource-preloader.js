@@ -62,7 +62,7 @@ export class ResourcePreloader {
     const routeResources = {
       '/': ['/api/home', '/api/tags'],
       '/tags': ['/api/tags'],
-      '/portfolio': ['/api/portfolio'],
+      '/portfolio': ['/api/portfolios'],
       '/favorites': ['/api/favorites'],
       '/profile': ['/api/user/profile']
     }

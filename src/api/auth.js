@@ -52,11 +52,13 @@ export const authAPI = {
 
   /**
    * 获取当前用户信息
+   * 注意：此接口已移除，请使用其他方式获取用户信息
    */
   getCurrentUser() {
-    return request({
-      url: '/user/current',
-      method: 'get'
+    // 接口已移除，返回空用户信息
+    return Promise.resolve({
+      success: false,
+      message: '用户信息接口已移除'
     })
   },
 
