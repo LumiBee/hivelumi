@@ -20,7 +20,7 @@ export const useAuthStore = defineStore('auth', () => {
   const userName = computed(() => user.value?.name || '')
   const userAvatar = computed(() => user.value?.avatarUrl || '')
   
-  // 注意：由于后端使用Session认证，不需要JWT token刷新机制
+  // 使用Session认证，通过Cookie自动管理认证状态
 
   // 方法
   const setUser = (userData) => {
@@ -52,7 +52,7 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading.value = loading
   }
   
-  // 注意：由于使用Session认证，不需要JWT token刷新机制
+  // 使用Session认证，通过Cookie自动管理认证状态
   // Session认证由后端自动管理，前端只需要保持用户状态即可
 
   // 检查认证状态
@@ -120,8 +120,14 @@ export const useAuthStore = defineStore('auth', () => {
           
           // 直接使用响应中的用户信息
           if (response.user) {
+            // 将JWT Token添加到用户信息中
+            const userWithToken = {
+              ...response.user,
+              token: response.token
+            }
+            
             // 保存用户信息到store和localStorage
-            setUser(response.user)
+            setUser(userWithToken)
             
             // 如果不是记住我，则设置会话结束时清除标志
             if (!credentials.rememberMe) {

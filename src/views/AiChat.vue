@@ -339,7 +339,6 @@ const callJavaGuiderAPI = async (message, conversationId) => {
     
     const response = await fetch(url, {
       method: 'GET',
-      credentials: 'include',
       headers: {
         'Accept': 'text/event-stream',
         'Cache-Control': 'no-cache'

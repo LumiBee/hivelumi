@@ -72,7 +72,6 @@ export const aiAPI = {
       
       const response = await fetch(url, {
         method: 'GET',
-        credentials: 'include', // 携带Cookie
         headers: {
           'Content-Type': 'application/json',
         }
@@ -97,7 +96,6 @@ export const aiAPI = {
       
       const response = await fetch(url, {
         method: 'GET',
-        credentials: 'include', // 携带Cookie
         headers: {
           'Content-Type': 'application/json',
         }

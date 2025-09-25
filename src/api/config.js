@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { useAuthStore } from '@/store/auth'
-import { getSafeUserFromStorage, debugId } from '@/utils/bigint-helper'
+import { getSafeUserFromStorage } from '@/utils/bigint-helper'
 
 // 获取API基础URL
 const getApiBaseUrl = () => {
@@ -41,7 +41,7 @@ const getApiBaseUrl = () => {
 const request = axios.create({
   baseURL: getApiBaseUrl(), // 后端API地址（已包含/api前缀）
   timeout: 600000, // 请求超时时间增加到10分钟（AI生成长内容需要更长时间）
-  withCredentials: true, // 允许携带cookie（用于Spring Security会话）
+  withCredentials: false, // 使用JWT认证，不需要Cookie
   headers: {
     'Content-Type': 'application/json;charset=UTF-8',
     'Accept': 'application/json'
@@ -54,43 +54,11 @@ const request = axios.create({
 // 请求拦截器
 request.interceptors.request.use(
   config => {
-    // 添加CSRF token（从cookie中获取）
-    const cookies = document.cookie.split(';')
-    const xsrfCookie = cookies.find(cookie => cookie.trim().startsWith('XSRF-TOKEN='))
-    if (xsrfCookie) {
-      const xsrfToken = xsrfCookie.split('=')[1]
-      config.headers['X-XSRF-TOKEN'] = decodeURIComponent(xsrfToken)
-      
-      // 对于POST、PUT、DELETE请求，确保设置了CSRF token
-      if (['post', 'put', 'delete'].includes(config.method.toLowerCase())) {
-        console.log(`添加CSRF令牌到${config.method.toUpperCase()}请求:`, xsrfToken)
-      }
-    } else {
-      // 对于POST、PUT、DELETE请求，如果没有CSRF token，尝试从服务器获取
-      if (['post', 'put', 'delete'].includes(config.method.toLowerCase())) {
-        console.warn(`未找到CSRF令牌，${config.method.toUpperCase()}请求可能会被拒绝`)
-      }
-    }
-    
-    // 从本地存储中获取用户信息，如果存在则添加认证头
+    // 从本地存储中获取用户信息，如果存在则添加JWT认证头
     const storedUser = getSafeUserFromStorage()
     
-    if (storedUser) {
-      try {
-        if (storedUser && storedUser.token) {
-          config.headers['Authorization'] = `Bearer ${storedUser.token}`
-        } else if (storedUser && storedUser.id) {
-          // 如果没有token但有用户ID，可能是旧的存储格式，尝试刷新用户信息
-          console.warn('用户信息中没有token，但有用户ID:', storedUser.id)
-          debugId(storedUser.id, 'API请求中的用户ID')
-        } else {
-          console.warn('用户信息中没有token:', storedUser)
-        }
-      } catch (e) {
-        console.error('解析用户信息失败:', e)
-      }
-    } else {
-      console.warn('本地存储中没有用户信息')
+    if (storedUser && storedUser.token) {
+      config.headers['Authorization'] = `Bearer ${storedUser.token}`
     }
     
     return config
@@ -153,55 +121,17 @@ request.interceptors.response.use(
             })
           }
           
-          // 对于其他请求，尝试刷新token
-          if (!error.config.url.includes('/auth/refresh')) {
-            try {
-              const authStore = useAuthStore()
-              const refreshSuccess = await authStore.refreshToken()
-              
-              if (refreshSuccess) {
-                // 刷新成功，重试原请求
-                console.log('Token刷新成功，重试原请求')
-                const originalRequest = error.config
-                // 更新请求头中的token
-                const storedUser = localStorage.getItem('hive_auth_user')
-                if (storedUser) {
-                  const user = JSON.parse(storedUser)
-                  if (user && user.token) {
-                    originalRequest.headers['Authorization'] = `Bearer ${user.token}`
-                  }
-                }
-                return axios(originalRequest)
-              }
-            } catch (refreshError) {
-              console.error('Token刷新失败:', refreshError)
-            }
+          // 对于其他请求，尝试刷新Token或清除用户信息
+          try {
+            const authStore = useAuthStore()
+            // 由于使用JWT，无法刷新Token，直接登出
+            authStore.logout()
+          } catch (logoutError) {
+            console.error('清除用户信息失败:', logoutError)
           }
           break
         case 403:
           console.error('权限不足：', data)
-          
-          // 对于403错误，可能是CSRF令牌问题，尝试刷新CSRF令牌并重试
-          if (!error.config.url.includes('/auth/refresh') && !error.config._skipRetry) {
-            try {
-              // 尝试重新获取CSRF令牌
-              const cookies = document.cookie.split(';')
-              const xsrfCookie = cookies.find(cookie => cookie.trim().startsWith('XSRF-TOKEN='))
-              
-              if (xsrfCookie) {
-                const xsrfToken = xsrfCookie.split('=')[1]
-                const originalRequest = error.config
-                originalRequest.headers = originalRequest.headers || {}
-                originalRequest.headers['X-XSRF-TOKEN'] = decodeURIComponent(xsrfToken)
-                console.log('更新CSRF令牌并重试请求:', xsrfToken)
-                // 标记请求已重试，避免无限循环
-                originalRequest._skipRetry = true
-                return axios(originalRequest)
-              }
-            } catch (csrfError) {
-              console.error('CSRF令牌刷新失败:', csrfError)
-            }
-          }
           break
         case 404:
           console.error('请求的资源不存在：', data)

@@ -18,7 +18,6 @@ async function getJwtToken() {
         password: '114514',
         'remember-me': 'on'
       }),
-      credentials: 'include'
     });
     
     const data = await response.json();
@@ -63,7 +62,6 @@ async function publishArticleWithToken(token) {
         'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify(articleData),
-      credentials: 'include'
     });
     
     const data = await response.json();
