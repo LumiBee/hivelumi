@@ -22,6 +22,11 @@ export const getAvatarUrl = (avatarUrl) => {
     avatarUrl = '/api' + avatarUrl
   }
   
+  // 如果是OSS域名，直接使用，不需要添加/api前缀
+  if (avatarUrl.startsWith('https://files.hivelumi.com/')) {
+    // OSS文件直接使用，不需要修改
+  }
+  
   // 如果是默认头像，直接返回
   if (avatarUrl === '/img/default01.jpg' || avatarUrl === '/img/default.jpg') {
     return avatarUrl
@@ -51,6 +56,11 @@ export const getAuthorAvatarUrl = (avatarUrl) => {
   // 如果是相对路径的uploads，需要添加/api前缀（因为后端设置了全局API前缀）
   if (avatarUrl.startsWith('/uploads/')) {
     avatarUrl = '/api' + avatarUrl
+  }
+  
+  // 如果是OSS域名，直接使用，不需要添加/api前缀
+  if (avatarUrl.startsWith('https://files.hivelumi.com/')) {
+    // OSS文件直接使用，不需要修改
   }
   
   // 如果是默认头像，直接返回

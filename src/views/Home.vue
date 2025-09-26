@@ -419,6 +419,11 @@ const getProcessedImageUrl = (url) => {
     url = '/api' + url
   }
   
+  // 如果是OSS域名，直接使用，不需要添加/api前缀
+  if (url.startsWith('https://files.hivelumi.com/')) {
+    // OSS文件直接使用，不需要修改
+  }
+  
   return url
 }
 

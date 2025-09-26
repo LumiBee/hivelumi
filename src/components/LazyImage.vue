@@ -68,6 +68,11 @@ export default {
         imageUrl = '/api' + imageUrl
       }
       
+      // 如果是OSS域名，直接使用，不需要添加/api前缀
+      if (imageUrl.startsWith('https://files.hivelumi.com/')) {
+        // OSS文件直接使用，不需要修改
+      }
+      
       const img = new Image()
       img.onload = () => {
         actualSrc.value = imageUrl
