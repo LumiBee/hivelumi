@@ -16,6 +16,9 @@
     
     <!-- Vercel Speed Insights - 安全加载版本 -->
     <SafeSpeedInsights />
+    
+    <!-- Vercel Analytics - 安全加载版本 -->
+    <SafeAnalytics />
   </div>
 </template>
 
@@ -27,6 +30,7 @@ import Navbar from '@/components/layout/Navbar.vue'
 import Footer from '@/components/layout/Footer.vue'
 import Toast from '@/components/Toast.vue'
 import SafeSpeedInsights from '@/components/SafeSpeedInsights.vue'
+import SafeAnalytics from '@/components/SafeAnalytics.vue'
 
 const authStore = useAuthStore()
 const route = useRoute()
