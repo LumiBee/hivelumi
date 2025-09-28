@@ -33,6 +33,24 @@
           "value": "application/javascript; charset=utf-8"
         }
       ]
+    },
+    {
+      "source": "/_vercel/speed-insights/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=300"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        }
+      ]
     }
-  ]
+  ],
+  "functions": {
+    "app/api/**/*.js": {
+      "runtime": "nodejs18.x"
+    }
+  }
 }

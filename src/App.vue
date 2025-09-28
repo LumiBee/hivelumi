@@ -14,19 +14,19 @@
     <!-- Toast提示框 -->
     <Toast />
     
-    <!-- Vercel Speed Insights -->
-    <SpeedInsights />
+    <!-- Vercel Speed Insights - 安全加载版本 -->
+    <SafeSpeedInsights />
   </div>
 </template>
 
 <script setup>
-import { onMounted, computed, onUnmounted } from 'vue'
+import { onMounted, computed, onUnmounted, ref } from 'vue'
 import { useAuthStore } from '@/store/auth'
 import { useRoute } from 'vue-router'
-import { SpeedInsights } from '@vercel/speed-insights/vue'
 import Navbar from '@/components/layout/Navbar.vue'
 import Footer from '@/components/layout/Footer.vue'
 import Toast from '@/components/Toast.vue'
+import SafeSpeedInsights from '@/components/SafeSpeedInsights.vue'
 
 const authStore = useAuthStore()
 const route = useRoute()
@@ -35,6 +35,7 @@ const route = useRoute()
 const isPublishPage = computed(() => {
   return route.path === '/publish'
 })
+
 
 
 
