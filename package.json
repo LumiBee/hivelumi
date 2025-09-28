@@ -9,7 +9,11 @@
     "preview": "vite preview",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore",
     "build:vercel": "vite build",
-    "vercel-build": "vite build"
+    "vercel-build": "vite build",
+    "build:optimize": "node scripts/build-optimize.js optimize",
+    "build:analyze": "node scripts/build-optimize.js analyze",
+    "build:report": "node scripts/build-optimize.js report",
+    "images:optimize": "node scripts/optimize-images.js"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.5.0",

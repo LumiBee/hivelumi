@@ -96,23 +96,34 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         output: {
           manualChunks: (id) => {
-            // Vue核心库 - 最高优先级
-            if (id.includes('vue') || id.includes('vue-router') || id.includes('pinia')) {
+            // Vue核心库 - 最高优先级，单独打包
+            if (id.includes('vue') && !id.includes('node_modules')) {
+              return 'vue-core'
+            }
+            if (id.includes('vue-router') || id.includes('pinia')) {
               return 'vue-vendor'
             }
-            // UI框架 - 高优先级
+            // 大型UI库 - 单独打包
             if (id.includes('bootstrap')) {
               return 'bootstrap-vendor'
             }
+            // 编辑器相关 - 按需加载
+            if (id.includes('@tiptap') || id.includes('@toast-ui')) {
+              return 'editor-vendor'
+            }
             // 工具库 - 高优先级
-            if (id.includes('axios') || id.includes('dompurify')) {
+            if (id.includes('axios') || id.includes('dompurify') || id.includes('marked')) {
               return 'utils-vendor'
             }
             // 图标库 - 中优先级
-            if (id.includes('fontawesome')) {
+            if (id.includes('fontawesome') || id.includes('@fortawesome')) {
               return 'icons-vendor'
             }
-            // 页面组件 - 按路由分割
+            // 动画库 - 按需加载
+            if (id.includes('aos') || id.includes('swiper')) {
+              return 'animation-vendor'
+            }
+            // 页面组件 - 按路由分割（已在路由中懒加载）
             if (id.includes('/views/')) {
               const viewName = id.split('/views/')[1].split('.')[0]
               return `page-${viewName}`
@@ -125,6 +136,15 @@ export default defineConfig(({ mode }) => {
             if (id.includes('/components/')) {
               return 'components'
             }
+            // 第三方库 - 按大小和重要性分组
+            if (id.includes('node_modules')) {
+              // 大型库单独打包
+              if (id.includes('highlight.js') || id.includes('lowlight')) {
+                return 'syntax-vendor'
+              }
+              // 其他第三方库
+              return 'vendor'
+            }
           },
           // 优化文件名
           chunkFileNames: 'assets/js/[name]-[hash].js',
@@ -132,7 +152,7 @@ export default defineConfig(({ mode }) => {
           assetFileNames: 'assets/[ext]/[name]-[hash].[ext]'
         }
       },
-      cssCodeSplit: false, // 禁用CSS代码分割，避免样式问题
+      cssCodeSplit: true, // 启用CSS代码分割，按需加载样式
       chunkSizeWarningLimit: 1000,
       reportCompressedSize: true
     }

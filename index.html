@@ -13,21 +13,16 @@
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="preconnect" href="https://api.hivelumi.com" crossorigin>
     
-    <!-- 预加载关键字体 -->
-    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
-    
-    <!-- 预加载关键图片 -->
+    <!-- 预加载关键图片 - 优化加载优先级 -->
     <link rel="preload" href="/img/logo.png" as="image" fetchpriority="high">
     <link rel="preload" href="/img/demo/1.jpg" as="image" fetchpriority="high">
-    <link rel="preload" href="/img/default.jpg" as="image" fetchpriority="low">
+    <!-- 移除default.jpg的预加载，因为它不是首屏关键资源 -->
     
-    <!-- 预加载关键API数据 -->
+    <!-- 预加载关键API数据 - 优化首屏数据加载 -->
     <link rel="preload" href="https://api.hivelumi.com/api/home" as="fetch" crossorigin>
     <link rel="preload" href="https://api.hivelumi.com/api/tags" as="fetch" crossorigin>
     
-    <!-- 预加载关键字体文件 -->
-    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/webfonts/fa-brands-400.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/webfonts/fa-regular-400.woff2" as="font" type="font/woff2" crossorigin>
+    <!-- 字体预加载已移除 - 让CSS处理字体加载，避免重复请求 -->
     
     <!-- 关键CSS内联 - 立即渲染 -->
     <style>

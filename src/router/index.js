@@ -1,25 +1,25 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
 
-// 页面组件导入
-import Home from '@/views/Home.vue'
-import Login from '@/views/auth/Login.vue'
-import Signup from '@/views/auth/Signup.vue'
-import Article from '@/views/Article.vue'
-import Publish from '@/views/Publish.vue'
-import Profile from '@/views/Profile.vue'
-import Portfolio from '@/views/Portfolio.vue'
-import PortfolioDetail from '@/views/PortfolioDetail.vue'
-import Favorites from '@/views/Favorites.vue'
-import Tags from '@/views/Tags.vue'
-import TagArticles from '@/views/TagArticles.vue'
-import Search from '@/views/Search.vue'
-import Settings from '@/views/Settings.vue'
-import Drafts from '@/views/Drafts.vue'
-import Messages from '@/views/Messages.vue'
-import AiChat from '@/views/AiChat.vue'
-import JavaGuide from '@/views/JavaGuide.vue'
-import NotFound from '@/views/error/NotFound.vue'
+// 页面组件懒加载导入 - 优化首屏加载性能
+const Home = () => import('@/views/Home.vue')
+const Login = () => import('@/views/auth/Login.vue')
+const Signup = () => import('@/views/auth/Signup.vue')
+const Article = () => import('@/views/Article.vue')
+const Publish = () => import('@/views/Publish.vue')
+const Profile = () => import('@/views/Profile.vue')
+const Portfolio = () => import('@/views/Portfolio.vue')
+const PortfolioDetail = () => import('@/views/PortfolioDetail.vue')
+const Favorites = () => import('@/views/Favorites.vue')
+const Tags = () => import('@/views/Tags.vue')
+const TagArticles = () => import('@/views/TagArticles.vue')
+const Search = () => import('@/views/Search.vue')
+const Settings = () => import('@/views/Settings.vue')
+const Drafts = () => import('@/views/Drafts.vue')
+const Messages = () => import('@/views/Messages.vue')
+const AiChat = () => import('@/views/AiChat.vue')
+const JavaGuide = () => import('@/views/JavaGuide.vue')
+const NotFound = () => import('@/views/error/NotFound.vue')
 
 const routes = [
   {

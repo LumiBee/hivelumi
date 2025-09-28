@@ -121,11 +121,39 @@ request.interceptors.response.use(
             })
           }
           
-          // 对于其他请求，尝试刷新Token或清除用户信息
+          // 对于其他请求，处理 token 过期
           try {
             const authStore = useAuthStore()
-            // 由于使用JWT，无法刷新Token，直接登出
-            authStore.logout()
+            
+            // 检查是否是 token 过期（而不是未登录）
+            if (authStore.isAuthenticated) {
+              console.warn('检测到 token 过期，正在清除用户状态...')
+              
+              // 显示用户友好的过期提示
+              if (window.$toast) {
+                window.$toast.warning('登录已过期，请重新登录')
+              } else {
+                console.warn('登录已过期，请重新登录')
+              }
+              
+              // 清除用户状态，但不显示登出成功提示
+              authStore.setUser(null)
+              
+              // 如果是重要操作（如点赞、收藏），可以引导用户到登录页面
+              if (error.config.url.includes('/like') || 
+                  error.config.url.includes('/favorite') || 
+                  error.config.url.includes('/follow')) {
+                // 延迟跳转，让用户看到提示
+                setTimeout(() => {
+                  if (window.$router) {
+                    window.$router.push('/login')
+                  }
+                }, 2000)
+              }
+            } else {
+              // 用户未登录，静默处理
+              console.log('用户未登录，静默处理 401 错误')
+            }
           } catch (logoutError) {
             console.error('清除用户信息失败:', logoutError)
           }

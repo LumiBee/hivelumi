@@ -26,6 +26,7 @@
 import { onMounted, computed, onUnmounted, ref } from 'vue'
 import { useAuthStore } from '@/store/auth'
 import { useRoute } from 'vue-router'
+import { startTokenMonitoring } from '@/utils/token-manager'
 import Navbar from '@/components/layout/Navbar.vue'
 import Footer from '@/components/layout/Footer.vue'
 import Toast from '@/components/Toast.vue'
@@ -34,6 +35,9 @@ import SafeAnalytics from '@/components/SafeAnalytics.vue'
 
 const authStore = useAuthStore()
 const route = useRoute()
+
+// Token 监控相关
+let stopTokenMonitoring = null
 
 // 判断当前是否为发布文章页面
 const isPublishPage = computed(() => {
@@ -45,6 +49,9 @@ const isPublishPage = computed(() => {
 
 onMounted(async () => {
   try {
+    // 启动 token 监控
+    stopTokenMonitoring = startTokenMonitoring(authStore, 2) // 每2分钟检查一次
+    
     // 检查是否是临时会话登录（非记住我）
     const isTempSession = sessionStorage.getItem('temp_session') === 'true'
     
@@ -75,6 +82,13 @@ onMounted(async () => {
 
   } catch (error) {
     console.error('检查认证状态失败:', error)
+  }
+})
+
+onUnmounted(() => {
+  // 清理 token 监控
+  if (stopTokenMonitoring) {
+    stopTokenMonitoring()
   }
 })
 

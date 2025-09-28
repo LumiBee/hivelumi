@@ -499,18 +499,36 @@ const toggleLike = async () => {
     }
   } catch (error) {
     console.error('点赞失败:', error)
-    // 如果是401错误，可能是token过期，尝试刷新登录状态
+    
+    // 如果是401错误，说明token过期或无效
     if (error.status === 401) {
-      // 检查认证状态
-      const isAuthenticated = await authStore.checkAuthStatus()
-      if (!isAuthenticated) {
+      // 检查是否之前是登录状态
+      if (authStore.isAuthenticated) {
         if (window.$toast) {
-          window.$toast.error('登录已过期，请重新登录')
+          window.$toast.warning('登录已过期，请重新登录')
         } else {
           alert('登录已过期，请重新登录')
         }
+        
+        // 清除过期状态
+        authStore.setUser(null)
+        
+        // 延迟跳转到登录页面
+        setTimeout(() => {
+          if (window.$router) {
+            window.$router.push('/login')
+          }
+        }, 2000)
+      } else {
+        // 用户未登录，提示登录
+        if (window.$toast) {
+          window.$toast.warning('请先登录后再点赞')
+        } else {
+          alert('请先登录后再点赞')
+        }
       }
     } else {
+      // 其他错误
       if (window.$toast) {
         window.$toast.error('点赞失败，请稍后重试')
       } else {
