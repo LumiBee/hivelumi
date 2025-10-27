@@ -200,6 +200,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   padding: 2rem 0;
+  margin-top: 67px; /* 为导航栏留出空间 */
   position: relative;
   overflow: hidden;
   background: #ffffff;

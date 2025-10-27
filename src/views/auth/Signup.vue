@@ -336,12 +336,15 @@ watch(() => signupForm.value.confirmPassword, () => {
 
 <style scoped>
 .auth-page-wrapper {
-  min-height: 100vh;
+  flex-grow: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #ffffff;
   padding: 2rem 0;
+  margin-top: 67px; /* 为导航栏留出空间 */
+  position: relative;
+  overflow: hidden;
+  background: #ffffff;
 }
 
 .auth-container {
@@ -350,13 +353,13 @@ watch(() => signupForm.value.confirmPassword, () => {
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   display: flex;
-  max-width: 1000px;
+  max-width: 900px;
   width: 100%;
   margin: 0 1rem;
 }
 
 .auth-form-section {
-  flex: 1.2;
+  flex: 1;
   padding: 3rem;
   display: flex;
   flex-direction: column;
@@ -364,13 +367,15 @@ watch(() => signupForm.value.confirmPassword, () => {
 }
 
 .auth-info-section {
-  flex: 0.8;
-  background: linear-gradient(135deg, #f6d55c 0%, #e8ca0f 100%);
-  color: white;
+  flex: 1;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   padding: 3rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  color: #495057;
+  position: relative;
+  overflow: hidden;
 }
 
 .logo {
@@ -469,10 +474,41 @@ watch(() => signupForm.value.confirmPassword, () => {
   text-decoration: underline;
 }
 
+.auth-info-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: #ffda58;
+}
+
 .auth-info-section h2 {
-  font-size: 2rem;
-  font-weight: 700;
+  color: #333;
+  font-weight: 600;
   margin-bottom: 1.5rem;
+  position: relative;
+  display: inline-block;
+  font-size: 2rem;
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+.auth-info-section h2::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  width: 60px;
+  height: 4px;
+  background: #ffda58;
+  border-radius: 2px;
+}
+
+.auth-info-section p {
+  line-height: 1.7;
+  margin-bottom: 1rem;
+  opacity: 0.95;
 }
 
 .feature-list {
