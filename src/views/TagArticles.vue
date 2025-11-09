@@ -140,11 +140,11 @@
                 <router-link
                   v-for="tag in relatedTags"
                   :key="tag.id"
-                  :to="{ name: 'TagArticles', params: { tagName: tag.name } }"
+                  :to="`/tags/${tag.slug}`"
                   class="tag-link"
                   :class="getTagColorClass(tag)"
                 >
-                  {{ tag.name }}
+                  {{ tag.slug }}
                 </router-link>
               </div>
             </div>
