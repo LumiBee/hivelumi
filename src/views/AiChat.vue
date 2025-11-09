@@ -1051,6 +1051,12 @@ watch(messages, () => {
   border-bottom: 1px solid #e9ecef;
 }
 
+.chat-sidebar.collapsed .sidebar-header {
+  justify-content: center;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
+}
+
 .sidebar-header h5 {
   margin: 0;
   font-weight: 600;
@@ -1059,6 +1065,14 @@ watch(messages, () => {
 
 .chat-sidebar.collapsed .sidebar-header h5 {
   display: none;
+}
+
+.chat-sidebar.collapsed .sidebar-header .btn {
+  width: 100%;
+  padding: 0.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .ai-assistants {
@@ -1078,10 +1092,20 @@ watch(messages, () => {
   border: 2px solid transparent;
 }
 
+.chat-sidebar.collapsed .assistant-card {
+  justify-content: center;
+  padding: 0.75rem;
+  gap: 0;
+}
+
 .assistant-card:hover {
   background: #f8f9fa;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.chat-sidebar.collapsed .assistant-card:hover {
+  transform: none;
 }
 
 .assistant-card.active {
@@ -1094,6 +1118,11 @@ watch(messages, () => {
   font-size: 1.5rem;
   color: #f6d55c;
   flex-shrink: 0;
+}
+
+.chat-sidebar.collapsed .assistant-icon {
+  font-size: 1.25rem;
+  margin: 0 auto;
 }
 
 .assistant-card.active .assistant-icon {
@@ -1125,6 +1154,10 @@ watch(messages, () => {
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
+}
+
+.chat-sidebar.collapsed .assistant-status {
+  display: none;
 }
 
 .assistant-status.online {

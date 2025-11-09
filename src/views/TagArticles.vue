@@ -144,7 +144,7 @@
                   class="tag-link"
                   :class="getTagColorClass(tag)"
                 >
-                  {{ tag.slug }}
+                  {{ tag.name }}
                 </router-link>
               </div>
             </div>
