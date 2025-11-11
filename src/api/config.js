@@ -2,17 +2,24 @@ import axios from 'axios'
 import { useAuthStore } from '@/store/auth'
 import { getSafeUserFromStorage } from '@/utils/bigint-helper'
 
-// 获取API基础URL
+// 获取API基础URL（带混合内容防护）
 const getApiBaseUrl = () => {
-  const envApiUrl = import.meta.env.VITE_API_URL
-  
+  let envApiUrl = import.meta.env.VITE_API_URL
+
+  // 规范化：若存在环境变量，统一补齐 /api 并在 HTTPS 页面上强制 https 协议
   if (envApiUrl) {
-    // 如果环境变量包含完整URL，直接使用
-    if (envApiUrl.includes('/api')) {
-      return envApiUrl
+    // 补 /api
+    if (!envApiUrl.includes('/api')) {
+      envApiUrl = `${envApiUrl.replace(/\/$/, '')}/api`
     }
-    // 如果不包含/api，则添加
-    return `${envApiUrl}/api`
+
+    // 如果当前页面是 https，且 env 是 http，则自动升级为 https，避免 Mixed Content
+    if (typeof window !== 'undefined' && window.location.protocol === 'https:' && envApiUrl.startsWith('http://')) {
+      envApiUrl = envApiUrl.replace('http://', 'https://')
+      console.warn('[API] 检测到 http API 地址，在 HTTPS 页面中已自动升级为 https:', envApiUrl)
+    }
+
+    return envApiUrl
   }
   
   // 开发环境默认
