@@ -190,6 +190,11 @@
               </div>
             </div>
           </article>
+          
+          <!-- 评论区 -->
+          <div v-if="article?.articleId" class="mt-4">
+            <CommentSection :article-id="article.articleId" />
+          </div>
         </div>
         
         <!-- 侧边栏 -->
@@ -272,6 +277,7 @@ import { articleAPI, userAPI, favoriteAPI } from '@/api'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import FavoriteModal from '@/components/FavoriteModal.vue'
+import CommentSection from '@/components/CommentSection.vue'
 import { ensureBigIntAsString, debugId } from '@/utils/bigint-helper'
 import { getAuthorAvatarUrl } from '@/utils/avatar-helper'
 import hljs from 'highlight.js'
@@ -290,6 +296,102 @@ const renderedContent = ref('')
 const tableOfContents = ref([])
 const showBackToTop = ref(false)
 const showFavoriteModal = ref(false)
+
+// 初始化复制按钮到每个代码块
+const initCopyButtons = () => {
+  // 限定在当前文章内容区域内
+  const container = document.querySelector('.markdown-content');
+  if (!container) return;
+
+  container.querySelectorAll('pre').forEach(pre => {
+    if (pre.getAttribute('data-copy-ready') === '1') return; // 避免重复添加
+    // 已经有按钮就只绑定事件，否则创建一个
+    const btn = pre.querySelector('.copy-btn') || (() => {
+      const b = document.createElement('button');
+      b.className = 'copy-btn';
+      b.type = 'button';
+      b.title = '复制代码';
+      b.textContent = '复制';
+      pre.appendChild(b);
+      return b;
+    })();
+
+    const doCopy = async () => {
+      const codeEl = pre.querySelector('code');
+      const text = codeEl ? codeEl.innerText : pre.innerText;
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          // 兼容不支持 Clipboard API 的环境
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+        }
+        btn.textContent = '已复制';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = '复制';
+          btn.classList.remove('copied');
+        }, 1500);
+      } catch (err) {
+        console.warn('复制失败', err);
+        btn.textContent = '重试';
+        setTimeout(() => (btn.textContent = '复制'), 1500);
+      }
+    };
+
+    btn.addEventListener('click', doCopy);
+    pre.setAttribute('data-copy-ready', '1');
+  });
+};
+
+// 事件委托：保证无论何时渲染出来的按钮都能响应
+let delegatedCopyHandler = null;
+const installDelegatedCopy = () => {
+  if (delegatedCopyHandler) return;
+  delegatedCopyHandler = async (e) => {
+    const btn = e.target.closest('.copy-btn');
+    if (!btn) return;
+    const pre = btn.closest('pre');
+    if (!pre) return;
+    const codeEl = pre.querySelector('code');
+    const text = codeEl ? codeEl.innerText : pre.innerText;
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+      btn.textContent = '已复制';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = '复制'; btn.classList.remove('copied'); }, 1500);
+    } catch (err) {
+      console.warn('复制失败', err);
+      btn.textContent = '重试';
+      setTimeout(() => (btn.textContent = '复制'), 1500);
+    }
+  };
+  document.addEventListener('click', delegatedCopyHandler, true);
+};
+const uninstallDelegatedCopy = () => {
+  if (delegatedCopyHandler) {
+    document.removeEventListener('click', delegatedCopyHandler, true);
+    delegatedCopyHandler = null;
+  }
+};
 
   // 获取文章数据
   const loadArticle = async () => {
@@ -354,12 +456,20 @@ if (article.value?.content) {
     return `<h${level} id="${id}">${text}</h${level}>`;
   };
   
-  // 自定义代码块渲染 - 修复第一行空行问题
+  // 自定义代码块渲染 - 输出“终端顶栏 + 三色圆点 + 复制按钮”结构
   renderer.code = (code, language) => {
     const langClass = language ? ` class="language-${language}"` : '';
-    // 清理代码内容，移除首尾空白和多余空行
     const cleanCode = code.trim();
-    return `<div class="code-block-wrapper"><pre${langClass}><code${langClass}>${cleanCode}</code></pre></div>`;
+    return `
+      <div class="code-block-wrapper terminal-block">
+        <div class="terminal-header">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+        </div>
+        <pre${langClass}><code${langClass}>${cleanCode}</code><button class="copy-btn" type="button" title="复制代码">复制</button></pre>
+      </div>
+    `;
   };
   
   // 自定义表格渲染 - 修复表格中的粗体问题
@@ -415,7 +525,7 @@ if (article.value?.content) {
   });
   
   renderedContent.value = DOMPurify.sanitize(processedHtml, {
-    ALLOWED_TAGS: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'br', 'strong', 'em', 'u', 's', 'code', 'pre', 'blockquote', 'ul', 'ol', 'li', 'a', 'img', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'div', 'span'],
+    ALLOWED_TAGS: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'br', 'strong', 'em', 'u', 's', 'code', 'pre', 'blockquote', 'ul', 'ol', 'li', 'a', 'img', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'div', 'span', 'button'],
     ALLOWED_ATTR: ['id', 'class', 'href', 'src', 'alt', 'title', 'target', 'rel']
   });
   
@@ -428,6 +538,9 @@ if (article.value?.content) {
   document.querySelectorAll('pre code').forEach(block => {
     hljs.highlightElement(block);
   });
+
+  // 为代码块添加复制按钮
+  initCopyButtons();
       }
       
       // 获取相关文章 - 暂时使用热门文章作为相关文章
@@ -866,56 +979,98 @@ onMounted(async () => {
   
   // 设置代码复制按钮
   setupCodeCopyButtons();
+  installDelegatedCopy();
 });
 
 // 在组件卸载时移除滚动监听器
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', handleScroll);
+  uninstallDelegatedCopy();
 })
 </script>
 
 <style scoped>
 /* 全局覆盖 highlight.js 样式 */
 :deep(.hljs) {
-  background: #f1f5f9 !important;
-  background-color: #f1f5f9 !important;
-  color: #1e293b !important;
+  background: #0b0f19 !important;
+  background-color: #0b0f19 !important;
+  color: #9fef00 !important;
 }
 
 :deep(pre.hljs) {
-  background: #f1f5f9 !important;
-  background-color: #f1f5f9 !important;
-  color: #1e293b !important;
+  background: #0b0f19 !important;
+  background-color: #0b0f19 !important;
+  color: #9fef00 !important;
 }
 
 :deep(pre code.hljs) {
   background: transparent !important;
   background-color: transparent !important;
-  color: #1e293b !important;
+  color: #9fef00 !important;
 }
 
 /* 代码块样式 - 覆盖 highlight.js 样式 */
 .code-block-wrapper {
   position: relative;
   margin: 1.5rem 0;
-  border-radius: 8px;
+  border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e2e8f0;
-  background: #f1f5f9 !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+  border: 1px solid #0e1424;
+  background: #0b0f19 !important;
+}
+
+/* 顶部终端栏与三色圆点 */
+.code-block-wrapper::before {
+  content: '';
+  display: block;
+  height: 34px;
+  background: #121829;
+  border-bottom: 1px solid #0e1424;
+}
+.code-block-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 10px;
+  left: 14px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ff5f56;              /* red */
+  box-shadow: 16px 0 0 #ffbd2e,     /* yellow */
+              32px 0 0 #27c93f;     /* green */
 }
 
 .code-block-wrapper pre {
   position: relative;
   margin: 0;
-  padding: 1.2rem;
-  background: #f1f5f9 !important;
-  background-color: #f1f5f9 !important;
-  border-radius: 8px;
+  padding: 1rem 1.2rem 1.2rem;
+  background: #0b0f19 !important;
+  background-color: #0b0f19 !important;
+  border-radius: 14px;
   overflow-x: auto;
-  color: #1e293b !important;
+  color: #9fef00 !important;
   border: none;
 }
+
+.terminal-block .terminal-header {
+  height: 34px;
+  background: #121829;
+  border-bottom: 1px solid #0e1424;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+}
+.terminal-block .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+}
+.terminal-block .dot-red { background: #ff5f56; }
+.terminal-block .dot-yellow { background: #ffbd2e; }
+.terminal-block .dot-green { background: #27c93f; }
 
 .code-block-wrapper pre code {
   padding: 0;
@@ -923,7 +1078,7 @@ onBeforeUnmount(() => {
   background-color: transparent !important;
   margin: 0;
   display: block;
-  color: #1e293b !important;
+  color: #9fef00 !important;
   font-family: 'Fira Code', Consolas, Monaco, 'Andale Mono', monospace;
   font-size: 0.95rem;
   line-height: 1.6;
@@ -934,9 +1089,9 @@ onBeforeUnmount(() => {
 /* 覆盖 highlight.js 的全局样式 */
 .code-block-wrapper pre.hljs,
 .code-block-wrapper pre code.hljs {
-  background: #f1f5f9 !important;
-  background-color: #f1f5f9 !important;
-  color: #1e293b !important;
+  background: #0b0f19 !important;
+  background-color: #0b0f19 !important;
+  color: #9fef00 !important;
 }
 
 .code-block-wrapper pre code.hljs {
@@ -951,11 +1106,38 @@ onBeforeUnmount(() => {
 .markdown-content pre {
   position: relative;
   margin: 0;
-  padding: 1.2rem;
-  background: #f7fafc;
-  border-radius: 8px;
+  padding: 2.2rem 1.2rem 1.2rem; /* 预留顶栏空间 */
+  background: #0b0f19;
+  border-radius: 14px;
   overflow-x: auto;
-  color: #2d3748;
+  color: #9fef00;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+  border: 1px solid #0e1424;
+}
+
+/* Markdown直接渲染的代码块也加上顶栏与三色圆点 */
+.markdown-content pre::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 34px;
+  background: #121829;
+  border-bottom: 1px solid #0e1424;
+  border-top-left-radius: 14px;
+  border-top-right-radius: 14px;
+}
+.markdown-content pre::after {
+  content: '';
+  position: absolute;
+  top: 10px;
+  left: 14px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ff5f56;
+  box-shadow: 16px 0 0 #ffbd2e, 32px 0 0 #27c93f;
 }
 
 .markdown-content pre code {
@@ -963,7 +1145,7 @@ onBeforeUnmount(() => {
   background: transparent;
   margin-top: 0.5rem;
   display: block;
-  color: #2d3748;
+  color: #9fef00;
 }
 .article-page {
   padding: 70px 0 2rem 0; /* 为固定导航栏预留空间 */

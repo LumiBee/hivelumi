@@ -1,44 +1,132 @@
-/* 代码块样式强制覆盖 - 确保灰色背景生效 */
+/* 统一将文章内代码块改为“黑色终端 + macOS 三点”风格 */
 
-/* 覆盖所有可能的代码块选择器 */
-pre,
-code,
-pre code,
-.hljs,
-pre.hljs,
-code.hljs,
-pre code.hljs,
-[class*="language-"],
-pre[class*="language-"],
-code[class*="language-"],
-pre code[class*="language-"],
-.article-content pre,
-.article-content code,
-.article-content pre code,
-.markdown-content pre,
-.markdown-content code,
-.markdown-content pre code,
-.code-block-wrapper pre,
-.code-block-wrapper code,
-.code-block-wrapper pre code {
-  background: #f1f5f9 !important;
-  background-color: #f1f5f9 !important;
-  color: #1e293b !important;
+/* 基础终端外观（高优先级选择器，覆盖其它样式表） */
+html body .article-content pre,
+html body .markdown-content pre,
+html body .code-block-wrapper pre {
+  position: relative !important;
+  padding: 2.2rem 1.2rem 1.2rem !important; /* 给顶栏留出空间 */
+  background: #0b0f19 !important;           /* 终端黑 */
+  background-color: #0b0f19 !important;
+  color: #9fef00 !important;                /* 终端绿 */
+  border-radius: 14px !important;
+  border: 1px solid #0e1424 !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25) !important;
+  overflow: auto !important;
 }
 
-/* 确保代码块内的代码元素背景透明 */
-pre code,
-pre code.hljs,
-pre code[class*="language-"],
-.article-content pre code,
-.markdown-content pre code,
-.code-block-wrapper pre code {
+/* 如果存在真实的 .terminal-header，取消伪元素顶栏并缩小内边距 */
+html body .terminal-block .terminal-header + pre::before,
+html body .terminal-block .terminal-header + pre::after {
+  content: none !important;
+}
+html body .terminal-block .terminal-header + pre {
+  padding-top: 1.2rem !important;
+}
+
+/* 包裹层，便于真实 .terminal-header 与 pre 结合显示圆角 */
+html body .code-block-wrapper {
+  border-radius: 14px !important;
+  overflow: hidden !important;
+  position: relative !important;
+}
+
+/* 终端块整体容器统一边框与阴影，避免上下割裂感 */
+html body .terminal-block,
+html body .code-block-wrapper.terminal-block {
+  background: #0b0f19 !important;
+  border: 1px solid #0e1424 !important;
+  border-radius: 14px !important;
+  overflow: hidden !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25) !important;
+}
+
+/* 真实的终端顶栏（来自渲染器生成） */
+html body .terminal-block .terminal-header {
+  height: 34px;
+  background: #121829;
+  border-bottom: 1px solid #0e1424;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+}
+/* header 下方的 pre 只保留下圆角，不要边框与阴影，与容器无缝衔接 */
+html body .terminal-block .terminal-header + pre {
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 0 14px 14px !important;
+}
+html body .terminal-block .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+}
+html body .terminal-block .dot-red { background: #ff5f56; }
+html body .terminal-block .dot-yellow { background: #ffbd2e; }
+html body .terminal-block .dot-green { background: #27c93f; }
+
+/* 代码元素透明背景 + 文字颜色 */
+html body .article-content pre code,
+html body .markdown-content pre code,
+html body .code-block-wrapper pre code,
+html body .article-content pre code.hljs,
+html body .markdown-content pre code.hljs {
   background: transparent !important;
   background-color: transparent !important;
-  color: #1e293b !important;
+  color: #9fef00 !important;
+  font-family: 'Fira Code', SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace !important;
+  font-size: 0.95rem !important;
+  line-height: 1.6 !important;
 }
 
-/* 覆盖 highlight.js 特定样式 */
+/* 顶部终端栏 */
+html body .article-content pre::before,
+html body .markdown-content pre::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 34px;
+  background: #121829;                    /* 顶栏深色 */
+  border-bottom: 1px solid #0e1424;
+  border-top-left-radius: 14px;
+  border-top-right-radius: 14px;
+  z-index: 1;
+}
+
+/* macOS 三色圆点 */
+html body .article-content pre::after,
+html body .markdown-content pre::after {
+  content: '';
+  position: absolute;
+  top: 10px;
+  left: 14px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ff5f56;                    /* 红色 */
+  box-shadow: 16px 0 0 #ffbd2e,           /* 黄色 */
+              32px 0 0 #27c93f;           /* 绿色 */
+  z-index: 2;
+}
+
+/* 统一使用伪元素绘制三色圆点，确保任何情况下都可见 */
+
+/* 覆盖 highlight.js 的背景，保持终端风格 */
+html body .article-content pre.hljs,
+html body .markdown-content pre.hljs,
+html body .code-block-wrapper pre.hljs,
+html body .article-content pre code.hljs,
+html body .markdown-content pre code.hljs {
+  background: #0b0f19 !important;
+  background-color: #0b0f19 !important;
+  color: #9fef00 !important;
+}
+
+/* 将常见语法标记颜色统一为终端绿，避免被外部主题干扰 */
 .hljs-comment,
 .hljs-quote,
 .hljs-variable,
@@ -68,5 +156,65 @@ pre code[class*="language-"],
 .hljs-selector-tag {
   background: transparent !important;
   background-color: transparent !important;
-  color: #1e293b !important;
+  color: #9fef00 !important;
+}
+
+/* 复制按钮（深色终端样式） */
+html body .article-content pre .copy-btn,
+html body .markdown-content pre .copy-btn,
+html body .code-block-wrapper pre .copy-btn {
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  z-index: 3;
+  padding: 4px 10px;
+  font-size: 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.06);
+  color: #e2e8f0;
+  cursor: pointer;
+  pointer-events: auto;
+  opacity: 0;                 /* 默认隐藏，悬停显示 */
+  transition: all .2s ease;
+}
+html body .article-content pre:hover .copy-btn,
+html body .markdown-content pre:hover .copy-btn,
+html body .code-block-wrapper pre:hover .copy-btn {
+  opacity: 1;
+}
+html body .article-content pre .copy-btn:hover,
+html body .markdown-content pre .copy-btn:hover,
+html body .code-block-wrapper pre .copy-btn:hover {
+  background: rgba(255,255,255,0.12);
+}
+html body .article-content pre .copy-btn.copied,
+html body .markdown-content pre .copy-btn.copied,
+html body .code-block-wrapper pre .copy-btn.copied {
+  background: #27c93f;
+  border-color: #27c93f;
+  color: #0b0f19;
+}
+
+/* 触屏设备默认显示复制按钮 */
+@media (hover: none) {
+  html body .article-content pre .copy-btn,
+  html body .markdown-content pre .copy-btn,
+  html body .code-block-wrapper pre .copy-btn {
+    opacity: 1;
+  }
+}
+
+/* 内联代码（非代码块）使用浅灰背景 */
+html body .article-content :not(pre) > code,
+html body .markdown-content :not(pre) > code,
+html body .article-content :not(pre) > code[class*="language-"],
+html body .markdown-content :not(pre) > code[class*="language-"] {
+  background: #edf2f7 !important;
+  background-color: #edf2f7 !important;
+  color: #2d3748 !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 4px !important;
+  padding: 0.15rem 0.35rem !important;
+  box-shadow: none !important;
 }

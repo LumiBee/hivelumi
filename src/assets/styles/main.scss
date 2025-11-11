@@ -6,15 +6,15 @@
 pre.hljs,
 code.hljs,
 pre code.hljs {
-  background: #f1f5f9 !important;
-  background-color: #f1f5f9 !important;
-  color: #1e293b !important;
+  background: #0b0f19 !important; /* 深色终端背景 */
+  background-color: #0b0f19 !important;
+  color: #9fef00 !important; /* 终端绿 */
 }
 
 pre code.hljs {
   background: transparent !important;
   background-color: transparent !important;
-  color: #1e293b !important;
+  color: #9fef00 !important;
 }
 
 // 颜色变量 - 保持原有主题
@@ -753,19 +753,21 @@ p {
   }
   
   code {
-    background: var(--gray-200);
+    background: #0f1629;
     padding: 0.2rem 0.4rem;
     border-radius: var(--border-radius-sm);
     font-family: var(--font-family-code);
     font-size: 0.875rem;
+    color: #a6b1d8;
   }
   
   pre {
-    background: var(--gray-900);
-    color: var(--white);
-    padding: 1rem;
+    background: #0b0f19;
+    color: #9fef00;
+    padding: 1.25rem;
     border-radius: var(--border-radius);
     overflow-x: auto;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.25);
     
     code {
       background: none;

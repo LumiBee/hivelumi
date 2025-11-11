@@ -468,8 +468,12 @@ onUnmounted(() => {
 
 /* Loading State */
 .loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
+  padding: 0;
   text-align: center;
-  padding: 4rem 0;
 }
 
 .loading-spinner {

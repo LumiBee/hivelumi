@@ -1549,12 +1549,29 @@ watch(messages, () => {
 }
 
 .message-text code {
-  background-color: #f8f9fa;
+  background-color: #0f1629;
   padding: 0.2rem 0.4rem;
   border-radius: 0.25rem;
-  font-family: 'Courier New', monospace;
+  font-family: 'Fira Code', 'Courier New', monospace;
   font-size: 0.9rem;
-  color: #e74c3c;
+  color: #a6b1d8;
+}
+
+/* 代码块（多行） - 终端风格 */
+.ai-chat-page .message-text pre {
+  background: #0b0f19 !important;
+  color: #9fef00 !important;
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  overflow-x: auto;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.22);
+}
+.ai-chat-page .message-text pre code {
+  background: transparent !important;
+  color: inherit !important;
+  font-family: 'Fira Code', Consolas, Monaco, 'Andale Mono', monospace;
+  font-size: 0.9rem;
+  line-height: 1.6;
 }
 
 .message-text li {
