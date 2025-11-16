@@ -13,20 +13,20 @@
         
         <!-- 联系方式 -->
         <div class="footer-social">
-          <a href="#" class="social-link" title="GitHub">
+          <a href="https://github.com/LumiBee/community" class="social-link" title="GitHub">
             <i class="fab fa-github"></i>
           </a>
-          <a href="#" class="social-link" title="Email">
-            <i class="fas fa-envelope"></i>
+          <a href="https://qm.qq.com/q/FqkcBrXacS" class="social-link" title="QQ">
+            <i class="fab fa-qq"></i>
           </a>
         </div>
       </div>
       
       <!-- 版权信息 -->
       <div class="footer-copyright">
-        <span>© 2024 LumiHive</span>
+        <span>© 2025 LumiHive</span>
         <span class="divider">•</span>
-        <span>Vue.js & Spring Boot</span>
+        <span>苏ICP备2025185969号</span>
       </div>
     </div>
   </footer>

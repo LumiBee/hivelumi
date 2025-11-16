@@ -101,7 +101,7 @@
         <div class="social-login">
           <p>或通过以下方式登录</p>
           <div>
-            <a href="/oauth2/authorization/github" class="btn btn-outline-dark me-2">
+            <a href="http://localhost:8090/api/oauth2/authorization/github" class="btn btn-outline-dark me-2">
               <i class="fab fa-github me-1"></i> Github
             </a>
             <button type="button" class="btn btn-outline-danger" disabled>

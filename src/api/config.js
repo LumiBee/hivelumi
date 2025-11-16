@@ -48,7 +48,8 @@ const getApiBaseUrl = () => {
 const request = axios.create({
   baseURL: getApiBaseUrl(), // 后端API地址（已包含/api前缀）
   timeout: 600000, // 请求超时时间增加到10分钟（AI生成长内容需要更长时间）
-  withCredentials: false, // 使用JWT认证，不需要Cookie
+  // 同时兼容 Bearer Token 与 Cookie Session（生产环境常见跨子域部署）
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json;charset=UTF-8',
     'Accept': 'application/json'
@@ -66,6 +67,13 @@ request.interceptors.request.use(
     
     if (storedUser && storedUser.token) {
       config.headers['Authorization'] = `Bearer ${storedUser.token}`
+    }
+    // 如果标记为已登录但没有token，则打印一次提示，便于线上排查
+    else if (storedUser && !storedUser.token) {
+      if (typeof window !== 'undefined' && !sessionStorage.getItem('__warn_no_token_once')) {
+        console.warn('[Auth] 用户存在但缺少 token，已启用 withCredentials 走 Cookie 模式。若后端不使用 Cookie，请确保登录响应返回 token 字段。')
+        sessionStorage.setItem('__warn_no_token_once', '1')
+      }
     }
     
     return config
