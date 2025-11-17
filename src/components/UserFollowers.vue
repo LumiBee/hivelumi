@@ -30,7 +30,10 @@
                   {{ fan.name }}
                 </router-link>
               </h6>
-              </div>
+              <small class="text-muted text-truncate d-block" style="font-size: 0.8rem;">
+                ID: {{ fan.id }}
+              </small>
+            </div>
           </div>
         </div>
       </div>
@@ -56,19 +59,32 @@
     
     loading.value = true;
     try {
-      // 调用之前定义的 API
-      const response = await userAPI.getFollowers(props.username, 1, 100); // 获取前100个，暂不分页
-      followers.value = response.data.followers || [];
+      const response = await userAPI.getFollowers(props.username, 1, 100);
+      
+      // 调试日志：您可以在控制台看到实际返回
+      console.log('粉丝API响应:', response);
+  
+      // 修正点3：正确提取数据
+      // Axios 默认将服务器返回的 JSON 放在 response.data 中
+      // 您的 JSON 结构是 { followers: [...], ... }
+      const responseData = response.data || response;
+      
+      // 安全获取 followers 数组
+      followers.value = responseData.followers || [];
+      
+      console.log('已解析粉丝列表:', followers.value);
+  
     } catch (error) {
       console.error('获取粉丝列表失败:', error);
+      followers.value = [];
     } finally {
       loading.value = false;
     }
   };
   
-  // 监听用户名变化，如果是在不同用户主页间切换
-  watch(() => props.username, () => {
-    fetchFollowers();
+  // 监听用户名变化（处理路由切换）
+  watch(() => props.username, (newVal) => {
+    if (newVal) fetchFollowers();
   });
   
   onMounted(() => {
@@ -82,6 +98,7 @@
     border-radius: 12px;
     border: 1px solid rgba(0,0,0,0.05);
     transition: all 0.2s ease;
+    position: relative; /* 让 stretched-link 生效 */
   }
   
   .follower-card:hover {
