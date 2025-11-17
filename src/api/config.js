@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { useAuthStore } from '@/store/auth'
 import { getSafeUserFromStorage } from '@/utils/bigint-helper'
+import tokenManager from '@/utils/token-manager'
 
 // 获取API基础URL（带混合内容防护）
 const getApiBaseUrl = () => {
@@ -16,7 +17,6 @@ const getApiBaseUrl = () => {
     // 如果当前页面是 https，且 env 是 http，则自动升级为 https，避免 Mixed Content
     if (typeof window !== 'undefined' && window.location.protocol === 'https:' && envApiUrl.startsWith('http://')) {
       envApiUrl = envApiUrl.replace('http://', 'https://')
-      console.warn('[API] 检测到 http API 地址，在 HTTPS 页面中已自动升级为 https:', envApiUrl)
     }
 
     return envApiUrl
@@ -58,6 +58,22 @@ const request = axios.create({
   retry: 3, // 重试次数
   retryDelay: 1000 // 重试间隔（毫秒）
 })
+
+request.interceptors.request.use(
+  config => {
+    // 从 tokenManager 获取 token
+    const token = tokenManager.getToken(); //
+    if (token) {
+      // 如果 token 存在，则添加到 Authorization 请求头
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  error => {
+    // 对请求错误做些什么
+    return Promise.reject(error);
+  }
+);
 
 // 请求拦截器
 request.interceptors.request.use(

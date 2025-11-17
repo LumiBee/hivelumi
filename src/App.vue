@@ -26,7 +26,6 @@
 import { onMounted, computed, onUnmounted, ref } from 'vue'
 import { useAuthStore } from '@/store/auth'
 import { useRoute } from 'vue-router'
-import { startTokenMonitoring } from '@/utils/token-manager'
 import Navbar from '@/components/layout/Navbar.vue'
 import Footer from '@/components/layout/Footer.vue'
 import Toast from '@/components/Toast.vue'
@@ -49,14 +48,11 @@ const isPublishPage = computed(() => {
 
 onMounted(async () => {
   try {
-    // 启动 token 监控
-    stopTokenMonitoring = startTokenMonitoring(authStore, 2) // 每2分钟检查一次
-    
     // 检查是否是临时会话登录（非记住我）
     const isTempSession = sessionStorage.getItem('temp_session') === 'true'
     
     // 如果是临时会话，则在页面刷新时清除登录状态
-    if (isTempSession) {
+    if (isTempSession) {ß
       console.log('检测到临时会话，在页面刷新时将清除登录状态')
       
       // 页面加载时清除登录状态

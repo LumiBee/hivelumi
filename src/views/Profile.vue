@@ -58,137 +58,152 @@
     <div class="container profile-container">
       <div class="row">
         <div class="col-lg-9">
-          <!-- 文章列表 -->
-          <div class="articles-container">
-            <div v-if="isLoading" class="loading-container modern-loading">
-              <div class="loading-spinner">
-                <div class="spinner-ring"></div>
-                <div class="spinner-ring"></div>
-                <div class="spinner-ring"></div>
-              </div>
-              <p>加载中...</p>
-            </div>
+          <div class="profile-tabs mb-4">
+            <button 
+              class="tab-btn" 
+              :class="{ active: activeTab === 'articles' }"
+              @click="activeTab = 'articles'"
+            >
+              <i class="fas fa-pen-nib me-2"></i> 文章
+              <span class="badge bg-light text-dark ms-1 rounded-pill">{{ profileData.articleCount || 0 }}</span>
+            </button>
+            <button 
+              class="tab-btn" 
+              :class="{ active: activeTab === 'followers' }"
+              @click="activeTab = 'followers'"
+            >
+              <i class="fas fa-users me-2"></i> 粉丝
+              <span class="badge bg-light text-dark ms-1 rounded-pill">{{ profileData.followersCount || 0 }}</span>
+            </button>
+          </div>
+
+          <div class="tab-content">
             
-            <div v-else-if="articles.length === 0" class="empty-state modern-empty">
-              <div class="empty-icon">
-                <i class="far fa-file-alt"></i>
+            <div v-if="activeTab === 'articles'" class="articles-container fade-in">
+              <div v-if="isLoading" class="loading-container modern-loading">
+                <div class="loading-spinner">
+                  <div class="spinner-ring"></div>
+                  <div class="spinner-ring"></div>
+                  <div class="spinner-ring"></div>
+                </div>
+                <p>加载中...</p>
               </div>
-              <h4>暂无文章</h4>
-              <p>{{ isOwner ? '开始创作您的第一篇文章吧！' : '该用户还没有发布任何文章' }}</p>
-              <router-link v-if="isOwner" to="/publish" class="btn btn-warning modern-btn">
-                <i class="fas fa-pen me-2"></i> 写文章
-              </router-link>
-            </div>
-            
-            <div v-else class="row">
-              <div v-for="(article, index) in articles" :key="article.id || article.articleId" class="col-md-6 mb-4">
-                <div class="article-card modern-article" :style="{animationDelay: index * 0.1 + 's'}">
-                  <div class="article-card-inner">
-                    <div class="article-badge">文章</div>
-                    <router-link :to="`/article/${article.slug}`">
-                      <div class="article-cover">
-                        <!-- 文章封面骨架屏 -->
-                        <div v-if="!article.coverImgLoaded" class="article-cover-skeleton"></div>
-                        <!-- 文章封面图片 -->
-                        <img 
-                          v-if="article.coverImg" 
-                          :src="article.coverImg" 
-                          :alt="`${article.title}的封面图片`"
-                          class="article-cover-image"
-                          loading="lazy"
-                          @load="onArticleCoverLoad(article)"
-                          @error="onArticleCoverError(article)"
-                        />
-                        <!-- 默认封面 -->
-                        <img 
-                          v-else 
-                          src="/img/default.jpg" 
-                          :alt="`${article.title}的默认封面`"
-                          class="article-cover-image"
-                          loading="lazy"
-                          @load="onArticleCoverLoad(article)"
-                        />
-                        <div class="article-cover-overlay"></div>
-                      </div>
-                    </router-link>
-                    <div class="article-content">
-                      <router-link :to="`/article/${article.slug}`" class="article-title">
-                        {{ article.title }}
+              
+              <div v-else-if="articles.length === 0" class="empty-state modern-empty">
+                <div class="empty-icon">
+                  <i class="far fa-file-alt"></i>
+                </div>
+                <h4>暂无文章</h4>
+                <p>{{ isOwner ? '开始创作您的第一篇文章吧！' : '该用户还没有发布任何文章' }}</p>
+                <router-link v-if="isOwner" to="/publish" class="btn btn-warning modern-btn">
+                  <i class="fas fa-pen me-2"></i> 写文章
+                </router-link>
+              </div>
+              
+              <div v-else class="row">
+                <div v-for="(article, index) in articles" :key="article.id || article.articleId" class="col-md-6 mb-4">
+                  <div class="article-card modern-article" :style="{animationDelay: index * 0.1 + 's'}">
+                    <div class="article-card-inner">
+                      <div class="article-badge">文章</div>
+                      <router-link :to="`/article/${article.slug}`">
+                        <div class="article-cover">
+                          <div v-if="!article.coverImgLoaded" class="article-cover-skeleton"></div>
+                          <img 
+                            v-if="article.coverImg" 
+                            :src="article.coverImg" 
+                            :alt="`${article.title}的封面图片`"
+                            class="article-cover-image"
+                            loading="lazy"
+                            @load="onArticleCoverLoad(article)"
+                            @error="onArticleCoverError(article)"
+                          />
+                          <img 
+                            v-else 
+                            src="/img/default.jpg" 
+                            :alt="`${article.title}的默认封面`"
+                            class="article-cover-image"
+                            loading="lazy"
+                            @load="onArticleCoverLoad(article)"
+                          />
+                          <div class="article-cover-overlay"></div>
+                        </div>
                       </router-link>
-                      <p class="article-excerpt">{{ article.excerpt }}</p>
-                      
-                      <!-- 文章操作按钮 - 仅页面所有者可见 -->
-                      <div v-if="isOwner" class="article-actions">
-                        <router-link 
-                          :to="`/publish?edit=${article.slug}`" 
-                          class="action-btn edit-btn"
-                          title="编辑文章"
-                        >
-                          <i class="fas fa-edit"></i>
+                      <div class="article-content">
+                        <router-link :to="`/article/${article.slug}`" class="article-title">
+                          {{ article.title }}
                         </router-link>
-                        <button 
-                          @click="confirmDeleteArticle(article, index)" 
-                          class="action-btn delete-btn"
-                          title="删除文章"
-                        >
-                          <i class="fas fa-trash"></i>
-                        </button>
-                      </div>
-                      
-                      <div class="article-meta modern-meta">
-                        <span class="article-date">
-                          <i class="far fa-calendar-alt"></i> {{ formatDate(article.gmtCreate || article.gmtModified || article.gmt_create || article.gmt_modified) }}
-                          <!-- 临时调试信息 -->
-                          <small v-if="!article.gmtCreate && !article.gmtModified && !article.gmt_create && !article.gmt_modified" style="color: red; font-size: 0.7rem;">
-                            (无日期数据)
-                          </small>
-                        </span>
-                        <div class="article-stats">
-                          <span class="stat-item" title="阅读量">
-                            <i class="far fa-eye"></i> {{ article.viewCount || 0 }}
+                        <p class="article-excerpt">{{ article.excerpt }}</p>
+                        
+                        <div v-if="isOwner" class="article-actions">
+                          <router-link 
+                            :to="`/publish?edit=${article.slug}`" 
+                            class="action-btn edit-btn"
+                            title="编辑文章"
+                          >
+                            <i class="fas fa-edit"></i>
+                          </router-link>
+                          <button 
+                            @click="confirmDeleteArticle(article, index)" 
+                            class="action-btn delete-btn"
+                            title="删除文章"
+                          >
+                            <i class="fas fa-trash"></i>
+                          </button>
+                        </div>
+                        
+                        <div class="article-meta modern-meta">
+                          <span class="article-date">
+                            <i class="far fa-calendar-alt"></i> {{ formatDate(article.gmtCreate || article.gmtModified || article.gmt_create || article.gmt_modified) }}
                           </span>
-                          <span class="stat-item" title="点赞数">
-                            <i class="far fa-heart"></i> {{ article.likes || 0 }}
-                          </span>
+                          <div class="article-stats">
+                            <span class="stat-item" title="阅读量">
+                              <i class="far fa-eye"></i> {{ article.viewCount || 0 }}
+                            </span>
+                            <span class="stat-item" title="点赞数">
+                              <i class="far fa-heart"></i> {{ article.likes || 0 }}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-              
-              <!-- 分页 -->
-              <div class="pagination-container modern-pagination">
-                <button 
-                  @click="loadPreviousPage" 
-                  :disabled="currentPage <= 1"
-                  class="pagination-btn"
-                >
-                  <i class="fas fa-chevron-left"></i> 上一页
-                </button>
                 
-                <!-- 页码按钮 -->
-                <div class="page-numbers">
+                <div class="pagination-container modern-pagination">
                   <button 
-                    v-for="page in visiblePages" 
-                    :key="page"
-                    @click="goToPage(page)"
-                    class="page-number-btn"
-                    :class="{ active: page === currentPage, disabled: page === '...' }"
-                    :disabled="page === '...'"
+                    @click="loadPreviousPage" 
+                    :disabled="currentPage <= 1"
+                    class="pagination-btn"
                   >
-                    {{ page }}
+                    <i class="fas fa-chevron-left"></i> 上一页
+                  </button>
+                  
+                  <div class="page-numbers">
+                    <button 
+                      v-for="page in visiblePages" 
+                      :key="page"
+                      @click="goToPage(page)"
+                      class="page-number-btn"
+                      :class="{ active: page === currentPage, disabled: page === '...' }"
+                      :disabled="page === '...'"
+                    >
+                      {{ page }}
+                    </button>
+                  </div>
+                  
+                  <button 
+                    @click="loadNextPage" 
+                    :disabled="!hasNextPage"
+                    class="pagination-btn"
+                  >
+                    下一页 <i class="fas fa-chevron-right"></i>
                   </button>
                 </div>
-                
-                <button 
-                  @click="loadNextPage" 
-                  :disabled="!hasNextPage"
-                  class="pagination-btn"
-                >
-                  下一页 <i class="fas fa-chevron-right"></i>
-                </button>
               </div>
+            </div>
+
+            <div v-if="activeTab === 'followers'" class="followers-container fade-in">
+              <UserFollowers :username="username" />
             </div>
           </div>
         </div>
@@ -348,10 +363,12 @@ import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue'
 import { getAvatarUrl } from '@/utils/avatar-helper'
 import { userAPI } from '@/api/user'
 import { preloadCriticalImages, preloadLCPImage, getOptimizedImageUrl, ImageLoader } from '@/utils/imageOptimizer'
+import UserFollowers from '../components/UserFollowers.vue'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+const activeTab = ref('articles')
 
 // 响应式数据
 const profileData = ref({})
@@ -2333,5 +2350,51 @@ onMounted(() => {
   -moz-osx-font-smoothing: grayscale;
   /* 启用连字 */
   font-feature-settings: "liga", "kern";
+}
+
+/* Tab 导航样式 */
+.profile-tabs {
+  display: flex;
+  gap: 15px;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  padding-bottom: 15px;
+}
+
+.tab-btn {
+  background: transparent;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 50px;
+  font-weight: 600;
+  color: #6c757d;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+}
+
+.tab-btn:hover {
+  background-color: rgba(248, 249, 250, 0.8);
+  color: #495057;
+}
+
+.tab-btn.active {
+  background: linear-gradient(45deg, #f6d55c, #f3a712);
+  color: white;
+  box-shadow: 0 4px 10px rgba(246, 213, 92, 0.3);
+}
+
+.tab-btn .badge {
+  font-weight: 500;
+  background-color: rgba(255,255,255,0.3) !important;
+  color: inherit !important;
+}
+
+.tab-btn.active .badge {
+  background-color: rgba(255,255,255,0.2) !important;
+  color: white !important;
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease;
 }
 </style>

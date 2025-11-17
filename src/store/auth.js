@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import { authAPI } from '@/api'
+import { userAPI } from '@/api/user'
 import { getSafeUserFromStorage, setSafeUserToStorage, debugId } from '@/utils/bigint-helper'
 
 // 本地存储键名
@@ -258,12 +259,23 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (err) {
       console.error('登出失败:', err)
     } finally {
-      // 无论API调用是否成功，都要清除本地状态
-      // 使用setUser(null)来清除用户状态和本地存储
-      setUser(null)
-      // 清除认证检查标记
-      sessionStorage.removeItem('authChecked')
-      setLoading(false)
+      setUser(null);
+      tokenManager.removeToken();
+      sessionStorage.removeItem('authChecked');
+      setLoading(false);
+    }
+  }
+
+  // 获取当前登录用户的信息
+  const fetchUser = async () => {
+    try {
+      const response = await userAPI.getUserProfile(); 
+      setUser(response.data);
+
+    } catch (error) {
+      console.error('fetchUser 失败:', error);
+      logout(); 
+      throw error;
     }
   }
   
@@ -308,6 +320,7 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     register,
     logout,
-    updateUserProfile
+    updateUserProfile,
+    fetchUser
   }
 })

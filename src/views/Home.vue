@@ -298,12 +298,15 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { articleAPI, tagAPI } from '@/api'
 import { getAuthorAvatarUrl } from '@/utils/avatar-helper'
 import LazyImage from '@/components/LazyImage.vue'
+import { useAuthStore } from '@/store/auth'
 
 const router = useRouter()
+const route = useRoute()
+const authStore = useAuthStore();
 
 // 响应式数据
 const loading = ref(true)
@@ -713,9 +716,9 @@ const stopAutoplay = () => {
 };
 
 // 生命周期
-onMounted(() => {
+onMounted(async() => {
   loadHomeData();
-  
+
   // 初始化轮播图
   nextTick(() => {
     // 等待DOM渲染完成后初始化轮播图

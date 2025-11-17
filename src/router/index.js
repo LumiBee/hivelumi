@@ -1,9 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
+import  tokenManager from '@/utils/token-manager'
 
 // 页面组件懒加载导入 - 优化首屏加载性能
 const Home = () => import('@/views/Home.vue')
 const Login = () => import('@/views/auth/Login.vue')
+const OAuth2Callback = () => import('@/views/auth/OAuth2Callback.vue')
 const Signup = () => import('@/views/auth/Signup.vue')
 const Article = () => import('@/views/Article.vue')
 const Publish = () => import('@/views/Publish.vue')
@@ -33,6 +35,12 @@ const routes = [
     name: 'Login',
     component: Login,
     meta: { title: '登录', requiresGuest: true }
+  },
+  {
+    path: '/callback',
+    name: 'OAuth2Callback',
+    component: OAuth2Callback,
+    meta: { title: 'OAuth2回调' }
   },
   {
     path: '/signup', 
@@ -153,6 +161,38 @@ const router = createRouter({
 // 路由守卫
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
+
+  // 尝试从本地 Token 恢复用户状态（避免刷新页面后状态丢失导致的 API 等待）
+  const token = tokenManager.getToken()
+  
+  // 如果本地有 Token 但 Store 中没有用户信息
+  if (token && !authStore.user) {
+    try {
+      const parts = token.split('.')
+      if (parts.length === 3) {
+        // 解析 JWT Payload (处理 Base64Url 编码和中文乱码)
+        const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/')
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+        }).join(''))
+        
+        const payload = JSON.parse(jsonPayload)
+        
+        // 构造并恢复用户状态
+        authStore.setUser({
+          id: payload.userId || payload.sub,
+          name: payload.username,
+          avatarUrl: payload.avatarUrl || '', // Token中可能不包含头像，给个默认空值
+          token: token
+        })
+      }
+    } catch (e) {
+      console.warn('路由守卫中 Token 解析失败，将执行清理:', e)
+      // Token 格式不对或已损坏，清理掉以免死循环
+      tokenManager.removeToken()
+      authStore.setUser(null)
+    }
+  }
   
   // 设置页面标题
   document.title = to.meta.title ? `${to.meta.title} - Lumi Hive` : 'Lumi Hive'

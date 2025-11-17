@@ -17,7 +17,6 @@ export const userAPI = {
       params: { page, size }
     })
   },
-
   /**
    * 根据用户名获取用户信息
    * @param {string} username - 用户名
@@ -28,7 +27,6 @@ export const userAPI = {
       method: 'get'
     })
   },
-
   /**
    * 更新用户资料
    * @param {Object} userData - 用户数据
@@ -79,18 +77,22 @@ export const userAPI = {
       method: 'post'
     })
   },
-
-  /**
-   * 获取用户的关注者列表
-   * @param {number} userId - 用户ID
+/**
+   * 获取用户的粉丝列表
+   * @param {string} username - 用户名
+   * @param {number} page - 页码 (默认1)
+   * @param {number} size - 每页数量 (默认6)
    */
-  getFollowers(userId) {
-    return request({
-      url: `/users/${userId}/followers`,
-      method: 'get'
-    })
-  },
-
+getFollowers(username, page = 1, size = 6) {
+  return request({
+    url: `/profile/${username}/fans`,
+    method: 'get',
+    params: {
+      page,
+      size
+    }
+  })
+},
   /**
    * 获取用户的关注列表
    * @param {number} userId - 用户ID
