@@ -75,6 +75,14 @@
               <i class="fas fa-users me-2"></i> 粉丝
               <span class="badge bg-light text-dark ms-1 rounded-pill">{{ profileData.followersCount || 0 }}</span>
             </button>
+            <button
+              class="tab-btn"
+              :class="{ active: activeTab === 'followings'}"
+              @click="activeTab = 'followings'"
+            >
+              <i class="fas fa-users me-2"></i>关注
+              <span class="badge bg-light text-dark ms-1 rounded-pill">{{ profileData.followingsCount || 0 }}</span>
+            </button>
           </div>
 
           <div class="tab-content">
@@ -204,6 +212,10 @@
 
             <div v-if="activeTab === 'followers'" class="followers-container fade-in">
               <UserFollowers :username="username" />
+            </div>
+
+            <div v-if="activeTab === 'followings'" class="followings-container fade-in">
+              <UserFollowings :username="username" />
             </div>
           </div>
         </div>
@@ -364,6 +376,7 @@ import { getAvatarUrl } from '@/utils/avatar-helper'
 import { userAPI } from '@/api/user'
 import { preloadCriticalImages, preloadLCPImage, getOptimizedImageUrl, ImageLoader } from '@/utils/imageOptimizer'
 import UserFollowers from '../components/UserFollowers.vue'
+import UserFollowings from '../components/UserFollowings.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -374,7 +387,7 @@ const activeTab = ref('articles')
 const profileData = ref({})
 const isLoading = ref(true)
 const currentPage = ref(1)
-const pageSize = ref(6)
+const pageSize = ref(12)
 const username = ref('')
 const errorMessage = ref('') // 添加错误信息
 

@@ -1,24 +1,24 @@
 <template>
-  <div class="followers-list-wrapper">
-    <div v-if="loading && followers.length === 0" class="text-center py-5 modern-loading">
+  <div class="following-list-wrapper">
+    <div v-if="loading && list.length === 0" class="text-center py-5 modern-loading">
       <div class="spinner-border text-warning" role="status">
         <span class="visually-hidden">Loading...</span>
       </div>
     </div>
 
-    <div v-else-if="followers.length === 0" class="text-center py-5 text-muted empty-state">
+    <div v-else-if="list.length === 0" class="text-center py-5 text-muted empty-state">
       <div class="empty-icon mb-3">
-        <i class="fas fa-users-slash fa-3x"></i>
+        <i class="fas fa-user-plus fa-3x"></i>
       </div>
-      <p>还没有粉丝哦~</p>
+      <p>还没有关注任何人哦~</p>
     </div>
 
     <div v-else>
       <div class="row g-3">
-        <div class="col-md-6" v-for="fan in followers" :key="fan.id">
-          <div class="follower-card d-flex align-items-center p-3 h-100">
+        <div class="col-md-6" v-for="user in list" :key="user.id">
+          <div class="user-card d-flex align-items-center p-3 h-100">
             <img 
-              :src="fan.avatarUrl || '/img/default01.jpg'" 
+              :src="user.avatarUrl || '/img/default01.jpg'" 
               class="rounded-circle me-3 border"
               width="50" 
               height="50" 
@@ -27,15 +27,16 @@
             >
             <div class="flex-grow-1 overflow-hidden">
               <h6 class="mb-0 text-truncate">
-                <router-link :to="`/profile/${fan.name}`" class="text-decoration-none text-dark fw-bold stretched-link">
-                  {{ fan.name }}
+                <router-link :to="`/profile/${user.name}`" class="text-decoration-none text-dark fw-bold stretched-link">
+                  {{ user.name }}
                 </router-link>
               </h6>
               <small class="text-muted text-truncate d-block" style="font-size: 0.8rem;">
-                Bio: {{ fan.bio }}
+                Bio: {{ user.bio }}
               </small>
             </div>
-          </div>
+            
+            </div>
         </div>
       </div>
 
@@ -85,12 +86,12 @@ const props = defineProps({
 });
 
 const loading = ref(false);
-const followers = ref([]);
+const list = ref([]);
 const currentPage = ref(1);
-const pageSize = ref(12);
+const pageSize = ref(6);
 const totalPages = ref(0);
 
-// 计算可见页码
+// 计算可见页码 (复用通用逻辑)
 const visiblePages = computed(() => {
   const total = totalPages.value;
   const current = currentPage.value;
@@ -120,78 +121,77 @@ const visiblePages = computed(() => {
   return pages;
 });
 
-const fetchFollowers = async () => {
+const fetchFollowings = async () => {
   if (!props.username) return;
   
   loading.value = true;
   try {
-    const response = await userAPI.getFans(props.username, currentPage.value, pageSize.value);
+    const response = await userAPI.getFollowings(props.username, currentPage.value, pageSize.value);
+    
+    // 打印日志调试
+    console.log('关注列表响应:', response);
     
     const responseData = response.data || response;
     
-    // 获取当前页数据
-    followers.value = responseData.followers || [];
+    // 【关键】后端返回的 key 是 "followings" (参考您的 ProfileController)
+    list.value = responseData.followings || [];
     
-    // 获取总页数
+    // 处理分页信息
     if (responseData.pages) {
       totalPages.value = Number(responseData.pages);
     } else {
-      // 兼容处理
       const total = Number(responseData.total) || 0;
       totalPages.value = Math.ceil(total / pageSize.value) || 1;
     }
 
-    // 翻页后自动滚动到顶部
     if (window.scrollY > 200) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     
   } catch (error) {
-    console.error('获取粉丝列表失败:', error);
-    followers.value = [];
+    console.error('获取关注列表失败:', error);
+    list.value = [];
   } finally {
     loading.value = false;
   }
 };
 
 // --- 翻页方法 ---
-
 const loadPreviousPage = () => {
   if (currentPage.value > 1) {
     currentPage.value--;
-    fetchFollowers();
+    fetchFollowings();
   }
 };
 
 const loadNextPage = () => {
   if (currentPage.value < totalPages.value) {
     currentPage.value++;
-    fetchFollowers();
+    fetchFollowings();
   }
 };
 
 const goToPage = (page) => {
   if (page !== '...' && page !== currentPage.value) {
     currentPage.value = page;
-    fetchFollowers();
+    fetchFollowings();
   }
 };
 
-// 监听用户名变化（切换用户时重置）
 watch(() => props.username, (newVal) => {
   if (newVal) {
     currentPage.value = 1;
-    fetchFollowers();
+    fetchFollowings();
   }
 });
 
 onMounted(() => {
-  fetchFollowers();
+  fetchFollowings();
 });
 </script>
 
 <style scoped>
-.follower-card {
+.user-card {
   background: #fff;
   border-radius: 12px;
   border: 1px solid rgba(0,0,0,0.05);
@@ -199,7 +199,7 @@ onMounted(() => {
   position: relative;
 }
 
-.follower-card:hover {
+.user-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.08);
   border-color: rgba(246, 213, 92, 0.3);
@@ -209,7 +209,7 @@ onMounted(() => {
   color: #dee2e6;
 }
 
-/* ===== 分页样式 ===== */
+/* ===== 样式复用 (Pagination) ===== */
 .pagination-container {
   display: flex;
   justify-content: center;
