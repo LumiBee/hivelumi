@@ -1,0 +1,27 @@
+// Custom Bootstrap Import
+// Import only the modules we need to reduce the final bundle size.
+
+// 1. Include functions and variables first
+@import "bootstrap/scss/functions";
+@import "bootstrap/scss/variables";
+@import "bootstrap/scss/maps";
+@import "bootstrap/scss/mixins";
+@import "bootstrap/scss/utilities";
+
+// 2. Include layout & components
+@import "bootstrap/scss/root";
+@import "bootstrap/scss/reboot";
+@import "bootstrap/scss/type";
+@import "bootstrap/scss/grid";
+@import "bootstrap/scss/buttons";
+@import "bootstrap/scss/transitions";
+@import "bootstrap/scss/nav";
+@import "bootstrap/scss/navbar";
+@import "bootstrap/scss/carousel";
+@import "bootstrap/scss/close";
+
+// 3. Include helpers
+@import "bootstrap/scss/helpers";
+
+// 4. Include utilities API
+@import "bootstrap/scss/utilities/api";

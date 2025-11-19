@@ -634,6 +634,13 @@ const stopAutoplay = () => {
 onMounted(async() => {
   loadHomeData();
 
+  // On-demand import and initialize Bootstrap Carousel
+  const bootstrap = await import('bootstrap/js/dist/carousel');
+  const carouselElement = document.getElementById('modernCarousel');
+  if (carouselElement) {
+    new bootstrap.default(carouselElement);
+  }
+
   // 初始化轮播图
   nextTick(() => {
     // 等待DOM渲染完成后初始化轮播图

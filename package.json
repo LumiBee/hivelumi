@@ -30,7 +30,7 @@
     "@vercel/speed-insights": "^1.2.0",
     "aos": "^2.3.4",
     "axios": "^1.6.2",
-    "bootstrap": "^5.3.2",
+    "bootstrap": "^5.3.8",
     "bootstrap-vue-next": "^0.15.0",
     "dompurify": "^3.0.6",
     "highlight.js": "^11.9.0",
@@ -50,7 +50,7 @@
     "eslint-plugin-vue": "^9.19.2",
     "fs-extra": "^11.3.2",
     "prettier": "^3.1.1",
-    "sass": "^1.69.5",
+    "sass": "^1.94.1",
     "sharp": "^0.34.5",
     "terser": "^5.43.1",
     "vite": "^5.0.8"
