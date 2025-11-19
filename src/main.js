@@ -3,8 +3,9 @@ import App from './App.vue'
 import router from './router'
 import store from './store'
 
-import './assets/styles/main.scss'
-import toastPlugin from '@/plugins/toast'
+import './assets/styles/main.scss';
+import '@fortawesome/fontawesome-free/css/all.min.css';
+import toastPlugin from '@/plugins/toast';
 
 // 添加性能优化工具
 import { minimalImageOptimization } from '@/utils/minimal-image-optimization'

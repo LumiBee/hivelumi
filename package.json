@@ -17,7 +17,7 @@
     "images:optimize": "node scripts/optimize-images.js"
   },
   "dependencies": {
-    "@fortawesome/fontawesome-free": "^6.5.0",
+    "@fortawesome/fontawesome-free": "^6.7.2",
     "@tiptap/extension-code-block-lowlight": "^3.3.0",
     "@tiptap/extension-highlight": "^3.3.0",
     "@tiptap/extension-placeholder": "^3.3.0",

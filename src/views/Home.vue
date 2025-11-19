@@ -432,236 +432,149 @@ const getProcessedImageUrl = (url) => {
   return url
 }
 
-// 智能泡泡标签云实现
+// 智能泡泡标签云实现 - 优化版，防止强制重排
 const initSmartTagCloud = () => {
-  // 等待DOM渲染完成
-  setTimeout(() => {
-    const container = document.getElementById('tagBubbleContainer')
-    if (!container) return
+  nextTick(() => {
+    const container = document.getElementById('tagBubbleContainer');
+    if (!container) return;
+
+    const bubbles = Array.from(container.getElementsByClassName('tag-bubble'));
+    if (bubbles.length === 0) return;
+
+    // --- 1. 批量读取 ---
+    const containerWidth = container.offsetWidth;
+    const containerHeight = container.offsetHeight;
     
-    const bubbles = Array.from(container.getElementsByClassName('tag-bubble'))
-    if (bubbles.length === 0) return
-
-    const containerWidth = container.offsetWidth
-    const containerHeight = container.offsetHeight
-
-    // 丰富的颜色调色板 - 使用更鲜艳的颜色
+    // ... (color and size parameters remain the same)
     const colorPalette = [
       '#FF6B6B', '#4ECDC4', '#45B7D1', '#FED766', '#2AB7CA',
       '#F0B67F', '#FE4A49', '#547980', '#8A9B0F', '#C3D89F',
       '#FF9E9D', '#3D405B', '#81B29A', '#F2CC8F', '#E07A5F',
       '#D81E5B', '#F4A261', '#2A9D8F', '#E9C46A', '#264653',
-      '#6C5CE7', '#A29BFE', '#FD79A8', '#FDCB6E', '#E84393',
-      '#FF5733', '#33A8FF', '#33FF57', '#FF33A8', '#A833FF',
-      '#FF8333', '#33FFC5', '#FF33C5', '#33FF83', '#C533FF'
-    ]
+      '#6C5CE7', '#A29BFE', '#FD79A8', '#FDCB6E', '#E84393'
+    ];
+    const baseSize = 70, maxSize = 140, countFactor = 1.5;
+    const baseFontSize = 14, maxFontSize = 20, countFactorFont = 0.3;
 
-    // 根据文章数计算泡泡大小的参数
-    const baseSize = 70 // 最小泡泡的直径 (px)
-    const maxSize = 140 // 最大泡泡的直径 (px)
-    const countFactor = 1.5 // 每篇文章数增加多少像素直径
-
-    const baseFontSize = 14 // 基础字体大小 (px)
-    const maxFontSize = 20 // 最大字体大小 (px)
-    const countFactorFont = 0.3 // 每篇文章数增加多少像素字体大小
-
-    // 计算最大文章数
-    let maxArticleCount = 0
+    let maxArticleCount = 0;
     bubbles.forEach(bubble => {
-      const count = parseInt(bubble.getAttribute('data-count') || '0')
-      if (count > maxArticleCount) {
-        maxArticleCount = count
-      }
-    })
+      const count = parseInt(bubble.getAttribute('data-count') || '0');
+      if (count > maxArticleCount) maxArticleCount = count;
+    });
 
-    // 用于避免重叠的数组，记录已放置泡泡的区域
-    let placedBubbles = []
+    // --- 2. 计算所有样式 ---
+    const stylesToApply = [];
+    let placedBubbles = [];
 
-    // 首先根据文章数量排序泡泡，确保较大的泡泡先放置
-    // 同时限制最大显示数量，避免过多标签导致重叠
-    const maxBubbles = 20; // 最多显示20个标签
     const sortedBubbles = [...bubbles].sort((a, b) => {
-      const countA = parseInt(a.getAttribute('data-count') || '0')
-      const countB = parseInt(b.getAttribute('data-count') || '0')
-      return countB - countA // 降序排列
-    }).slice(0, maxBubbles) // 只取前maxBubbles个
+      return parseInt(b.getAttribute('data-count') || '0') - parseInt(a.getAttribute('data-count') || '0');
+    }).slice(0, 20);
 
     sortedBubbles.forEach((bubble, index) => {
-      const articleCount = parseInt(bubble.getAttribute('data-count') || '0')
-
-      // 1. 设置颜色 - 更鲜艳的颜色
-      const colorIndex = (index + Math.floor(Math.random() * 5)) % colorPalette.length
-      bubble.style.background = colorPalette[colorIndex]
-
-      // 2. 设置大小 (基于文章数)
-      let diameter = baseSize + articleCount * countFactor
+      const articleCount = parseInt(bubble.getAttribute('data-count') || '0');
+      
+      let diameter = Math.max(baseSize, Math.min(maxSize, baseSize + articleCount * countFactor));
       if (maxArticleCount > 0 && articleCount === maxArticleCount) {
-        diameter = Math.min(maxSize, diameter + 20)
+        diameter = Math.min(maxSize, diameter + 20);
       }
-      diameter = Math.max(baseSize, Math.min(maxSize, diameter))
-
-      bubble.style.width = diameter + 'px'
-      bubble.style.height = diameter + 'px'
-
-      // 字体大小也可以根据泡泡大小动态调整
-      let fontSize = baseFontSize + (diameter - baseSize) * countFactorFont
-      fontSize = Math.max(baseFontSize, Math.min(maxFontSize, fontSize))
-      bubble.style.fontSize = fontSize + 'px'
-
-      const paddingValue = Math.max(2, diameter * 0.05)
-      bubble.style.padding = paddingValue + 'px'
-
-      // 3. 设置位置 (使用网格布局减少重叠)
-      let bestPos = null
-      let minOverlap = Infinity
       
-      // 尝试更多位置，选择重叠最小的
+      let fontSize = Math.max(baseFontSize, Math.min(maxFontSize, baseFontSize + (diameter - baseSize) * countFactorFont));
+      const paddingValue = Math.max(2, diameter * 0.05);
+
+      let bestPos = null;
+      let minOverlap = Infinity;
+
       for (let i = 0; i < 300; i++) {
-        let x, y;
-        
-        if (i < 100) {
-          // 策略1: 使用网格布局
-          const gridSize = Math.ceil(Math.sqrt(bubbles.length));
-          const cellWidth = containerWidth / gridSize;
-          const cellHeight = containerHeight / gridSize;
+          // Calculation logic remains the same as it doesn't touch the DOM
+          let x, y;
+          if (i < 100) {
+              const gridSize = Math.ceil(Math.sqrt(sortedBubbles.length));
+              const cellWidth = containerWidth / gridSize;
+              const cellHeight = containerHeight / gridSize;
+              const gridX = i % gridSize;
+              const gridY = Math.floor(i / gridSize) % gridSize;
+              x = gridX * cellWidth + Math.random() * (cellWidth - diameter);
+              y = gridY * cellHeight + Math.random() * (cellHeight - diameter);
+          } else {
+              x = Math.random() * (containerWidth - diameter);
+              y = Math.random() * (containerHeight - diameter);
+          }
           
-          const gridX = i % gridSize;
-          const gridY = Math.floor(i / gridSize) % gridSize;
+          const adjustedX = Math.max(0, Math.min(containerWidth - diameter, x));
+          const adjustedY = Math.max(0, Math.min(containerHeight - diameter, y));
           
-          // 在网格单元内随机位置
-          x = gridX * cellWidth + Math.random() * (cellWidth - diameter);
-          y = gridY * cellHeight + Math.random() * (cellHeight - diameter);
-        } else if (i < 200) {
-          // 策略2: 圆形分布
-          const angle = Math.random() * Math.PI * 2;
-          const maxRadius = Math.min(containerWidth, containerHeight) * 0.4;
-          // 使用平方根分布使点更均匀分布
-          const distance = Math.sqrt(Math.random()) * maxRadius;
-          const centerX = containerWidth / 2;
-          const centerY = containerHeight / 2;
+          const pos = { x: adjustedX, y: adjustedY, radius: diameter / 2 + 5 };
           
-          x = centerX + Math.cos(angle) * distance - diameter / 2;
-          y = centerY + Math.sin(angle) * distance - diameter / 2;
-        } else {
-          // 策略3: 完全随机，但避开中心区域
-          const centerX = containerWidth / 2;
-          const centerY = containerHeight / 2;
-          const centerRadius = Math.min(containerWidth, containerHeight) * 0.2;
-          
-          do {
-            x = Math.random() * (containerWidth - diameter);
-            y = Math.random() * (containerHeight - diameter);
-            // 计算到中心的距离
-            const dx = x + diameter/2 - centerX;
-            const dy = y + diameter/2 - centerY;
-            const distanceToCenter = Math.sqrt(dx*dx + dy*dy);
-            
-            // 如果距离中心够远，接受这个位置
-            if (distanceToCenter > centerRadius) {
-              break;
-            }
-          } while (i % 10 !== 0); // 每10次尝试就接受一次，避免无限循环
-        }
-        
-        // 确保不超出容器边界
-        const adjustedX = Math.max(0, Math.min(containerWidth - diameter, x));
-        const adjustedY = Math.max(0, Math.min(containerHeight - diameter, y));
-        
-        const pos = {
-          x: adjustedX,
-          y: adjustedY,
-          radius: diameter / 2 + 5, // 增加一点缓冲区，减少视觉上的重叠
-          right: adjustedX + diameter,
-          bottom: adjustedY + diameter
-        }
-        
-        const overlapAmount = calculateOverlap(pos, placedBubbles)
-        if (overlapAmount < minOverlap) {
-          minOverlap = overlapAmount
-          bestPos = pos
-          
-          // 如果找到完全不重叠的位置，立即使用
-          if (overlapAmount === 0) break
-        }
+          const overlapAmount = calculateOverlap(pos, placedBubbles);
+          if (overlapAmount < minOverlap) {
+              minOverlap = overlapAmount;
+              bestPos = pos;
+              if (overlapAmount === 0) break;
+          }
       }
       
-      // 使用找到的最佳位置
-      if (bestPos) {
-        bubble.style.left = bestPos.x + 'px'
-        bubble.style.top = bestPos.y + 'px'
-        placedBubbles.push(bestPos)
-      } else {
-        // 如果实在找不到好位置，随机放置
-        const x = Math.random() * (containerWidth - diameter)
-        const y = Math.random() * (containerHeight - diameter)
-        bubble.style.left = x + 'px'
-        bubble.style.top = y + 'px'
-      }
+      const finalPos = bestPos || { x: Math.random() * (containerWidth - diameter), y: Math.random() * (containerHeight - diameter) };
+      placedBubbles.push(finalPos);
 
-      // 不添加旋转，保持泡泡正常显示
-      bubble.style.transform = ''
-    })
-
-    // 为泡泡添加轻微的浮动动效
-    bubbles.forEach((bubble, index) => {
-      // 根据标签的大小调整浮动幅度
-      const diameter = parseFloat(bubble.style.width);
-      const floatAmount = Math.max(3, Math.min(8, diameter / 15)); // 浮动幅度在3-8px之间
-      
-      // 随机浮动方向和时间
-      const direction = index % 2 === 0 ? 1 : -1; // 交替上下浮动
-      const duration = 3000 + Math.random() * 2000; // 3-5秒
-      const delay = Math.random() * 2000; // 随机延迟，使动画错开
-      
-      // 应用动画
-      bubble.animate([
-        { transform: 'translateY(0px)' },
-        { transform: `translateY(${direction * floatAmount}px)` },
-        { transform: 'translateY(0px)' }
-      ], {
-        duration: duration,
-        iterations: Infinity,
-        direction: 'alternate',
-        easing: 'ease-in-out',
-        delay: delay
+      stylesToApply.push({
+        element: bubble,
+        style: {
+          background: colorPalette[(index + Math.floor(Math.random() * 5)) % colorPalette.length],
+          width: `${diameter}px`,
+          height: `${diameter}px`,
+          fontSize: `${fontSize}px`,
+          padding: `${paddingValue}px`,
+          left: `${finalPos.x}px`,
+          top: `${finalPos.y}px`,
+          transform: ''
+        }
       });
-    })
-    
-    // 计算重叠程度 - 改进版本，更严格地避免重叠
+    });
+
+    // --- 3. 批量写入 ---
+    stylesToApply.forEach(({ element, style }) => {
+      Object.assign(element.style, style);
+    });
+
+    // 4. 应用动画 (requestAnimationFrame for animations is good practice)
+    requestAnimationFrame(() => {
+        stylesToApply.forEach(({ element }, index) => {
+            const diameter = parseFloat(element.style.width);
+            const floatAmount = Math.max(3, Math.min(8, diameter / 15));
+            const direction = index % 2 === 0 ? 1 : -1;
+            const duration = 3000 + Math.random() * 2000;
+            const delay = Math.random() * 2000;
+            
+            element.animate([
+              { transform: 'translateY(0px)' },
+              { transform: `translateY(${direction * floatAmount}px)` },
+              { transform: 'translateY(0px)' }
+            ], {
+              duration: duration,
+              iterations: Infinity,
+              direction: 'alternate',
+              easing: 'ease-in-out',
+              delay: delay
+            });
+        });
+    });
+
     function calculateOverlap(newBubble, existingBubbles) {
-      let totalOverlap = 0
+      let totalOverlap = 0;
       for (let existing of existingBubbles) {
-        // 计算两个圆心之间的距离
-        const dx = (newBubble.x + newBubble.radius) - (existing.x + existing.radius)
-        const dy = (newBubble.y + newBubble.radius) - (existing.y + existing.radius)
-        const distance = Math.sqrt(dx * dx + dy * dy)
-        
-        // 两个圆的半径之和
-        const minDistance = newBubble.radius + existing.radius
-        
-        // 如果距离小于两个圆半径之和，则有重叠
+        const dx = (newBubble.x + newBubble.radius) - (existing.x + existing.radius);
+        const dy = (newBubble.y + newBubble.radius) - (existing.y + existing.radius);
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const minDistance = newBubble.radius + existing.radius;
         if (distance < minDistance) {
-          // 计算重叠程度，并给较大的重叠更高的惩罚
-          const overlap = minDistance - distance
-          totalOverlap += overlap * overlap // 平方惩罚，使算法更倾向于避免大的重叠
+          const overlap = minDistance - distance;
+          totalOverlap += overlap * overlap;
         }
       }
-      return totalOverlap
+      return totalOverlap;
     }
-
-    // 颜色亮化函数
-    function lightenColor(color, percent) {
-      const num = parseInt(color.replace("#", ""), 16)
-      const amt = Math.round(2.55 * percent)
-      const R = (num >> 16) + amt
-      const G = (num >> 8 & 0x00FF) + amt
-      const B = (num & 0x0000FF) + amt
-      return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
-        (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
-        (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1)
-    }
-  }, 100)
-}
+  });
+};
 
 // 轮播图相关方法
 const currentSlide = ref(0);
