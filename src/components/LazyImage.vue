@@ -21,7 +21,7 @@
 
 <script>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-import logo from '@/assets/img/logo.webp';
+import logo from '@/assets/img/default.webp';
 
 export default {
   name: 'LazyImage',

@@ -7,7 +7,7 @@
  * @param {string} avatarUrl - 原始头像URL
  * @returns {string} 处理后的头像URL
  */
-import logo from '@/assets/img/logo.webp';
+import logo from '@/assets/img/default.webp';
 
 export const getAvatarUrl = (avatarUrl) => {
   if (!avatarUrl || avatarUrl.includes('default')) {

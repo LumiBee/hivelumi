@@ -13,11 +13,10 @@ import { smartPreloader } from '@/utils/smart-preloader'
 import { imageOptimizer } from '@/utils/image-optimizer'
 import { performanceMonitor } from '@/utils/advanced-performance'
 
-import { inject } from '@vercel/speed-insights/vue';
+import '@vercel/speed-insights/vue';
 import { inject as injectAnalytics } from '@vercel/analytics';
 
-// Vercel Speed Insights & Web Analytics
-inject();
+// Vercel Web Analytics
 injectAnalytics();
 
 const app = createApp(App)

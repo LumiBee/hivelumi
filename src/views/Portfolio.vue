@@ -113,8 +113,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { portfolioAPI } from '@/api'
-import { getAuthorAvatarUrl } from '@/utils/avatar-helper'
-import logo from '@/assets/img/logo.webp';
+import { getAuthorAvatarUrl } from '@/utils/avatar-helper';
+import logo from '@/assets/img/default.webp';
 
 const router = useRouter()
 

@@ -377,7 +377,7 @@ import { userAPI } from '@/api/user'
 import { preloadCriticalImages, preloadLCPImage, getOptimizedImageUrl, ImageLoader } from '@/utils/imageOptimizer'
 import UserFollowers from '../components/UserFollowers.vue'
 import UserFollowings from '../components/UserFollowings.vue'
-import logo from '@/assets/img/logo.webp';
+import logo from '@/assets/img/default.webp';
 
 const route = useRoute()
 const router = useRouter()
