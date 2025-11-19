@@ -16,7 +16,7 @@
         <!-- 作品集封面和信息 -->
         <div class="portfolio-header" v-if="portfolio">
           <img 
-            :src="portfolio.coverImgUrl || '/img/demo/demo1.jpg'" 
+            :src="portfolio.coverImgUrl || '/img/optimized/demo/demo1'" 
             alt="作品集封面" 
             class="portfolio-cover"
           />

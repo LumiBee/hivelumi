@@ -95,17 +95,7 @@ export default defineConfig(({ mode }) => {
         output: {
           manualChunks: (id) => {
             if (id.includes('node_modules')) {
-              if (id.includes('vue-router')) return 'vue-router'
-              if (id.includes('pinia')) return 'pinia'
-              if (id.includes('axios')) return 'axios'
-              if (id.includes('highlight.js')) return 'highlightjs'
-              if (id.includes('@tiptap')) return 'tiptap-editor'
-              if (id.includes('marked')) return 'marked'
-              if (id.includes('dompurify')) return 'dompurify'
-              if (id.includes('bootstrap')) return 'bootstrap'
-              if (id.includes('fontawesome')) return 'fontawesome'
-              // 将所有其他 node_modules 合并到一个 vendor chunk
-              return 'vendor'
+              return 'vendor';
             }
           },
           // 优化文件名

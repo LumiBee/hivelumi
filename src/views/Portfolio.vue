@@ -56,7 +56,7 @@
               >
                 <div class="portfolio-image-container">
                   <img 
-                    :src="portfolio.coverImgUrl || '/img/demo/demo1.jpg'" 
+                    :src="portfolio.coverImgUrl || '/img/optimized/demo/demo1'" 
                     :alt="portfolio.name"
                     class="portfolio-image"
                   />
