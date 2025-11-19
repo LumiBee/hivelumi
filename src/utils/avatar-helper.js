@@ -7,36 +7,17 @@
  * @param {string} avatarUrl - 原始头像URL
  * @returns {string} 处理后的头像URL
  */
+import logo from '@/assets/img/logo.webp';
+
 export const getAvatarUrl = (avatarUrl) => {
-  if (!avatarUrl) {
-    return '/img/default01.jpg'
+  if (!avatarUrl || avatarUrl.includes('default')) {
+    return logo;
   }
-  
-  // 如果是完整的后端URL，转换为相对路径以使用Vite代理
-  if (avatarUrl.startsWith('http://localhost:8090/')) {
-    avatarUrl = avatarUrl.replace('http://localhost:8090', '')
-  }
-  
-  // 如果是相对路径的uploads，需要添加/api前缀（因为后端设置了全局API前缀）
-  if (avatarUrl.startsWith('/uploads/')) {
-    avatarUrl = '/api' + avatarUrl
-  }
-  
-  // 如果是OSS域名，直接使用，不需要添加/api前缀
-  if (avatarUrl.startsWith('https://files.hivelumi.com/')) {
-    // OSS文件直接使用，不需要修改
-  }
-  
-  // 如果是默认头像，直接返回
-  if (avatarUrl === '/img/default01.jpg' || avatarUrl === '/img/default.jpg') {
-    return avatarUrl
-  }
-  
-  // 添加时间戳参数避免缓存
-  const timestamp = new Date().getTime()
-  const separator = avatarUrl.includes('?') ? '&' : '?'
-  return `${avatarUrl}${separator}t=${timestamp}`
-}
+  // For other valid URLs, append a timestamp to prevent caching
+  const timestamp = new Date().getTime();
+  const separator = avatarUrl.includes('?') ? '&' : '?';
+  return `${avatarUrl}${separator}t=${timestamp}`;
+};
 
 /**
  * 获取作者头像URL
@@ -44,32 +25,24 @@ export const getAvatarUrl = (avatarUrl) => {
  * @returns {string} 处理后的头像URL
  */
 export const getAuthorAvatarUrl = (avatarUrl) => {
-  if (!avatarUrl) {
-    return '/img/default01.jpg'
+  if (!avatarUrl || avatarUrl.includes('default')) {
+    return logo;
   }
   
-  // 如果是完整的后端URL，转换为相对路径以使用Vite代理
+  // Process backend-specific URLs
   if (avatarUrl.startsWith('http://localhost:8090/')) {
-    avatarUrl = avatarUrl.replace('http://localhost:8090', '')
+    avatarUrl = avatarUrl.replace('http://localhost:8090', '');
   }
-  
-  // 如果是相对路径的uploads，需要添加/api前缀（因为后端设置了全局API前缀）
   if (avatarUrl.startsWith('/uploads/')) {
-    avatarUrl = '/api' + avatarUrl
+    avatarUrl = '/api' + avatarUrl;
   }
   
-  // 如果是OSS域名，直接使用，不需要添加/api前缀
-  if (avatarUrl.startsWith('https://files.hivelumi.com/')) {
-    // OSS文件直接使用，不需要修改
+  // Append timestamp to prevent caching for non-default, non-OSS images
+  if (!avatarUrl.startsWith('https://files.hivelumi.com/')) {
+    const timestamp = new Date().getTime();
+    const separator = avatarUrl.includes('?') ? '&' : '?';
+    return `${avatarUrl}${separator}t=${timestamp}`;
   }
   
-  // 如果是默认头像，直接返回
-  if (avatarUrl === '/img/default01.jpg' || avatarUrl === '/img/default.jpg') {
-    return avatarUrl
-  }
-  
-  // 添加时间戳参数避免缓存
-  const timestamp = new Date().getTime()
-  const separator = avatarUrl.includes('?') ? '&' : '?'
-  return `${avatarUrl}${separator}t=${timestamp}`
-}
+  return avatarUrl;
+};

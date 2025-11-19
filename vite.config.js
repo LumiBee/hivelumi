@@ -95,6 +95,14 @@ export default defineConfig(({ mode }) => {
         output: {
           manualChunks: (id) => {
             if (id.includes('node_modules')) {
+              if (id.includes('highlight.js')) {
+                return 'highlightjs';
+              }
+              // Group other large libraries or frameworks as needed
+              if (id.includes('vue') || id.includes('vue-router') || id.includes('pinia')) {
+                return 'vue-framework';
+              }
+              // Default vendor chunk for other node_modules
               return 'vendor';
             }
           },

@@ -14,7 +14,7 @@ export class ResourcePreloader {
       
       // 关键图片
       '/img/logo.png',
-      '/img/bg.jpg',
+  
       
       // 关键API数据
       '/api/home',

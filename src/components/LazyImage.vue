@@ -21,6 +21,7 @@
 
 <script>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
+import logo from '@/assets/img/logo.webp';
 
 export default {
   name: 'LazyImage',
@@ -65,7 +66,7 @@ export default {
     const webpSrcset = computed(() => getProcessedSrcset('webp'));
     
     const imageSource = computed(() => {
-      if (!props.src) return '/img/default.jpg';
+      if (!props.src) return logo;
       if (props.src.startsWith('/img/')) {
          const baseName = props.src.replace(/\.(jpg|png)$/, '');
          return `/img/optimized${baseName.substring(4)}.webp`; // Fallback to a default WebP

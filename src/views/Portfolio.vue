@@ -56,7 +56,7 @@
               >
                 <div class="portfolio-image-container">
                   <img 
-                    :src="portfolio.coverImgUrl || '/img/optimized/demo/demo1'" 
+                    :src="portfolio.coverImgUrl || logo" 
                     :alt="portfolio.name"
                     class="portfolio-image"
                   />
@@ -114,6 +114,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { portfolioAPI } from '@/api'
 import { getAuthorAvatarUrl } from '@/utils/avatar-helper'
+import logo from '@/assets/img/logo.webp';
 
 const router = useRouter()
 

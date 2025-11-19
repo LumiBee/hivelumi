@@ -55,7 +55,7 @@ export class SafeImageOptimization {
       img.style.opacity = '1'
       // 可以设置默认图片
       if (!img.src.includes('default')) {
-        img.src = '/img/default.jpg'
+      img.src = '/img/optimized/logo.png'
       }
     }
   }

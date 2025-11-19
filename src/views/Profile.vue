@@ -127,7 +127,7 @@
                           />
                           <img 
                             v-else 
-                            src="/img/default.jpg" 
+                            :src="logo" 
                             :alt="`${article.title}的默认封面`"
                             class="article-cover-image"
                             loading="lazy"
@@ -241,7 +241,7 @@
                 <!-- 默认头像 -->
                 <img 
                   v-else 
-                  src="/img/default01.jpg" 
+                  :src="logo" 
                   alt="默认头像" 
                   class="profile-avatar"
                   @load="onAvatarLoad"
@@ -377,6 +377,7 @@ import { userAPI } from '@/api/user'
 import { preloadCriticalImages, preloadLCPImage, getOptimizedImageUrl, ImageLoader } from '@/utils/imageOptimizer'
 import UserFollowers from '../components/UserFollowers.vue'
 import UserFollowings from '../components/UserFollowings.vue'
+import logo from '@/assets/img/logo.webp';
 
 const route = useRoute()
 const router = useRouter()
@@ -485,7 +486,12 @@ const avatarLoaded = ref(false)
 
 // 计算封面样式
 const coverStyle = computed(() => {
-  let coverUrl = profileData.value.user?.backgroundImgUrl || '/img/bg.jpg'
+  let coverUrl = profileData.value.user?.backgroundImgUrl
+  
+  // 如果封面URL不存在，则不设置背景图片
+  if (!coverUrl) {
+    return { backgroundImage: 'none' }
+  }
   
   // 如果是完整的后端URL，转换为相对路径以使用Vite代理
   if (coverUrl.startsWith('http://localhost:8090/')) {
@@ -923,9 +929,7 @@ const closeDeleteModal = () => {
 // 预加载关键图片资源
 const preloadProfileImages = () => {
   const criticalImages = [
-    '/img/bg.jpg',
-    '/img/default01.jpg',
-    '/img/default.jpg'
+    // Preload optimized images if necessary, for now, this is empty
   ]
   
   // 使用 Intersection Observer 优化图片预加载

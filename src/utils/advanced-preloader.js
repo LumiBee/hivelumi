@@ -25,7 +25,7 @@ export class AdvancedPreloader {
       
       // 关键图片
       { url: '/img/logo.png', type: 'image' },
-      { url: '/img/bg.jpg', type: 'image' },
+  
       
       // 关键字体
       { url: 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/webfonts/fa-regular-400.woff2', type: 'font', mimeType: 'font/woff2' },

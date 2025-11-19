@@ -16,7 +16,7 @@
         <!-- 作品集封面和信息 -->
         <div class="portfolio-header" v-if="portfolio">
           <img 
-            :src="portfolio.coverImgUrl || '/img/optimized/demo/demo1'" 
+            :src="portfolio.coverImgUrl || logo" 
             alt="作品集封面" 
             class="portfolio-cover"
           />
@@ -122,7 +122,7 @@
                       <!-- 默认封面 -->
                       <img 
                         v-else 
-                        src="/img/default.jpg" 
+                        :src="logo" 
                         :alt="`${article.title}的默认封面`"
                         class="article-cover-image"
                         loading="lazy"
@@ -177,7 +177,8 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { portfolioAPI } from '@/api'
-import { getAuthorAvatarUrl } from '@/utils/avatar-helper'
+import { getAuthorAvatarUrl } from '@/utils/avatar-helper';
+import logo from '@/assets/img/logo.webp';
 
 const route = useRoute()
 const router = useRouter()
@@ -309,7 +310,7 @@ const getAvatarSrc = (article, portfolio) => {
   const avatarUrl = article.user?.avatarUrl || portfolio?.avatarUrl || portfolio?.user?.avatarUrl
   
   if (!avatarUrl) {
-    return '/img/default01.jpg'
+    return logo;
   }
   
   // 如果是相对路径，直接返回
@@ -329,7 +330,7 @@ const onAvatarLoad = (event) => {
 
 const onAvatarError = (event) => {
   // 头像加载失败，使用默认头像
-  event.target.src = '/img/default01.jpg'
+  event.target.src = logo;
   event.target.style.opacity = '1'
 }
 
