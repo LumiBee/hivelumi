@@ -24,6 +24,7 @@
                     :src="getProcessedImageUrl(article.backgroundUrl) || '/img/demo/1.jpg'" 
                     :alt="article.title"
                     class="carousel-image"
+                    :no-lazy="index === 0"
                   />
                   <div class="carousel-overlay"></div>
                 </div>
@@ -52,7 +53,7 @@
               <!-- 默认轮播图 -->
               <div v-if="!featuredArticles.length" class="modern-carousel-item active">
                 <div class="carousel-image-wrapper">
-                  <img src="/img/demo/1.jpg" alt="欢迎来到Lumi Hive" class="carousel-image" />
+                  <LazyImage src="/img/demo/1.jpg" alt="欢迎来到Lumi Hive" class="carousel-image" :no-lazy="true" />
                   <div class="carousel-overlay"></div>
                 </div>
                 
@@ -64,7 +65,7 @@
               
               <div v-if="!featuredArticles.length" class="modern-carousel-item">
                 <div class="carousel-image-wrapper">
-                  <img src="/img/demo/2.jpg" alt="分享您的知识" class="carousel-image" />
+                  <LazyImage src="/img/demo/2.jpg" alt="分享您的知识" class="carousel-image" />
                   <div class="carousel-overlay"></div>
                 </div>
                 
@@ -76,7 +77,7 @@
               
               <div v-if="!featuredArticles.length" class="modern-carousel-item">
                 <div class="carousel-image-wrapper">
-                  <img src="/img/demo/3.jpg" alt="探索精彩内容" class="carousel-image" />
+                  <LazyImage src="/img/demo/3.jpg" alt="探索精彩内容" class="carousel-image" />
                   <div class="carousel-overlay"></div>
                 </div>
                 

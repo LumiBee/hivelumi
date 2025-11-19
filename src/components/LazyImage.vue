@@ -1,18 +1,15 @@
 <template>
   <img
-    :src="placeholderSrc"
-    :data-src="actualSrc"
+    :src="imageSource"
     :alt="alt"
     :class="['lazy-image', imageClass]"
     :style="imageStyle"
-    @load="onLoad"
-    @error="onError"
     ref="imageRef"
   />
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 
 export default {
   name: 'LazyImage',
@@ -36,6 +33,10 @@ export default {
     imageStyle: {
       type: Object,
       default: () => ({})
+    },
+    noLazy: {
+      type: Boolean,
+      default: false
     }
   },
   setup(props, { emit }) {
@@ -44,67 +45,88 @@ export default {
     const hasError = ref(false)
     const observer = ref(null)
 
-    const placeholderSrc = ref(props.placeholder)
-    const actualSrc = ref('')
+    const finalSrc = ref('')
+
+    const imageSource = computed(() => {
+      if (hasError.value) return '/img/default.jpg'
+      return finalSrc.value || props.placeholder
+    })
 
     const loadImage = () => {
       if (isLoaded.value || hasError.value) return
       
-      // 处理图片URL
       let imageUrl = props.src
       if (!imageUrl) {
         hasError.value = true
         emit('error')
         return
       }
+
+      // --- NEW LOGIC START ---
+      // Check if the image is a candidate for optimization (local jpg/png)
+      const isOptimizable = (imageUrl.startsWith('/img/') && (imageUrl.endsWith('.jpg') || imageUrl.endsWith('.png')));
+
+      if (isOptimizable) {
+        // Construct the path to the optimized .webp version
+        const originalPath = imageUrl.substring(4); // remove '/img'
+        const webpPath = `/img/optimized${originalPath.replace(/\.(jpg|png)$/, '.webp')}`;
+        imageUrl = webpPath;
+      }
+      // --- NEW LOGIC END ---
       
-      // 如果是完整的后端URL，转换为相对路径以使用Vite代理
       if (imageUrl.startsWith('http://localhost:8090/')) {
         imageUrl = imageUrl.replace('http://localhost:8090', '')
       }
       
-      // 如果是相对路径的uploads，需要添加/api前缀
       if (imageUrl.startsWith('/uploads/')) {
         imageUrl = '/api' + imageUrl
       }
       
-      // 如果是OSS域名，直接使用，不需要添加/api前缀
-      if (imageUrl.startsWith('https://files.hivelumi.com/')) {
-        // OSS文件直接使用，不需要修改
-      }
-      
       const img = new Image()
       img.onload = () => {
-        actualSrc.value = imageUrl
+        finalSrc.value = imageUrl
         isLoaded.value = true
         emit('load')
       }
       img.onerror = () => {
-        hasError.value = true
-        // 设置默认图片
-        actualSrc.value = '/img/default.jpg'
-        emit('error')
+        // If the optimized image fails, try falling back to the original
+        if (isOptimizable) {
+          console.warn(`Optimized image not found, falling back to original: ${props.src}`);
+          imageUrl = props.src; // Fallback to original src
+          const fallbackImg = new Image();
+          fallbackImg.onload = () => {
+            finalSrc.value = imageUrl;
+            isLoaded.value = true;
+            emit('load');
+          };
+          fallbackImg.onerror = () => {
+            hasError.value = true;
+            emit('error');
+          }
+          fallbackImg.src = imageUrl;
+        } else {
+          hasError.value = true
+          emit('error')
+        }
       }
       img.src = imageUrl
     }
 
-    const onLoad = () => {
-      emit('load')
-    }
-
-    const onError = () => {
-      hasError.value = true
-      emit('error')
-    }
-
     onMounted(() => {
+      if (props.noLazy) {
+        loadImage()
+        return
+      }
+
       if ('IntersectionObserver' in window) {
         observer.value = new IntersectionObserver(
           (entries) => {
             entries.forEach((entry) => {
               if (entry.isIntersecting) {
                 loadImage()
-                observer.value.unobserve(entry.target)
+                if (imageRef.value) {
+                   observer.value.unobserve(imageRef.value)
+                }
               }
             })
           },
@@ -118,23 +140,19 @@ export default {
           observer.value.observe(imageRef.value)
         }
       } else {
-        // 降级处理：直接加载图片
         loadImage()
       }
     })
 
     onUnmounted(() => {
-      if (observer.value) {
-        observer.value.disconnect()
+      if (observer.value && imageRef.value) {
+        observer.value.unobserve(imageRef.value)
       }
     })
 
     return {
       imageRef,
-      placeholderSrc,
-      actualSrc,
-      onLoad,
-      onError
+      imageSource
     }
   }
 }
@@ -142,15 +160,16 @@ export default {
 
 <style scoped>
 .lazy-image {
-  transition: opacity 0.3s ease;
+  transition: opacity 0.5s ease-in-out;
   background-color: #f3f4f6;
-}
-
-.lazy-image[data-src] {
   opacity: 0.7;
 }
 
-.lazy-image:not([data-src]) {
+.lazy-image[src*="data:image"] {
+  opacity: 0.7;
+}
+
+.lazy-image:not([src*="data:image"]) {
   opacity: 1;
 }
 </style>
