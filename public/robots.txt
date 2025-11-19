@@ -1,0 +1,6 @@
+# Allow all crawlers full access
+User-agent: *
+Allow: /
+
+# Specify sitemap location (optional, but good practice)
+Sitemap: https://www.hivelumi.com/sitemap.xml

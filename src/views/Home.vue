@@ -58,7 +58,7 @@
                 </div>
                 
                 <div class="modern-carousel-content">
-                  <h2 class="carousel-title">欢迎来到Lumi Hive</h2>
+                  <h1 class="carousel-title">欢迎来到Lumi Hive</h1>
                   <p class="carousel-excerpt">您的知识分享社区</p>
                 </div>
               </div>
@@ -96,14 +96,15 @@
                 type="button" 
                 :class="{ active: index === 0 }"
                 @click="changeSlide(index)"
+                :aria-label="`Go to slide ${index + 1}`"
               ></button>
             </div>
             
             <!-- 轮播控制按钮 -->
-            <button class="modern-carousel-control prev" @click="prevSlide">
+            <button class="modern-carousel-control prev" @click="prevSlide" aria-label="Previous slide">
               <i class="fas fa-chevron-left"></i>
             </button>
-            <button class="modern-carousel-control next" @click="nextSlide">
+            <button class="modern-carousel-control next" @click="nextSlide" aria-label="Next slide">
               <i class="fas fa-chevron-right"></i>
             </button>
           </div>
@@ -117,7 +118,7 @@
       <div class="row justify-content-between">
         <!-- 主要内容区域 -->
         <div class="col-md-8">
-          <h5 class="font-weight-bold spanborder">
+          <h3 class="font-weight-bold spanborder">
             <span>所有文章</span>
           </h5>
           
@@ -132,7 +133,7 @@
               @click="$router.push(`/article/${article.slug}`)"
             >
               <div class="compact-article-content">
-                <h6 class="compact-article-title">
+                <h4 class="compact-article-title">
                   <span class="text-dark">
                     {{ article.title }}
                   </span>
@@ -220,7 +221,7 @@
         <!-- 侧边栏 -->
         <div class="col-md-4 ps-4">
           <!-- 热门阅读 -->
-          <h5 class="font-weight-bold spanborder">
+          <h3 class="font-weight-bold spanborder">
             <span>热门阅读</span>
           </h5>
           <ol class="list-unstyled compact-popular-list" v-if="popularArticles.length > 0">
@@ -232,7 +233,7 @@
               :data-aos-delay="index * 100"
             >
               <div class="compact-article-content">
-                <h6 class="compact-article-title">
+                <h4 class="compact-article-title">
                   <router-link :to="`/article/${article.slug}`" class="text-dark">
                     {{ article.title }}
                   </router-link>
@@ -263,7 +264,7 @@
           </ol>
 
           <!-- 热门标签 -->
-          <h5 class="font-weight-bold spanborder">
+          <h3 class="font-weight-bold spanborder">
             <span>热门标签</span>
           </h5>
           <div

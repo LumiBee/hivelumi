@@ -4,7 +4,7 @@ import router from './router'
 import store from './store'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap-vue-next/dist/bootstrap-vue-next.css'
-import '@fortawesome/fontawesome-free/css/all.min.css'
+
 import './assets/styles/main.scss'
 import toastPlugin from '@/plugins/toast'
 

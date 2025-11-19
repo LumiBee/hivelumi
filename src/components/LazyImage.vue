@@ -1,15 +1,26 @@
 <template>
-  <img
-    :src="imageSource"
-    :alt="alt"
-    :class="['lazy-image', imageClass]"
-    :style="imageStyle"
-    ref="imageRef"
-  />
+  <picture ref="pictureRef">
+    <!-- AVIF sources -->
+    <source v-if="!noLazy" :srcset="avifSrcset" type="image/avif" />
+    <source v-if="noLazy && avifSrcset" :srcset="avifSrcset" type="image/avif" />
+
+    <!-- WebP sources -->
+    <source v-if="!noLazy" :srcset="webpSrcset" type="image/webp" />
+    <source v-if="noLazy && webpSrcset" :srcset="webpSrcset" type="image/webp" />
+
+    <!-- Fallback image -->
+    <img
+      :src="imageSource"
+      :alt="alt"
+      :class="['lazy-image', imageClass]"
+      :style="imageStyle"
+      loading="lazy"
+    />
+  </picture>
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 
 export default {
   name: 'LazyImage',
@@ -21,10 +32,6 @@ export default {
     alt: {
       type: String,
       default: ''
-    },
-    placeholder: {
-      type: String,
-      default: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDIiIGhlaWdodD0iNDIiIHZpZXdCb3g9IjAgMCA0MiA0MiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQyIiBoZWlnaHQ9IjQyIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yMSAxMkMxNi4wMjg5IDEyIDEyIDE2LjAyODkgMTIgMjFTMTYuMDI4OSAzMCAyMSAzMFMzMCAyNS45NzExIDMwIDIxUzI1Ljk3MTEgMTIgMjEgMTJaTTIxIDI4QzE3LjY4NjMgMjggMTUgMjUuMzEzNyAxNSAyMlMxNy42ODYzIDE2IDIxIDE2UzI3IDE4LjY4NjMgMjcgMjFTMjQuMzEzNyAyOCAyMSAyOFoiIGZpbGw9IiM5Q0EzQUYiLz4KPC9zdmc+'
     },
     imageClass: {
       type: String,
@@ -39,119 +46,39 @@ export default {
       default: false
     }
   },
-  setup(props, { emit }) {
-    const imageRef = ref(null)
-    const isLoaded = ref(false)
-    const hasError = ref(false)
-    const observer = ref(null)
+  setup(props) {
+    const pictureRef = ref(null);
+    const isLoaded = ref(false);
+    const SIZES = [480, 800, 1200];
 
-    // Initialize finalSrc, but rely on the watcher to set the correct value for lazy images
-    const finalSrc = ref(props.noLazy ? props.src : '')
+    const getProcessedSrcset = (format) => {
+      if (!props.src || !props.src.startsWith('/img/')) return '';
+      const baseName = props.src.replace(/\.(jpg|png)$/, '');
+      const optimizedBase = `/img/optimized${baseName.substring(4)}`;
+      
+      return SIZES
+        .map(size => `${optimizedBase}-${size}w.${format} ${size}w`)
+        .join(', ');
+    };
 
-    // Watch for changes in the src prop to handle dynamic updates
-    watch(() => props.src, (newSrc) => {
-      if (props.noLazy) {
-        finalSrc.value = newSrc;
-      }
-      // For lazy images, the IntersectionObserver will handle the update.
-    });
-
+    const avifSrcset = computed(() => getProcessedSrcset('avif'));
+    const webpSrcset = computed(() => getProcessedSrcset('webp'));
+    
     const imageSource = computed(() => {
-      let imageUrl = props.noLazy ? finalSrc.value : (finalSrc.value || props.placeholder);
-      if (hasError.value) return '/img/default.jpg';
-      
-      if (!imageUrl || imageUrl === props.placeholder) return imageUrl;
-
-      // --- URL Processing Logic ---
-      const isOptimizable = (imageUrl.startsWith('/img/') && (imageUrl.endsWith('.jpg') || imageUrl.endsWith('.png')));
-      if (isOptimizable) {
-        const originalPath = imageUrl.substring(4);
-        const webpPath = `/img/optimized${originalPath.replace(/\.(jpg|png)$/, '.webp')}`;
-        imageUrl = webpPath;
+      if (!props.src) return '/img/default.jpg';
+      if (props.src.startsWith('/img/')) {
+         const baseName = props.src.replace(/\.(jpg|png)$/, '');
+         return `/img/optimized${baseName.substring(4)}.webp`; // Fallback to a default WebP
       }
-      
-      if (imageUrl.startsWith('http://localhost:8090/')) {
-        imageUrl = imageUrl.replace('http://localhost:8090', '');
-      }
-      
-      if (imageUrl.startsWith('/uploads/')) {
-        imageUrl = '/api' + imageUrl;
-      }
-      
-      return imageUrl;
+      return props.src;
     });
 
-    const loadImage = () => {
-      if (isLoaded.value || hasError.value || props.noLazy) return
-      
-      let imageUrl = props.src
-      if (!imageUrl) {
-        hasError.value = true
-        emit('error')
-        return
-      }
-
-      const isOptimizable = (imageUrl.startsWith('/img/') && (imageUrl.endsWith('.jpg') || imageUrl.endsWith('.png')));
-      if (isOptimizable) {
-        const originalPath = imageUrl.substring(4);
-        const webpPath = `/img/optimized${originalPath.replace(/\.(jpg|png)$/, '.webp')}`;
-        imageUrl = webpPath;
-      }
-      
-      if (imageUrl.startsWith('http://localhost:8090/')) {
-        imageUrl = imageUrl.replace('http://localhost:8090', '')
-      }
-      
-      if (imageUrl.startsWith('/uploads/')) {
-        imageUrl = '/api' + imageUrl
-      }
-      
-      const img = new Image()
-      img.onload = () => {
-        finalSrc.value = imageUrl
-        isLoaded.value = true
-        emit('load')
-      }
-      img.onerror = () => {
-        if (isOptimizable) {
-          console.warn(`Optimized image not found, falling back to original: ${props.src}`);
-          const fallbackImg = new Image();
-          fallbackImg.onload = () => {
-            finalSrc.value = props.src;
-            isLoaded.value = true;
-            emit('load');
-          };
-          fallbackImg.onerror = () => {
-            hasError.value = true;
-            emit('error');
-          }
-          fallbackImg.src = props.src;
-        } else {
-          hasError.value = true
-          emit('error')
-        }
-      }
-      img.src = imageUrl
-    }
+    const observer = ref(null);
 
     onMounted(() => {
       if (props.noLazy) {
-        const img = imageRef.value;
-        if (img) {
-          const checkImage = () => {
-            if (img.complete) {
-              if (img.naturalWidth > 0) isLoaded.value = true;
-              else hasError.value = true;
-            }
-          };
-          if (img.complete) {
-            checkImage();
-          } else {
-            img.addEventListener('load', () => isLoaded.value = true);
-            img.addEventListener('error', () => hasError.value = true);
-          }
-        }
-        return
+        isLoaded.value = true;
+        return;
       }
 
       if ('IntersectionObserver' in window) {
@@ -159,32 +86,46 @@ export default {
           (entries) => {
             entries.forEach((entry) => {
               if (entry.isIntersecting) {
-                loadImage()
-                if (imageRef.value) observer.value.unobserve(imageRef.value)
+                const picture = pictureRef.value;
+                if (picture) {
+                  // Find all source elements and update their srcset
+                  const sources = picture.querySelectorAll('source');
+                  sources.forEach(source => {
+                    if (source.dataset.srcset) {
+                      source.srcset = source.dataset.srcset;
+                    }
+                  });
+                  isLoaded.value = true;
+                }
+                observer.value.unobserve(entry.target);
               }
-            })
+            });
           },
           { rootMargin: '50px 0px', threshold: 0.01 }
-        )
-        
-        if (imageRef.value) observer.value.observe(imageRef.value)
+        );
+
+        if (pictureRef.value) {
+          observer.value.observe(pictureRef.value);
+        }
       } else {
-        loadImage()
+        isLoaded.value = true;
       }
-    })
+    });
 
     onUnmounted(() => {
-      if (observer.value && imageRef.value) {
-        observer.value.unobserve(imageRef.value)
+      if (observer.value && pictureRef.value) {
+        observer.value.unobserve(pictureRef.value);
       }
-    })
+    });
 
     return {
-      imageRef,
+      pictureRef,
+      avifSrcset,
+      webpSrcset,
       imageSource
-    }
+    };
   }
-}
+};
 </script>
 
 <style scoped>

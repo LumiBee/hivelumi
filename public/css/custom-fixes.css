@@ -151,4 +151,23 @@ article:first-letter {
 
 .topnav.navbar .nav-item.highlight .nav-link::after {
     display: none;
-} 
+}
+
+/* Accessibility Fixes */
+.footer .text-muted,
+.article-meta .text-muted {
+  color: #5a6268 !important; /* Increased contrast for better readability */
+}
+
+.text-muted {
+  color: #5a6268 !important;
+}
+
+/* Additional fix for pagination text */
+.page-link {
+    color: #5a6268;
+}
+
+.page-item.disabled .page-link {
+    color: #868e96;
+}
