@@ -1,7 +1,6 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { resolve } from 'path'
-import { splitVendorChunkPlugin } from 'vite'
 
 export default defineConfig(({ mode }) => {
   // 根据环境变量获取后端地址
@@ -31,7 +30,6 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [
       vue(),
-      splitVendorChunkPlugin()
     ],
     appType: 'spa', // 指定为SPA应用，自动处理路由
     resolve: {
@@ -96,53 +94,17 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         output: {
           manualChunks: (id) => {
-            // Vue核心库 - 最高优先级，单独打包
-            if (id.includes('vue') && !id.includes('node_modules')) {
-              return 'vue-core'
-            }
-            if (id.includes('vue-router') || id.includes('pinia')) {
-              return 'vue-vendor'
-            }
-            // 大型UI库 - 单独打包
-            if (id.includes('bootstrap')) {
-              return 'bootstrap-vendor'
-            }
-            // 编辑器相关 - 按需加载
-            if (id.includes('@tiptap') || id.includes('@toast-ui')) {
-              return 'editor-vendor'
-            }
-            // 工具库 - 高优先级
-            if (id.includes('axios') || id.includes('dompurify') || id.includes('marked')) {
-              return 'utils-vendor'
-            }
-            // 图标库 - 中优先级
-            if (id.includes('fontawesome') || id.includes('@fortawesome')) {
-              return 'icons-vendor'
-            }
-            // 动画库 - 按需加载
-            if (id.includes('aos') || id.includes('swiper')) {
-              return 'animation-vendor'
-            }
-            // 页面组件 - 按路由分割（已在路由中懒加载）
-            if (id.includes('/views/')) {
-              const viewName = id.split('/views/')[1].split('.')[0]
-              return `page-${viewName}`
-            }
-            // 工具函数 - 按功能分割
-            if (id.includes('/utils/')) {
-              return 'utils'
-            }
-            // 组件 - 按类型分割
-            if (id.includes('/components/')) {
-              return 'components'
-            }
-            // 第三方库 - 按大小和重要性分组
             if (id.includes('node_modules')) {
-              // 大型库单独打包
-              if (id.includes('highlight.js') || id.includes('lowlight')) {
-                return 'syntax-vendor'
-              }
-              // 其他第三方库
+              if (id.includes('vue-router')) return 'vue-router'
+              if (id.includes('pinia')) return 'pinia'
+              if (id.includes('axios')) return 'axios'
+              if (id.includes('highlight.js')) return 'highlightjs'
+              if (id.includes('@tiptap')) return 'tiptap-editor'
+              if (id.includes('marked')) return 'marked'
+              if (id.includes('dompurify')) return 'dompurify'
+              if (id.includes('bootstrap')) return 'bootstrap'
+              if (id.includes('fontawesome')) return 'fontawesome'
+              // 将所有其他 node_modules 合并到一个 vendor chunk
               return 'vendor'
             }
           },

@@ -35,7 +35,6 @@
                 Bio: {{ user.bio }}
               </small>
             </div>
-            
             </div>
         </div>
       </div>
