@@ -14,9 +14,11 @@ import { imageOptimizer } from '@/utils/image-optimizer'
 import { performanceMonitor } from '@/utils/advanced-performance'
 
 import { inject } from '@vercel/speed-insights/vue';
+import { inject as injectAnalytics } from '@vercel/analytics';
 
-// Vercel Speed Insights
+// Vercel Speed Insights & Web Analytics
 inject();
+injectAnalytics();
 
 const app = createApp(App)
 
