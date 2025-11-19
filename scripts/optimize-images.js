@@ -1,18 +1,17 @@
 import sharp from 'sharp';
 import fs from 'fs-extra';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
-const sourceDir = path.resolve(process.cwd(), '../public/img');
-const targetDir = path.resolve(process.cwd(), '../public/img/optimized');
-const demoSourceDir = path.resolve(sourceDir, 'demo');
-const demoTargetDir = path.resolve(targetDir, 'demo');
+// --- Improved Path Resolution ---
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const sourceDir = path.resolve(__dirname, '../public/img');
+const targetDir = path.resolve(__dirname, '../public/img/optimized');
 
 const MAX_WIDTH = 1200; // 最大宽度
 const WEBP_QUALITY = 80; // WebP 质量
-
-// 确保目标目录存在
-fs.ensureDirSync(targetDir);
-fs.ensureDirSync(demoTargetDir);
 
 const processImage = async (filePath, targetPath) => {
   try {
@@ -39,8 +38,8 @@ const optimizeDirectory = async (source, target) => {
   for (const file of files) {
     const sourcePath = path.join(source, file);
     
-    // Skip the target directory to prevent infinite recursion
-    if (sourcePath === targetDir) {
+    // Explicitly skip the entire 'optimized' directory
+    if (path.resolve(sourcePath) === path.resolve(targetDir)) {
       continue;
     }
 
@@ -64,7 +63,14 @@ const optimizeDirectory = async (source, target) => {
 (async () => {
   console.log('Starting image optimization...');
   
-  // 处理根图片目录
+  // Clean the target directory before optimization
+  console.log(`Cleaning directory: ${targetDir}`);
+  fs.emptyDirSync(targetDir);
+  
+  // Ensure target directory exists after cleaning
+  fs.ensureDirSync(targetDir);
+
+  // Process images
   await optimizeDirectory(sourceDir, targetDir);
 
   console.log('Image optimization complete.');

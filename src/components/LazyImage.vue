@@ -45,15 +45,35 @@ export default {
     const hasError = ref(false)
     const observer = ref(null)
 
-    const finalSrc = ref('')
+    const finalSrc = ref(props.noLazy ? props.src : '')
 
     const imageSource = computed(() => {
+      if (props.noLazy) {
+        let imageUrl = props.src;
+        if (!imageUrl) return '/img/default.jpg';
+        
+        const isOptimizable = (imageUrl.startsWith('/img/') && (imageUrl.endsWith('.jpg') || imageUrl.endsWith('.png')));
+        if (isOptimizable) {
+          const originalPath = imageUrl.substring(4);
+          return `/img/optimized${originalPath.replace(/\.(jpg|png)$/, '.webp')}`;
+        }
+        
+        if (imageUrl.startsWith('http://localhost:8090/')) {
+          return imageUrl.replace('http://localhost:8090', '');
+        }
+        if (imageUrl.startsWith('/uploads/')) {
+          return '/api' + imageUrl;
+        }
+        return imageUrl;
+      }
+      
+      // Lazy loading logic
       if (hasError.value) return '/img/default.jpg'
       return finalSrc.value || props.placeholder
     })
 
     const loadImage = () => {
-      if (isLoaded.value || hasError.value) return
+      if (isLoaded.value || hasError.value || props.noLazy) return
       
       let imageUrl = props.src
       if (!imageUrl) {
@@ -62,17 +82,13 @@ export default {
         return
       }
 
-      // --- NEW LOGIC START ---
-      // Check if the image is a candidate for optimization (local jpg/png)
       const isOptimizable = (imageUrl.startsWith('/img/') && (imageUrl.endsWith('.jpg') || imageUrl.endsWith('.png')));
 
       if (isOptimizable) {
-        // Construct the path to the optimized .webp version
-        const originalPath = imageUrl.substring(4); // remove '/img'
+        const originalPath = imageUrl.substring(4);
         const webpPath = `/img/optimized${originalPath.replace(/\.(jpg|png)$/, '.webp')}`;
         imageUrl = webpPath;
       }
-      // --- NEW LOGIC END ---
       
       if (imageUrl.startsWith('http://localhost:8090/')) {
         imageUrl = imageUrl.replace('http://localhost:8090', '')
@@ -89,10 +105,9 @@ export default {
         emit('load')
       }
       img.onerror = () => {
-        // If the optimized image fails, try falling back to the original
         if (isOptimizable) {
           console.warn(`Optimized image not found, falling back to original: ${props.src}`);
-          imageUrl = props.src; // Fallback to original src
+          imageUrl = props.src; 
           const fallbackImg = new Image();
           fallbackImg.onload = () => {
             finalSrc.value = imageUrl;
@@ -114,10 +129,42 @@ export default {
 
     onMounted(() => {
       if (props.noLazy) {
-        loadImage()
+        // For non-lazy images, we might still want to emit load/error events
+        // for components that rely on them.
+        const img = imageRef.value;
+        if (img) {
+          const checkImage = () => {
+            if (img.complete) {
+              if (img.naturalWidth > 0) {
+                isLoaded.value = true;
+                emit('load');
+              } else {
+                hasError.value = true;
+                emit('error');
+              }
+            } else {
+              hasError.value = true;
+              emit('error');
+            }
+          };
+
+          if (img.complete) {
+            checkImage();
+          } else {
+            img.addEventListener('load', () => {
+              isLoaded.value = true;
+              emit('load');
+            });
+            img.addEventListener('error', () => {
+              hasError.value = true;
+              emit('error');
+            });
+          }
+        }
         return
       }
 
+      // IntersectionObserver logic for lazy images
       if ('IntersectionObserver' in window) {
         observer.value = new IntersectionObserver(
           (entries) => {
