@@ -120,7 +120,7 @@
         <div class="col-md-8">
           <h3 class="font-weight-bold spanborder">
             <span>所有文章</span>
-          </h5>
+          </h3>
           
           <!-- 文章列表 -->
           <ol class="list-unstyled compact-article-list" v-if="articles.length > 0">
@@ -137,7 +137,7 @@
                   <span class="text-dark">
                     {{ article.title }}
                   </span>
-                </h6>
+                </h4>
                 <p class="compact-article-excerpt">{{ article.excerpt }}</p>
                 <div class="compact-article-meta">
                   <div class="compact-author-info">
@@ -223,7 +223,7 @@
           <!-- 热门阅读 -->
           <h3 class="font-weight-bold spanborder">
             <span>热门阅读</span>
-          </h5>
+          </h3>
           <ol class="list-unstyled compact-popular-list" v-if="popularArticles.length > 0">
             <li
               v-for="(article, index) in popularArticles"
@@ -237,7 +237,7 @@
                   <router-link :to="`/article/${article.slug}`" class="text-dark">
                     {{ article.title }}
                   </router-link>
-                </h6>
+                </h4>
                 <div class="compact-article-meta">
                   <div class="compact-author-info">
                     <img
@@ -266,7 +266,7 @@
           <!-- 热门标签 -->
           <h3 class="font-weight-bold spanborder">
             <span>热门标签</span>
-          </h5>
+          </h3>
           <div
             v-if="tags.length > 0"
             id="tagBubbleContainer"
