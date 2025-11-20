@@ -1,34 +1,18 @@
 <template>
   <footer class="custom-footer">
-    <div class="footer-container">
-      <!-- 主要内容区域 -->
-      <div class="footer-content">
-        <!-- 快速链接 -->
-        <div class="footer-links">
-          <router-link to="/" class="footer-link">首页</router-link>
-          <router-link to="/tags" class="footer-link">标签</router-link>
-          <router-link to="/portfolio" class="footer-link">作品集</router-link>
+<div class="container text-center py-3">
+        <span>Frontend Build: v1.1.FINAL</span>
+        <p class="mb-0">
+          <router-link to="/" class="footer-link">首页</router-link> •
+          <router-link to="/tags" class="footer-link">标签</router-link> •
+          <router-link to="/portfolio" class="footer-link">作品集</router-link> •
           <router-link to="/about" class="footer-link">关于</router-link>
-        </div>
-        
-        <!-- 联系方式 -->
-        <div class="footer-social">
-          <a href="https://github.com/LumiBee/community" class="social-link" title="GitHub">
-            <i class="fab fa-github"></i>
-          </a>
-          <a href="https://qm.qq.com/q/FqkcBrXacS" class="social-link" title="QQ">
-            <i class="fab fa-qq"></i>
-          </a>
-        </div>
+        </p>
+        <p class="text-muted small mb-0 mt-2">
+          &copy; {{ new Date().getFullYear() }} LumiHive •
+          <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer" class="footer-link">苏ICP备2025185969号</a>
+        </p>
       </div>
-      
-      <!-- 版权信息 -->
-      <div class="footer-copyright">
-        <span>© 2025 LumiHive</span>
-        <span class="divider">•</span>
-        <span>苏ICP备2025185969号</span>
-      </div>
-    </div>
   </footer>
 </template>
 
