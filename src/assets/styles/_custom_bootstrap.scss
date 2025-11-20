@@ -2,35 +2,35 @@
 // Import only the modules we need to reduce the final bundle size.
 
 // 1. Include functions and variables first
-@import "bootstrap/scss/functions";
-@import "bootstrap/scss/variables";
-@import "bootstrap/scss/maps";
-@import "bootstrap/scss/mixins";
-@import "bootstrap/scss/utilities";
+@use "bootstrap/scss/functions";
+@use "bootstrap/scss/variables";
+@use "bootstrap/scss/maps";
+@use "bootstrap/scss/mixins";
+@use "bootstrap/scss/utilities";
 
 // 2. Include layout & components
-@import "bootstrap/scss/root";
-@import "bootstrap/scss/reboot";
-@import "bootstrap/scss/type";
-@import "bootstrap/scss/grid";
-@import "bootstrap/scss/buttons";
-@import "bootstrap/scss/transitions";
-@import "bootstrap/scss/nav";
-@import "bootstrap/scss/navbar";
-@import "bootstrap/scss/carousel";
-@import "bootstrap/scss/close";
+@use "bootstrap/scss/root";
+@use "bootstrap/scss/reboot";
+@use "bootstrap/scss/type";
+@use "bootstrap/scss/grid";
+@use "bootstrap/scss/buttons";
+@use "bootstrap/scss/transitions";
+@use "bootstrap/scss/nav";
+@use "bootstrap/scss/navbar";
+@use "bootstrap/scss/carousel";
+@use "bootstrap/scss/close";
 
 // 3. Include helpers
-@import "bootstrap/scss/helpers";
+@use "bootstrap/scss/helpers";
 
 // 4. Include utilities API
-@import "bootstrap/scss/utilities/api";
+@use "bootstrap/scss/utilities/api";
 
 // Set Font Awesome's font-display property to 'swap'
 $fa-font-display: swap;
 
 // Import Font Awesome SCSS - Only what's needed
-@import "@fortawesome/fontawesome-free/scss/fontawesome.scss";
-@import "@fortawesome/fontawesome-free/scss/solid.scss";
-@import "@fortawesome/fontawesome-free/scss/brands.scss"; // For brand icons
+@use "@fortawesome/fontawesome-free/scss/fontawesome";
+@use "@fortawesome/fontawesome-free/scss/solid";
+@use "@fortawesome/fontawesome-free/scss/brands"; // For brand icons
 
