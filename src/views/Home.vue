@@ -118,9 +118,9 @@
       <div class="row justify-content-between">
         <!-- 主要内容区域 -->
         <div class="col-md-8">
-          <h3 class="font-weight-bold spanborder">
+          <h2 class="font-weight-bold spanborder">
             <span>所有文章</span>
-          </h3>
+</h2>
           
           <!-- 文章列表 -->
           <ol class="list-unstyled compact-article-list" v-if="articles.length > 0">
@@ -221,9 +221,9 @@
         <!-- 侧边栏 -->
         <div class="col-md-4 ps-4">
           <!-- 热门阅读 -->
-          <h3 class="font-weight-bold spanborder">
+          <h2 class="font-weight-bold spanborder">
             <span>热门阅读</span>
-          </h3>
+</h2>
           <ol class="list-unstyled compact-popular-list" v-if="popularArticles.length > 0">
             <li
               v-for="(article, index) in popularArticles"
@@ -264,9 +264,9 @@
           </ol>
 
           <!-- 热门标签 -->
-          <h3 class="font-weight-bold spanborder">
+          <h2 class="font-weight-bold spanborder">
             <span>热门标签</span>
-          </h3>
+</h2>
           <div
             v-if="tags.length > 0"
             id="tagBubbleContainer"

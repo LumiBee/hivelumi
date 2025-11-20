@@ -13,18 +13,12 @@
     </div>
     
     <!-- 顶部封面区域 -->
-    <div class="profile-cover" :style="coverStyle">
-      <!-- 骨架屏 -->
-      <div v-if="isLoading" class="cover-skeleton"></div>
-      
-      <!-- 预加载封面图片 -->
-      <img 
-        v-if="profileData.user?.backgroundImgUrl" 
-        :src="getProcessedImageUrl(profileData.user.backgroundImgUrl)" 
+    <div class="profile-cover">
+      <LazyImage 
+        v-if="profileData.user?.backgroundImgUrl"
+        :src="getProcessedImageUrl(profileData.user.backgroundImgUrl)"
         :alt="`${profileData.user?.name || '用户'}的封面图片`"
-        class="cover-image-preload"
-        @load="onCoverImageLoad"
-        @error="onCoverImageError"
+        class="cover-image"
       />
       
       <div class="cover-overlay"></div>
@@ -115,23 +109,10 @@
                       <div class="article-badge">文章</div>
                       <router-link :to="`/article/${article.slug}`">
                         <div class="article-cover">
-                          <div v-if="!article.coverImgLoaded" class="article-cover-skeleton"></div>
-                          <img 
-                            v-if="article.coverImg" 
-                            :src="article.coverImg" 
+                          <LazyImage 
+                            :src="article.coverImg || logo" 
                             :alt="`${article.title}的封面图片`"
                             class="article-cover-image"
-                            loading="lazy"
-                            @load="onArticleCoverLoad(article)"
-                            @error="onArticleCoverError(article)"
-                          />
-                          <img 
-                            v-else 
-                            :src="logo" 
-                            :alt="`${article.title}的默认封面`"
-                            class="article-cover-image"
-                            loading="lazy"
-                            @load="onArticleCoverLoad(article)"
                           />
                           <div class="article-cover-overlay"></div>
                         </div>
@@ -227,24 +208,10 @@
             <div class="avatar-container">
               <div class="avatar-wrapper">
                 <div class="avatar-ring"></div>
-                <!-- 头像骨架屏 -->
-                <div v-if="isLoading" class="avatar-skeleton"></div>
-                <!-- 预加载头像 -->
-                <img 
-                  v-if="profileData.user?.avatarUrl" 
-                  :src="getAvatarUrl(profileData.user.avatarUrl)" 
+                <LazyImage 
+                  :src="getAvatarUrl(profileData.user.avatarUrl) || logo" 
                   :alt="`${profileData.user?.name || '用户'}的头像`" 
                   class="profile-avatar"
-                  @load="onAvatarLoad"
-                  @error="onAvatarError"
-                />
-                <!-- 默认头像 -->
-                <img 
-                  v-else 
-                  :src="logo" 
-                  alt="默认头像" 
-                  class="profile-avatar"
-                  @load="onAvatarLoad"
                 />
                 <div class="avatar-status" v-if="isOwner">
                   <div class="status-dot"></div>
@@ -378,6 +345,7 @@ import { preloadCriticalImages, preloadLCPImage, getOptimizedImageUrl, ImageLoad
 import UserFollowers from '../components/UserFollowers.vue'
 import UserFollowings from '../components/UserFollowings.vue'
 import logo from '@/assets/img/default.webp';
+import LazyImage from '@/components/LazyImage.vue';
 
 const route = useRoute()
 const router = useRouter()
@@ -480,10 +448,6 @@ const visiblePages = computed(() => {
   return pages
 })
 
-// 图片加载状态
-const coverImageLoaded = ref(false)
-const avatarLoaded = ref(false)
-
 // 计算封面样式
 const coverStyle = computed(() => {
   let coverUrl = profileData.value.user?.backgroundImgUrl
@@ -509,57 +473,11 @@ const coverStyle = computed(() => {
   }
   
   return {
-    backgroundImage: coverImageLoaded.value ? `url(${coverUrl})` : 'none'
+    backgroundImage: `url(${coverUrl})`
   }
 })
 
 // 处理图片URL的函数
-const getProcessedImageUrl = (url) => {
-  if (!url) return url
-  
-  // 如果是完整的后端URL，转换为相对路径
-  if (url.startsWith('http://localhost:8090/')) {
-    url = url.replace('http://localhost:8090', '')
-  }
-  
-  // 如果是相对路径的uploads，需要添加/api前缀（因为后端设置了全局API前缀）
-  if (url.startsWith('/uploads/')) {
-    url = '/api' + url
-  }
-  
-  return url
-}
-
-// 图片加载处理函数
-const onCoverImageLoad = () => {
-  coverImageLoaded.value = true
-}
-
-const onCoverImageError = () => {
-  coverImageLoaded.value = true // 即使加载失败也要隐藏骨架屏
-}
-
-const onAvatarLoad = () => {
-  avatarLoaded.value = true
-}
-
-const onAvatarError = () => {
-  avatarLoaded.value = true // 即使加载失败也要隐藏骨架屏
-}
-
-const onArticleCoverLoad = (article) => {
-  // 使用 requestAnimationFrame 优化DOM更新
-  requestAnimationFrame(() => {
-    article.coverImgLoaded = true
-  })
-}
-
-const onArticleCoverError = (article) => {
-  // 使用 requestAnimationFrame 优化DOM更新
-  requestAnimationFrame(() => {
-    article.coverImgLoaded = true // 即使加载失败也要隐藏骨架屏
-  })
-}
 
 // 监听路由参数变化
 watch(() => route.params.name, (newName, oldName) => {
