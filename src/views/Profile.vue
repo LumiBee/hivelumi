@@ -448,36 +448,24 @@ const visiblePages = computed(() => {
   return pages
 })
 
-// 计算封面样式
-const coverStyle = computed(() => {
-  let coverUrl = profileData.value.user?.backgroundImgUrl
+// 处理图片URL的函数
+
+// 处理图片URL的函数
+const getProcessedImageUrl = (url) => {
+  if (!url) return url
   
-  // 如果封面URL不存在，则不设置背景图片
-  if (!coverUrl) {
-    return { backgroundImage: 'none' }
-  }
-  
-  // 如果是完整的后端URL，转换为相对路径以使用Vite代理
-  if (coverUrl.startsWith('http://localhost:8090/')) {
-    coverUrl = coverUrl.replace('http://localhost:8090', '')
+  // 如果是完整的后端URL，转换为相对路径
+  if (url.startsWith('http://localhost:8090/')) {
+    url = url.replace('http://localhost:8090', '')
   }
   
   // 如果是相对路径的uploads，需要添加/api前缀（因为后端设置了全局API前缀）
-  if (coverUrl.startsWith('/uploads/')) {
-    coverUrl = '/api' + coverUrl
+  if (url.startsWith('/uploads/')) {
+    url = '/api' + url
   }
   
-  // 如果是OSS域名，直接使用，不需要添加/api前缀
-  if (coverUrl.startsWith('https://files.hivelumi.com/')) {
-    // OSS文件直接使用，不需要修改
-  }
-  
-  return {
-    backgroundImage: `url(${coverUrl})`
-  }
-})
-
-// 处理图片URL的函数
+  return url
+}
 
 // 监听路由参数变化
 watch(() => route.params.name, (newName, oldName) => {
