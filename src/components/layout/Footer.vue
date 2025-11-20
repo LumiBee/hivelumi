@@ -3,6 +3,10 @@
     
     <div class="hex-grid-layer"></div>
     
+    <div class="noise-overlay"></div>
+    
+    <div class="scan-line"></div>
+    
     <div class="hover-light" :style="glowStyle"></div>
 
     <div class="top-ruler"></div>
@@ -12,33 +16,41 @@
         
         <div class="section left">
           <div class="brand-cluster">
-            <div class="hex-triad">
+            <div class="hex-triad breathing">
               <span></span><span></span><span></span>
             </div>
             <span class="brand-text">LUMI<span class="highlight">HIVE</span></span>
           </div>
+          
           <div class="status-chip">
             <span class="status-led"></span>
-            <span class="status-text">HIVE.NET ONLINE</span>
+            <span class="status-text">SYSTEM ONLINE</span>
           </div>
         </div>
 
         <nav class="section center">
           <router-link to="/" class="hex-btn" active-class="active">
-            <span class="btn-content">首页</span>
+            <span class="btn-text">首页</span>
             <div class="btn-bg"></div>
+            <div class="active-bar"></div>
           </router-link>
+          
           <router-link to="/tags" class="hex-btn" active-class="active">
-            <span class="btn-content">标签</span>
+            <span class="btn-text">标签</span>
             <div class="btn-bg"></div>
+            <div class="active-bar"></div>
           </router-link>
+          
           <router-link to="/portfolio" class="hex-btn" active-class="active">
-            <span class="btn-content">作品集</span>
+            <span class="btn-text">作品集</span>
             <div class="btn-bg"></div>
+            <div class="active-bar"></div>
           </router-link>
+          
           <router-link to="/about" class="hex-btn" active-class="active">
-            <span class="btn-content">关于</span>
+            <span class="btn-text">关于</span>
             <div class="btn-bg"></div>
+            <div class="active-bar"></div>
           </router-link>
         </nav>
 
@@ -46,11 +58,11 @@
           <a href="https://beian.miit.gov.cn/" target="_blank" class="icp-code">苏ICP备2025185969号</a>
           
           <div class="tool-cluster">
-            <a href="https://github.com" target="_blank" class="hex-icon-btn">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+            <a href="https://github.com" target="_blank" class="hex-icon-btn" title="GitHub">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
             </a>
-            <button class="hex-icon-btn top" @click="scrollToTop">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M18 15l-6-6-6 6"/></svg>
+            <button class="hex-icon-btn top-btn" @click="scrollToTop" title="Back to Top">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>
             </button>
           </div>
         </div>
@@ -64,11 +76,11 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 
 const footerRef = ref(null);
-const mouseX = ref(-200);
-const mouseY = ref(-200);
+const mouseX = ref(-500);
+const mouseY = ref(-500);
 
+// 开启 GPU 加速的坐标计算
 const glowStyle = computed(() => ({
-  // 使用 translate3d 开启 GPU 加速
   transform: `translate3d(${mouseX.value}px, ${mouseY.value}px, 0)`
 }));
 
@@ -89,7 +101,7 @@ onMounted(() => {
   if (footer) {
     footer.addEventListener('mousemove', handleMouseMove);
     footer.addEventListener('mouseleave', () => {
-      // 移出时把光斑藏到看不见的地方
+      // 移出时将光斑平滑移出视野
       mouseX.value = -500;
       mouseY.value = -500;
     });
@@ -106,86 +118,127 @@ onUnmounted(() => {
 
 <style scoped>
 #energy-footer.energy-bar {
-  min-height: unset ;
-  height: 78px;
-  padding: 0 ;
-  margin-top: auto ;
+  /* === 尺寸调整 === */
+  height: 64px; /* 调整为更现代的 64px，比 78px 精致，比 48px 丰富 */
+  width: 100%;
+  margin-top: auto;
+  padding: 0;
+  
+  /* === 核心配色 === */
   background-color: #050505;
   border-top: none;
   
-  /* === 蜂巢主题色 === */
-  --hive-amber: #fbbf24; /* 更亮的蜜黄色 */
-  --hive-dark: #09090b;
-  --hive-dim: rgba(251, 191, 36, 0.1);
-  --hive-border: rgba(251, 191, 36, 0.3);
-  --text-main: #e4e4e7;
-  --text-muted: #525252;
+  /* 蜂巢琥珀色系 */
+  --hive-amber: #f59e0b;
+  --hive-glow: rgba(245, 158, 11, 0.4);
+  --hive-dim: rgba(245, 158, 11, 0.08);
+  --text-primary: #e5e5e5;
+  --text-secondary: #737373;
   
   position: relative;
   display: flex;
   align-items: center;
-  overflow: hidden;
+  overflow: hidden; /* 限制光效溢出 */
   user-select: none;
-  font-family: 'JetBrains Mono', monospace;
-  box-sizing: border-box;
+  font-family: 'JetBrains Mono', 'SF Mono', monospace;
 }
 
-/* === 1. 显著的蜂巢背景 (High Visibility) === */
+/* === 1. 增强型背景与噪点 === */
 .hex-grid-layer {
   position: absolute;
   inset: 0;
-  /* 使用更清晰的六边形 SVG */
-  background-image: url("data:image/svg+xml,%3Csvg width='24' height='42' viewBox='0 0 24 42' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 11l12-7 12 7v14l-12 7-12-7z' fill='none' stroke='rgba(251, 191, 36, 0.06)' stroke-width='1'/%3E%3C/svg%3E");
-  background-size: 24px 42px;
+  background-image: url("data:image/svg+xml,%3Csvg width='30' height='52' viewBox='0 0 30 52' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M15 0l14.43 8.25v16.5L15 33 .57 24.75V8.25L15 0z' fill='none' stroke='rgba(245, 158, 11, 0.07)' stroke-width='1'/%3E%3C/svg%3E");
+  background-size: 30px 52px;
+  opacity: 0.8;
   pointer-events: none;
   z-index: 0;
 }
 
-/* 鼠标光斑 - 混合模式产生“点亮”效果 */
+/* 新增：噪点纹理 (Noise) - 增加赛博朋克质感 */
+.noise-overlay {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+  opacity: 0.4;
+  pointer-events: none;
+  z-index: 0;
+  mix-blend-mode: overlay;
+}
+
+/* === 2. 动态特效 (Effects) === */
+
+/* === 雷达扫描线 === */
+.scan-line {
+  position: absolute;
+  top: 0;
+  left: -50%; /* 起始位置 */
+  width: 60%; /* 增加宽度，制造拖尾效果 */
+  height: 100%;
+  
+  /* 关键修改：透明 -> 淡淡的琥珀色 -> 亮琥珀色边缘 */
+  background: linear-gradient(
+    90deg, 
+    transparent 0%, 
+    rgba(245, 158, 11, 0.05) 50%, 
+    rgba(245, 158, 11, 0.2) 90%, 
+    rgba(245, 158, 11, 0.6) 100%
+  );
+  
+  transform: skewX(-25deg); /* 加大倾斜角度 */
+  pointer-events: none;
+  z-index: 2; /* 提升层级，确保在网格之上 */
+  mix-blend-mode: screen; /* 使用滤色模式，让它发光 */
+  animation: radar-scan 6s infinite linear;
+  will-change: left; /* 性能优化 */
+}
+
+@keyframes radar-scan {
+  0% { left: -60%; }
+  100% { left: 160%; } /* 确保完全扫出屏幕 */
+}
+/* 鼠标光斑 (Glow) */
 .hover-light {
   position: absolute;
   top: 0;
   left: 0;
-  width: 250px;
-  height: 250px;
-  margin-top: -125px;
-  margin-left: -125px;
-  background: radial-gradient(circle, rgba(251, 191, 36, 0.15) 0%, transparent 70%);
-  /* Color Dodge 会让背景的线条在光斑下变得极亮 */
-  mix-blend-mode: color-dodge; 
+  width: 400px;
+  height: 400px;
+  margin-top: -200px;
+  margin-left: -200px;
+  background: radial-gradient(circle closest-side, var(--hive-glow), transparent 80%);
+  mix-blend-mode: screen; /* 强力混合模式，照亮背景 */
   pointer-events: none;
   will-change: transform;
   z-index: 1;
+  opacity: 0.6;
 }
 
-/* 顶部刻度尺装饰 */
+/* 顶部刻度尺 */
 .top-ruler {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent 5%, var(--hive-border) 20%, var(--hive-border) 80%, transparent 95%);
-  opacity: 0.4;
+  background: linear-gradient(90deg, transparent, rgba(245, 158, 11, 0.3), transparent);
+  opacity: 0.5;
 }
-/* 用伪元素画刻度 */
 .top-ruler::after {
   content: '';
   position: absolute;
   top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60%;
+  left: 20%;
+  right: 20%;
   height: 2px;
-  background-image: repeating-linear-gradient(90deg, var(--hive-amber), var(--hive-amber) 1px, transparent 1px, transparent 20px);
+  background: repeating-linear-gradient(90deg, var(--hive-amber), var(--hive-amber) 1px, transparent 1px, transparent 10px);
   opacity: 0.3;
 }
 
-/* === 布局 === */
+/* === 3. 内容布局 === */
 .container-fluid {
   width: 100%;
   height: 100%;
-  padding: 0 1.5rem !important;
+  padding: 0 2rem; /* 舒适的边距 */
   position: relative;
   z-index: 10;
 }
@@ -195,188 +248,182 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   height: 100%;
-  flex-wrap: nowrap;
 }
 
-.section {
+/* === [Left] Brand Cluster === */
+.section.left {
   display: flex;
   align-items: center;
-  height: 100%;
+  gap: 1.2rem;
 }
-
-/* === 左侧 Logo 升级 === */
-.section.left { gap: 1rem; min-width: 220px; }
 
 .brand-cluster {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-weight: 800;
-  color: var(--text-main);
-  font-size: 0.9rem;
-  letter-spacing: -0.5px;
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: -0.03em;
 }
 .highlight { color: var(--hive-amber); }
 
-/* 三联蜂巢图标 */
-.hex-triad {
-  display: flex;
-  gap: 2px;
-}
+.hex-triad { display: flex; gap: 2px; }
 .hex-triad span {
-  width: 6px;
+  width: 5px;
   height: 10px;
-  background-color: var(--hive-amber);
-  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-  opacity: 0.8;
+  background: var(--hive-amber);
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+  opacity: 0.7;
 }
-.hex-triad span:nth-child(2) { margin-top: 3px; opacity: 1; } /* 中间错位 */
-.hex-triad span:nth-child(3) { opacity: 0.6; }
+.hex-triad span:nth-child(2) { transform: translateY(3px); opacity: 1; }
+/* Logo 呼吸动画 */
+.breathing span { animation: breathe 3s infinite ease-in-out alternate; }
+@keyframes breathe { 0% { opacity: 0.5; } 100% { opacity: 1; box-shadow: 0 0 5px var(--hive-amber); } }
 
 .status-chip {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 2px 8px;
+  gap: 8px;
+  padding: 4px 10px;
   background: rgba(255,255,255,0.03);
-  /* 关键：六边形斜切角背景 */
-  clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px);
-  border-right: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 2px;
+  clip-path: polygon(8px 0, 100% 0, 100% 100%, 0 100%, 0 8px); /* 左上切角 */
 }
 .status-led {
-  width: 4px;
-  height: 4px;
-  background-color: #10b981;
-  box-shadow: 0 0 5px #10b981;
+  width: 6px;
+  height: 6px;
+  background: #10b981;
+  border-radius: 50%;
+  box-shadow: 0 0 6px #10b981;
+  animation: pulse 2s infinite;
 }
-.status-text { font-size: 0.65rem; color: var(--text-muted); }
+@keyframes pulse { 50% { opacity: 0.4; } }
+.status-text { font-size: 0.7rem; color: var(--text-secondary); letter-spacing: 0.5px; }
 
-/* === 中间导航：六边形按钮 (Hex Buttons) === */
+/* === [Center] Hex Navigation === */
 .section.center {
+  display: flex;
+  gap: 6px;
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  gap: 8px;
 }
 
 .hex-btn {
   position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0 16px;
-  height: 30px; /* 比 Bar 稍微矮一点 */
-  color: var(--text-muted);
+  width: 80px;
+  height: 42px; /* 增加高度适配触摸 */
   text-decoration: none;
+  color: var(--text-secondary);
   font-size: 0.85rem;
   font-weight: 600;
   transition: all 0.3s ease;
+  overflow: visible;
 }
 
-/* 按钮背景层：平时隐藏，Active时显示 */
-.hex-btn .btn-bg {
+.btn-text { position: relative; z-index: 2; }
+
+/* 按钮背景：默认隐藏，Hover/Active 显现 */
+.btn-bg {
   position: absolute;
   inset: 0;
   background: var(--hive-dim);
-  z-index: -1;
-  /* 核心：梯形切割，模拟蜂巢边缘 */
-  clip-path: polygon(8px 0, 100% 0, 100% 100%, 0 100%, 0 8px);
+  clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px); /* 赛博切角矩形 */
   opacity: 0;
   transform: scale(0.9);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid var(--hive-border); /* 边框 */
+  transition: all 0.2s ease-out;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  z-index: 1;
 }
 
-/* Hover 效果 */
-.hex-btn:hover {
-  color: var(--text-main);
-}
-.hex-btn:hover .btn-bg {
-  opacity: 0.3;
-  transform: scale(1);
-}
-
-/* Active (选中) 效果 */
-.hex-btn.active {
-  color: var(--hive-amber);
-  text-shadow: 0 0 8px rgba(251, 191, 36, 0.4);
-}
-.hex-btn.active .btn-bg {
-  opacity: 1;
-  transform: scale(1);
-  background: rgba(251, 191, 36, 0.15); /* 选中时背景变亮 */
-  border-color: var(--hive-amber);
-  box-shadow: inset 0 0 10px rgba(251, 191, 36, 0.1);
+/* 底部能量条 */
+.active-bar {
+  position: absolute;
+  bottom: -1px;
+  left: 15%;
+  width: 70%;
+  height: 2px;
+  background: var(--hive-amber);
+  box-shadow: 0 -2px 8px var(--hive-amber);
+  opacity: 0;
+  transition: opacity 0.3s;
+  z-index: 3;
 }
 
-/* === 右侧工具 === */
+/* 交互状态 */
+.hex-btn:hover { color: var(--text-primary); }
+.hex-btn:hover .btn-bg { opacity: 0.4; transform: scale(1); }
+
+.hex-btn.active { color: var(--hive-amber); text-shadow: 0 0 10px rgba(245,158,11,0.3); }
+.hex-btn.active .btn-bg { opacity: 1; transform: scale(1); background: rgba(245, 158, 11, 0.12); border-color: var(--hive-amber); }
+.hex-btn.active .active-bar { opacity: 1; }
+
+/* === [Right] Tools === */
 .section.right {
-  gap: 1rem;
-  min-width: 200px;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
   justify-content: flex-end;
 }
 
 .icp-code {
-  font-size: 0.7rem;
-  color: #444;
+  font-size: 0.75rem;
+  color: #555;
   text-decoration: none;
-  opacity: 0.7;
-  transition: opacity 0.2s;
+  transition: color 0.2s;
 }
-.icp-code:hover { opacity: 1; color: var(--text-muted); }
+.icp-code:hover { color: var(--hive-amber); }
 
-.tool-cluster { display: flex; gap: 6px; }
+.tool-cluster { display: flex; gap: 8px; }
 
-/* 六边形小图标按钮 */
 .hex-icon-btn {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-muted);
   background: rgba(255,255,255,0.03);
-  /* 六边形切割 */
-  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
   border: none;
+  color: var(--text-secondary);
+  /* 正六边形 */
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .hex-icon-btn:hover {
   background: var(--hive-amber);
   color: #000;
-  transform: scale(1.1);
+  transform: translateY(-2px) scale(1.1);
 }
-.hex-icon-btn.top {
-  background: rgba(251, 191, 36, 0.2);
+/* 回到顶部按钮特殊样式 */
+.top-btn {
+  background: rgba(245, 158, 11, 0.15);
   color: var(--hive-amber);
 }
-.hex-icon-btn.top:hover {
-  background: var(--hive-amber);
-  color: #000;
+.top-btn:hover {
   box-shadow: 0 0 15px var(--hive-amber);
 }
 
-/* === 移动端适配 === */
+/* === 移动端 === */
 @media (max-width: 768px) {
-  #energy-footer.energy-bar { height: auto !important; min-height: 48px !important; }
+  #energy-footer.energy-bar { height: auto; min-height: 54px; padding: 0 10px; }
   .bar-layout { flex-wrap: wrap; justify-content: center; }
-  .section.left, .section.right { display: none; } /* 隐藏次要信息 */
+  .section.left, .section.right { display: none; } /* 移动端专注导航 */
   
   .section.center {
-    position: relative; left: 0; transform: none; 
-    width: 100%; 
-    justify-content: space-evenly;
-    gap: 2px;
+    position: relative; left: 0; transform: none;
+    width: 100%; justify-content: space-between; gap: 0;
   }
-  .hex-btn { 
-    flex: 1; 
-    height: 48px; /* 手机上增加点击面积 */
-    font-size: 0.8rem; 
-  }
-  /* 手机上去除 clip-path 以便占满底部 */
-  .hex-btn .btn-bg { clip-path: none; border-bottom: 2px solid transparent; border-width: 0 0 2px 0; background: transparent; }
-  .hex-btn.active .btn-bg { border-color: var(--hive-amber); }
+  .hex-btn { flex: 1; height: 54px; }
+  .hex-btn .btn-bg { clip-path: none; border-bottom: 1px solid var(--hive-amber); border-width: 0 0 1px 0; background: transparent; }
+  .hex-btn.active .btn-bg { background: linear-gradient(to top, rgba(245,158,11,0.1), transparent); }
+  .active-bar { display: none; } /* 移动端简化 */
 }
 </style>

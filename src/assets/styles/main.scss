@@ -820,7 +820,7 @@ footer {
   padding: 1rem 0;
   background-color: var(--dark-color);
   border-top: 1px solid var(--border-color);
-  min-height: 76px; /* CLS Fix: Reserve space for the footer */
+  min-height: 64px; /* CLS Fix: Reserve space for the footer */
   
   .site-footer {
     margin-top: auto;
