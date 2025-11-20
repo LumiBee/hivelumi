@@ -1,36 +1,54 @@
-// Custom Bootstrap Import
-// Import only the modules we need to reduce the final bundle size.
+// 1. Include functions first (so you can manipulate colors, SVGs, calc, etc)
+@import "bootstrap/scss/functions";
 
-// 1. Include functions and variables first
-@use "bootstrap/scss/functions";
-@use "bootstrap/scss/variables";
-@use "bootstrap/scss/maps";
-@use "bootstrap/scss/mixins";
-@use "bootstrap/scss/utilities";
+// 2. Include any default variable overrides here
 
-// 2. Include layout & components
-@use "bootstrap/scss/root";
-@use "bootstrap/scss/reboot";
-@use "bootstrap/scss/type";
-@use "bootstrap/scss/grid";
-@use "bootstrap/scss/buttons";
-@use "bootstrap/scss/transitions";
-@use "bootstrap/scss/nav";
-@use "bootstrap/scss/navbar";
-@use "bootstrap/scss/carousel";
-@use "bootstrap/scss/close";
-
-// 3. Include helpers
-@use "bootstrap/scss/helpers";
+// 3. Include remainder of required Bootstrap stylesheets
+@import "bootstrap/scss/variables";
+@import "bootstrap/scss/maps";
+@import "bootstrap/scss/mixins";
+@import "bootstrap/scss/utilities";
+@import "bootstrap/scss/root";
+@import "bootstrap/scss/reboot";
+@import "bootstrap/scss/type";
+// Optionally include any other parts as needed
+@import "bootstrap/scss/images";
+@import "bootstrap/scss/containers";
+@import "bootstrap/scss/grid";
+@import "bootstrap/scss/tables";
+@import "bootstrap/scss/forms";
+@import "bootstrap/scss/buttons";
+@import "bootstrap/scss/transitions";
+@import "bootstrap/scss/dropdown";
+@import "bootstrap/scss/button-group";
+@import "bootstrap/scss/nav";
+@import "bootstrap/scss/navbar";
+@import "bootstrap/scss/card";
+@import "bootstrap/scss/accordion";
+@import "bootstrap/scss/breadcrumb";
+@import "bootstrap/scss/pagination";
+@import "bootstrap/scss/badge";
+@import "bootstrap/scss/alert";
+@import "bootstrap/scss/progress";
+@import "bootstrap/scss/list-group";
+@import "bootstrap/scss/close";
+@import "bootstrap/scss/toasts";
+@import "bootstrap/scss/modal";
+@import "bootstrap/scss/tooltip";
+@import "bootstrap/scss/popover";
+@import "bootstrap/scss/carousel";
+@import "bootstrap/scss/spinners";
+@import "bootstrap/scss/offcanvas";
+@import "bootstrap/scss/placeholders";
 
 // 4. Include utilities API
-@use "bootstrap/scss/utilities/api";
+@import "bootstrap/scss/utilities/api";
 
 // Set Font Awesome's font-display property to 'swap'
 $fa-font-display: swap;
 
 // Import Font Awesome SCSS - Only what's needed
-@use "@fortawesome/fontawesome-free/scss/fontawesome";
-@use "@fortawesome/fontawesome-free/scss/solid";
-@use "@fortawesome/fontawesome-free/scss/brands"; // For brand icons
+@import "@fortawesome/fontawesome-free/scss/fontawesome.scss";
+@import "@fortawesome/fontawesome-free/scss/solid.scss";
+@import "@fortawesome/fontawesome-free/scss/brands.scss"; // For brand icons
 
