@@ -44,6 +44,7 @@
   color: #ffffff;
   padding: 2rem 0 1rem;
   border-top: 1px solid #495057;
+  min-height: 180px; /* Prevent CLS */
 }
 
 .footer-container {

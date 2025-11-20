@@ -19,6 +19,7 @@
         :src="getProcessedImageUrl(profileData.user.backgroundImgUrl)"
         :alt="`${profileData.user?.name || '用户'}的封面图片`"
         class="cover-image"
+        fetchpriority="high"
       />
       
       <div class="cover-overlay"></div>
