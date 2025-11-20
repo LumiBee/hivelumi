@@ -30,7 +30,7 @@
               @keyup.enter="performSearch"
               @input="handleSearchInput"
             />
-            <button class="search-btn" @click="performSearch">
+            <button class="search-btn" @click="performSearch" aria-label="搜索">
               <i class="fas fa-search"></i>
             </button>
           </div>
