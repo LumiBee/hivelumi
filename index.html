@@ -8,10 +8,36 @@
     <meta name="description" content="LumiHive 是一个个人知识学习与交流平台，专注于各种技术分享与学习心得。" />
     <meta name="keywords" content="博客,技术分享,知识社区,编程,学习" />
     
-    <!-- 预连接CDN资源 - 最安全的优化 -->
+    <!-- Preconnect to critical origins -->
+    <link rel="preconnect" href="https://api.hivelumi.com" crossorigin>
+    <link rel="preconnect" href="https://files.hivelumi.com" crossorigin>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-    <link rel="preconnect" href="https://api.hivelumi.com" crossorigin>
+
+    <!-- Force font-display: swap for Font Awesome -->
+    <style>
+      @font-face {
+        font-family: 'Font Awesome 6 Free';
+        font-style: normal;
+        font-weight: 900;
+        font-display: swap;
+        src: url("/assets/woff2/fa-solid-900-CTAAxXor.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: 'Font Awesome 6 Free';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url("/assets/woff2/fa-regular-400-BjRzuEpd.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: 'Font Awesome 6 Brands';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url("/assets/woff2/fa-brands-400-D_cYUPeE.woff2") format("woff2");
+      }
+    </style>
     
     <!-- 预加载关键图片 - 优化加载优先级 -->
     <link rel="preload" href="/img/logo.png" as="image" fetchpriority="high">

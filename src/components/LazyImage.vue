@@ -7,6 +7,7 @@
       :class="['lazy-image', imageClass]"
       :style="imageStyle"
       loading="lazy"
+      :fetchpriority="fetchpriority"
     />
     <div v-else class="placeholder"></div>
   </div>
@@ -34,6 +35,10 @@ export default {
       type: Object,
       default: () => ({})
     },
+    fetchpriority: {
+      type: String,
+      default: null
+    }
   },
   setup(props) {
     const hasSource = computed(() => !!props.src);
