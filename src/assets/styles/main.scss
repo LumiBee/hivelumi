@@ -5,25 +5,6 @@
 // 主样式文件 - 基于原有设计风格
 // =============================================================================
 
-// 覆盖 Font Awesome 的 font-display
-@font-face {
-  font-family: 'Font Awesome 6 Pro'; /* 或 Font Awesome 5 Free */
-  font-style: normal;
-  font-weight: 900;
-  font-display: swap; /* 确保文本始终可见 */
-  src: url('@fortawesome/fontawesome-free/webfonts/fa-solid-900.woff2') format('woff2'),
-       url('@fortawesome/fontawesome-free/webfonts/fa-solid-900.ttf') format('truetype');
-}
-
-@font-face {
-  font-family: 'Font Awesome 6 Brands'; /* 或 Font Awesome 5 Brands */
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap; /* 确保文本始终可见 */
-  src: url('@fortawesome/fontawesome-free/webfonts/fa-brands-400.woff2') format('woff2'),
-       url('@fortawesome/fontawesome-free/webfonts/fa-brands-400.ttf') format('truetype');
-}
-
 // 代码块样式覆盖 - 强制覆盖 highlight.js 样式
 .hljs,
 pre.hljs,
