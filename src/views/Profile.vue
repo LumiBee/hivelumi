@@ -543,8 +543,6 @@ const formatDate = (dateString) => {
 // 获取个人资料数据
 const fetchProfileData = async (forceRefresh = false) => {
   isLoading.value = true
-  coverImageLoaded.value = false
-  avatarLoaded.value = false
   
   try {
     const params = { 
@@ -563,14 +561,6 @@ const fetchProfileData = async (forceRefresh = false) => {
       params,
       timeout: 30000 // 增加超时时间到30秒
     })
-    
-    // 为文章添加加载状态，使用批量更新优化性能
-    if (response.articles?.records) {
-      const articles = response.articles.records
-      for (let i = 0; i < articles.length; i++) {
-        articles[i].coverImgLoaded = false
-      }
-    }
     
     profileData.value = response
     
