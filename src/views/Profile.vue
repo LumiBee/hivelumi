@@ -111,7 +111,7 @@
                       <router-link :to="`/article/${article.slug}`">
                         <div class="article-cover">
                           <LazyImage 
-                            :src="article.coverImg || logo" 
+                            :src="article.coverImg" 
                             :alt="`${article.title}的封面图片`"
                             class="article-cover-image"
                           />

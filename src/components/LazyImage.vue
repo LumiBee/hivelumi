@@ -1,23 +1,26 @@
 <template>
-  <img
-    :src="imageSource"
-    :alt="alt"
-    :class="['lazy-image', imageClass]"
-    :style="imageStyle"
-    loading="lazy"
-  />
+  <div class="lazy-image-wrapper">
+    <img
+      v-if="hasSource"
+      :src="imageSource"
+      :alt="alt"
+      :class="['lazy-image', imageClass]"
+      :style="imageStyle"
+      loading="lazy"
+    />
+    <div v-else class="placeholder"></div>
+  </div>
 </template>
 
 <script>
 import { computed } from 'vue';
-import logo from '@/assets/img/default.webp';
 
 export default {
   name: 'LazyImage',
   props: {
     src: {
       type: String,
-      required: true
+      default: ''
     },
     alt: {
       type: String,
@@ -33,15 +36,15 @@ export default {
     },
   },
   setup(props) {
+    const hasSource = computed(() => !!props.src);
+
     const imageSource = computed(() => {
       if (!props.src) {
-        return logo;
+        return '';
       }
-      // If it's an external URL or already optimized, return it directly
       if (props.src.startsWith('http') || props.src.endsWith('.webp') || props.src.endsWith('.avif')) {
         return props.src;
       }
-      // For local, non-optimized images, convert to optimized WebP
       if (props.src.startsWith('/img/') && (props.src.endsWith('.jpg') || props.src.endsWith('.png'))) {
         const baseName = props.src.replace(/\.(jpg|png)$/, '');
         return `/img/optimized${baseName.substring(4)}.webp`;
@@ -50,6 +53,7 @@ export default {
     });
 
     return {
+      hasSource,
       imageSource
     };
   }
@@ -57,6 +61,15 @@ export default {
 </script>
 
 <style scoped>
+.lazy-image-wrapper {
+  width: 100%;
+  height: 100%;
+}
+.placeholder {
+  width: 100%;
+  height: 100%;
+  background: #f0f0f0;
+}
 .lazy-image {
   transition: opacity 0.5s ease-in-out;
   background-color: #f3f4f6;
