@@ -188,12 +188,12 @@ onUnmounted(() => {
   pointer-events: none;
   z-index: 2; /* 提升层级，确保在网格之上 */
   mix-blend-mode: screen; /* 使用滤色模式，让它发光 */
-  animation: radar-scan 6s infinite linear;
+  animation: radar-scan 12s infinite linear;
   will-change: left; /* 性能优化 */
 }
 
 @keyframes radar-scan {
-  0% { left: -60%; }
+  30% { left: 100%; }
   100% { left: 160%; } /* 确保完全扫出屏幕 */
 }
 /* 鼠标光斑 (Glow) */
