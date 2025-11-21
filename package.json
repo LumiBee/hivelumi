@@ -38,6 +38,7 @@
     "markdown-it": "^14.1.0",
     "marked": "^11.2.0",
     "pinia": "^2.1.7",
+    "sass": "^1.94.2",
     "swiper": "^11.0.5",
     "vue": "^3.4.0",
     "vue-cropper": "^1.1.4",
@@ -50,7 +51,6 @@
     "eslint-plugin-vue": "^9.19.2",
     "fs-extra": "^11.3.2",
     "prettier": "^3.1.1",
-    "sass": "^1.94.1",
     "sharp": "^0.34.5",
     "terser": "^5.43.1",
     "vite": "^5.0.8"

@@ -192,7 +192,7 @@
           </article>
           
           <!-- 评论区 -->
-          <div v-if="article?.articleId" class="mt-4">
+          <div v-if="article?.articleId" id="comment-section" class="mt-4">
             <CommentSection :article-id="article.articleId" />
           </div>
         </div>
@@ -217,8 +217,6 @@
                 </nav>
               </div>
             </div>
-            
-
             
             <!-- 相关文章 -->
             <div v-if="relatedArticles.length > 0" class="related-articles card shadow-sm border-0" data-aos="fade-left" data-aos-delay="200">
@@ -270,7 +268,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, nextTick, getCurrentInstance } from 'vue'
+import { ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
 import { articleAPI, userAPI, favoriteAPI } from '@/api'
@@ -280,28 +278,297 @@ import FavoriteModal from '@/components/FavoriteModal.vue'
 import CommentSection from '@/components/CommentSection.vue'
 import { ensureBigIntAsString, debugId } from '@/utils/bigint-helper'
 import { getAuthorAvatarUrl } from '@/utils/avatar-helper'
+import hljs from 'highlight.js'
+
+const route = useRoute()
+const router = useRouter()
+const authStore = useAuthStore()
+
+// Reactive State
+const article = ref(null)
+const loading = ref(true)
+const relatedArticles = ref([])
+const tableOfContents = ref([])
+const renderedContent = ref('')
+const showFavoriteModal = ref(false)
+const showBackToTop = ref(false)
+
+// --- Core Logic ---
+
+const loadArticleData = async () => {
+  try {
+    loading.value = true
+    const slug = route.params.slug
+    if (!slug) {
+      console.error('Article slug not found in route')
+      loading.value = false
+      return
+    }
+
+    const response = await articleAPI.getArticleBySlug(slug)
+    if (response) {
+      article.value = response
+      relatedArticles.value = response.relatedArticles || []
+      renderMarkdownContent()
+    } else {
+      article.value = null
+    }
+  } catch (error) {
+    console.error('Failed to load article:', error)
+    article.value = null
+  } finally {
+    loading.value = false
+  }
+}
+
+const renderMarkdownContent = () => {
+  if (!article.value?.content) {
+    renderedContent.value = ''
+    return
+  }
+
+  const headings = []
+  const renderer = new marked.Renderer()
+
+  renderer.heading = (text, level, raw) => {
+    const id = raw.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    headings.push({ id, text, level, raw });
+    return `<h${level} id="${id}">${text}</h${level}>`;
+  };
+
+  renderer.code = (code, language) => {
+    const validLanguage = hljs.getLanguage(language) ? language : 'plaintext';
+    const highlightedCode = hljs.highlight(code, { language: validLanguage, ignoreIllegals: true }).value;
+    const copyButton = '<button class="copy-btn" type="button" title="复制代码">复制</button>';
+    return `<div class="code-block-wrapper"><pre><code class="language-${language}">${highlightedCode}</code></pre>${copyButton}</div>`;
+  };
+  
+  renderedContent.value = DOMPurify.sanitize(marked(article.value.content, { renderer }));
+  tableOfContents.value = headings;
+
+  nextTick(() => {
+    installDelegatedCopy();
+  });
+}
+
+// --- User Actions ---
+
+const toggleLike = async () => {
+  if (!authStore.isAuthenticated) {
+    window.$toast?.warning('请先登录后再点赞');
+    return;
+  }
+  try {
+    const response = await articleAPI.toggleLike(article.value.articleId)
+    if (response) {
+      article.value.liked = response.liked
+      article.value.likes = response.likeCount
+      window.$toast?.[response.liked ? 'success' : 'info'](response.liked ? '点赞成功！' : '已取消点赞');
+    }
+  } catch (error) {
+    console.error('Toggle like failed:', error)
+    window.$toast?.error('操作失败，请稍后重试');
+  }
+}
+
+const toggleFavorite = () => {
+  if (!authStore.isAuthenticated) {
+    window.$toast?.warning('请先登录后再收藏');
+    return;
+  }
+  if (article.value.isFavorited) {
+    unfavoriteArticle();
+  } else {
+    showFavoriteModal.value = true
+  }
+}
+
+const unfavoriteArticle = async () => {
+  try {
+    await favoriteAPI.removeFromAllFolders(article.value.articleId);
+    article.value.isFavorited = false;
+    window.$toast?.info('已取消收藏');
+  } catch (error) {
+    console.error('Unfavorite failed:', error);
+    window.$toast?.error('取消收藏失败，请稍后重试');
+  }
+};
+
+
+const handleFavoriteSuccess = () => {
+  article.value.isFavorited = true
+  showFavoriteModal.value = false
+  window.$toast?.success('收藏成功！');
+}
+
+const closeFavoriteModal = () => {
+  showFavoriteModal.value = false
+}
+
+const toggleFollow = async () => {
+  if (!authStore.isAuthenticated) {
+    window.$toast?.warning('请先登录后再关注');
+    return;
+  }
+  try {
+    const userIdStr = ensureBigIntAsString(article.value.userId);
+    const response = await userAPI.toggleFollow(userIdStr)
+    if (response) {
+      article.value.isFollowed = response.isFollowing
+      window.$toast?.[response.isFollowing ? 'success' : 'info'](response.message || (response.isFollowing ? '关注成功！' : '已取消关注'));
+    }
+  } catch (error) {
+    console.error('Toggle follow failed:', error)
+    window.$toast?.error('操作失败，请稍后重试');
+  }
+}
+
+const shareArticle = () => {
+  if (navigator.share) {
+    navigator.share({
+      title: article.value.title,
+      text: article.value.excerpt,
+      url: window.location.href,
+    }).catch(err => {
+      if (err.name !== 'AbortError') console.error('Share failed:', err)
+    });
+  } else {
+    navigator.clipboard.writeText(window.location.href)
+      .then(() => window.$toast?.success('链接已复制到剪贴板'))
+      .catch(() => window.$toast?.error('复制失败，请手动复制链接'));
+  }
+}
+
+// --- UI & Navigation ---
+
+const formatDate = (dateString) => {
+  if (!dateString) return ''
+  return new Intl.DateTimeFormat('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(dateString));
+}
+
+const cleanText = (text) => {
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = text;
+  return tempDiv.textContent || tempDiv.innerText || '';
+};
+
+const scrollToHeading = (id) => {
+  const element = document.getElementById(id);
+  if (element) {
+    const offset = 100;
+    const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+    const offsetPosition = elementPosition - offset;
+    window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+    history.pushState(null, null, `#${id}`);
+  }
+};
+
+const scrollToHashOnLoad = () => {
+  if (route.hash) {
+    scrollToHeading(route.hash.substring(1));
+  }
+}
+
+const scrollToComments = () => {
+  const commentSection = document.querySelector('#comment-section');
+  if (commentSection) {
+    commentSection.scrollIntoView({ behavior: 'smooth' });
+  }
+}
+
+const scrollToTop = () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+const handleScroll = () => {
+  showBackToTop.value = window.scrollY > 300;
+  highlightCurrentHeading();
+};
+
+const highlightCurrentHeading = () => {
+  if (tableOfContents.value.length === 0) return;
+  
+  let currentHeadingId = null;
+  const scrollPosition = window.scrollY + 150;
+
+  for (let i = tableOfContents.value.length - 1; i >= 0; i--) {
+    const heading = tableOfContents.value[i];
+    const element = document.getElementById(heading.id);
+    if (element && element.offsetTop <= scrollPosition) {
+      currentHeadingId = heading.id;
+      break;
+    }
+  }
+
+  document.querySelectorAll('.toc-link.active').forEach(link => link.classList.remove('active'));
+  if (currentHeadingId) {
+    document.querySelector(`.toc-link[href="#${currentHeadingId}"]`)?.classList.add('active');
+  }
+};
+
+const handleRelatedArticleClick = (relatedArticle) => {
+  if (relatedArticle.slug) {
+    router.push(`/article/${relatedArticle.slug}`);
+  }
+}
+
+// --- Code Block Copy Logic ---
+
+let delegatedCopyHandler = null;
+const installDelegatedCopy = () => {
+  const container = document.querySelector('.markdown-content');
+  if (!container || delegatedCopyHandler) return;
+
+  delegatedCopyHandler = async (e) => {
+    const btn = e.target.closest('.copy-btn');
+    if (!btn) return;
+    const pre = btn.closest('pre');
+    if (!pre) return;
+    
+    const code = pre.querySelector('code')?.innerText || '';
+    try {
+      await navigator.clipboard.writeText(code);
+      btn.textContent = '已复制';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = '复制';
+        btn.classList.remove('copied');
+      }, 1500);
+    } catch (err) {
+      console.warn('Copy failed', err);
+      btn.textContent = '失败';
+    }
+  };
+  container.addEventListener('click', delegatedCopyHandler);
+};
+
+const uninstallDelegatedCopy = () => {
+  const container = document.querySelector('.markdown-content');
+  if (container && delegatedCopyHandler) {
+    container.removeEventListener('click', delegatedCopyHandler);
+    delegatedCopyHandler = null;
+  }
+};
+
+// --- Lifecycle Hooks ---
+
 onMounted(async () => {
-  import('highlight.js/styles/github.css');
-  await loadArticle();
-  await nextTick();
-  scrollToHashOnLoad();
-  
-  // 添加滚动监听器
+  await loadArticleData();
   window.addEventListener('scroll', handleScroll);
-  
-  // 初始化高亮
-  handleScroll();
-  
-  // 设置代码复制按钮
-  setupCodeCopyButtons();
-  installDelegatedCopy();
+  nextTick(scrollToHashOnLoad);
 });
 
-// 在组件卸载时移除滚动监听器
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', handleScroll);
   uninstallDelegatedCopy();
-})
+});
+
+watch(() => route.params.slug, (newSlug, oldSlug) => {
+  if (newSlug && newSlug !== oldSlug) {
+    scrollToTop();
+    loadArticleData();
+  }
+});
 </script>
 
 <style scoped>

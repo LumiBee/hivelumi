@@ -74,7 +74,7 @@ export class AdvancedPerformanceMonitor {
           if (!entry.hadRecentInput) {
             clsValue += entry.value
             this.metrics.cls = clsValue
-            console.log('CLS:', clsValue)
+            // console.log('CLS:', clsValue)
           }
         })
       })

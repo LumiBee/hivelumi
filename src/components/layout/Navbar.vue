@@ -1002,6 +1002,9 @@ onUnmounted(() => {
   border: none;
   background: none;
   padding: 0;
+  display: flex; /* 新增：使按钮成为 Flex 容器 */
+  align-items: center; /* 新增：垂直居中头像 */
+  justify-content: center; /* 新增：水平居中头像（如果头像宽度小于按钮） */
   cursor: pointer;
   border-radius: 50%;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1016,6 +1019,7 @@ onUnmounted(() => {
   height: 42px;
   border-radius: 50%;
   object-fit: cover;
+  vertical-align: middle; /* 确保图片垂直对齐 */
   border: 3px solid rgba(255, 255, 255, 0.8);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);

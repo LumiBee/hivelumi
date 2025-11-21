@@ -16,15 +16,15 @@
         <div class="title-actions">
           <!-- 自动保存状态提示 -->
           <div v-if="autoSaveStatus" class="auto-save-status me-3">
-            <i 
-              class="fas me-1" 
+            <i
+              class="fas me-1"
               :class="{
                 'fa-spinner fa-spin': autoSaveStatus === '正在自动保存...',
                 'fa-check-circle text-success': autoSaveStatus.includes('已自动保存'),
                 'fa-exclamation-circle text-danger': autoSaveStatus === '自动保存失败'
               }"
             ></i>
-            <span 
+            <span
               :class="{
                 'text-success': autoSaveStatus.includes('已自动保存'),
                 'text-danger': autoSaveStatus === '自动保存失败',
@@ -34,17 +34,17 @@
               {{ autoSaveStatus }}
             </span>
           </div>
-          
-          <button 
-            @click="saveDraft" 
+
+          <button
+            @click="saveDraft"
             class="btn btn-outline-secondary me-2"
             :disabled="isSaving"
           >
             <i class="fas fa-save me-1"></i>
             {{ isSaving ? '保存中...' : '保存草稿' }}
           </button>
-          <button 
-            @click="togglePublishModal" 
+          <button
+            @click="togglePublishModal"
             class="btn btn-warning"
             :disabled="!canPublish"
           >
@@ -55,20 +55,20 @@
       </div>
 
       <!-- 通知区域 -->
-      <div 
-        v-if="notification.show" 
+      <div
+        v-if="notification.show"
         class="alert alert-dismissible fade show"
         :class="`alert-${notification.type}`"
         role="alert"
       >
-        <i 
+        <i
           :class="notification.type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle'"
           class="me-2"
         ></i>
         {{ notification.message }}
-        <button 
-          type="button" 
-          class="btn-close" 
+        <button
+          type="button"
+          class="btn-close"
           @click="notification.show = false"
         ></button>
       </div>
@@ -87,7 +87,7 @@
           </div>
         </div>
       </div>
-      
+
       <!-- Toast UI Markdown编辑器 -->
       <div class="content-editor-wrapper" ref="editorWrapper">
         <div id="toastUiEditor" ref="editorContainer"></div>
@@ -104,9 +104,9 @@
     />
 
     <!-- 发布设置模态框 -->
-    <div 
-      v-if="showPublishModal" 
-      class="modal fade show" 
+    <div
+      v-if="showPublishModal"
+      class="modal fade show"
       style="display: block; z-index: 1050; position: fixed; top: 0; left: 0; right: 0; bottom: 0;"
       tabindex="-1"
     >
@@ -116,9 +116,9 @@
             <h5 class="modal-title">
               <i class="fas fa-cog me-2"></i>发布设置
             </h5>
-            <button 
-              type="button" 
-              class="btn-close" 
+            <button
+              type="button"
+              class="btn-close"
               @click="showPublishModal = false"
             ></button>
           </div>
@@ -134,8 +134,8 @@
                       <span class="text-danger ms-2" style="font-size: 0.9rem; font-weight: normal;">(必填)</span>
                     </h6>
                     <div class="ai-summary-buttons">
-                      <button 
-                        type="button" 
+                      <button
+                        type="button"
                         class="btn btn-sm btn-outline-primary"
                         @click="generateAISummary"
                         :disabled="!articleForm.content || isGeneratingSummary"
@@ -144,9 +144,9 @@
                         <i class="fas fa-magic me-1"></i>
                         {{ isGeneratingSummary ? '生成中...' : 'AI生成摘要' }}
                       </button>
-                      <button 
+                      <button
                         v-if="articleForm.excerpt"
-                        type="button" 
+                        type="button"
                         class="btn btn-sm btn-outline-secondary"
                         @click="clearExcerpt"
                         title="清空摘要"
@@ -180,7 +180,7 @@
                     <i class="fas fa-image me-2"></i>封面图片
                   </h6>
                   <div class="cover-upload">
-                    <div 
+                    <div
                       class="cover-preview"
                       :style="{ backgroundImage: `url(${coverPreview})` }"
                       @click="triggerCoverUpload"
@@ -197,9 +197,9 @@
                       @change="handleCoverUpload"
                     />
                     <div class="cover-actions mt-2">
-                      <button 
-                        v-if="coverPreview" 
-                        @click="removeCover" 
+                      <button
+                        v-if="coverPreview"
+                        @click="removeCover"
                         class="btn btn-sm btn-outline-danger"
                       >
                         <i class="fas fa-trash me-1"></i>移除
@@ -216,14 +216,14 @@
                   </h6>
                   <div class="tags-input">
                     <div class="tags-container">
-                      <span 
-                        v-for="tag in articleForm.tags" 
+                      <span
+                        v-for="tag in articleForm.tags"
                         :key="tag"
                         class="tag-item"
                       >
                         {{ tag }}
-                        <button 
-                          @click="removeTag(tag)" 
+                        <button
+                          @click="removeTag(tag)"
                           class="tag-remove"
                           type="button"
                         >
@@ -262,15 +262,15 @@
                           <i class="fas fa-chevron-down select-arrow" :class="{ 'rotated': isPortfolioDropdownOpen }"></i>
                         </div>
                         <div class="select-dropdown" v-show="isPortfolioDropdownOpen">
-                          <div 
+                          <div
                             class="select-option"
                             :class="{ 'selected': selectedPortfolioId === '' }"
                             @click.stop="selectPortfolio('')"
                           >
                             -- 选择现有作品集 --
                           </div>
-                          <div 
-                            v-for="portfolio in portfolios" 
+                          <div
+                            v-for="portfolio in portfolios"
                             :key="portfolio.id"
                             class="select-option"
                             :class="{ 'selected': selectedPortfolioId === portfolio.id }"
@@ -281,7 +281,7 @@
                         </div>
                       </div>
                     </div>
-                    
+
                     <!-- 或者输入新作品集 -->
                     <div class="mb-3">
                       <label class="form-label small text-muted">或者输入新作品集名称：</label>
@@ -294,8 +294,8 @@
                           @keyup.enter="createNewPortfolio"
                           @blur="createNewPortfolio"
                         />
-                        <button 
-                          type="button" 
+                        <button
+                          type="button"
                           class="btn btn-outline-primary"
                           @click="createNewPortfolio"
                           :disabled="!newPortfolioName.trim() || isCreatingPortfolio"
@@ -304,14 +304,14 @@
                         </button>
                       </div>
                     </div>
-                    
+
                     <!-- 当前选中的作品集显示 -->
                     <div v-if="articleForm.portfolioId" class="selected-portfolio mt-2">
                       <div class="alert alert-info py-2">
                         <i class="fas fa-check-circle me-2"></i>
                         已选择作品集：<strong>{{ getSelectedPortfolioName() }}</strong>
-                        <button 
-                          type="button" 
+                        <button
+                          type="button"
                           class="btn btn-sm btn-outline-danger ms-2"
                           @click="clearPortfolio"
                         >
@@ -353,7 +353,7 @@
                         标签：{{ getStatusText('tags') }}
                       </li>
                     </ul>
-                    
+
                     <!-- 发布设置 -->
                     <div class="publish-settings mt-3 pt-3 border-top">
                       <div class="form-check">
@@ -374,16 +374,16 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button 
-              type="button" 
-              class="btn btn-secondary" 
+            <button
+              type="button"
+              class="btn btn-secondary"
               @click="showPublishModal = false"
             >
               取消
             </button>
-            <button 
-              type="button" 
-              class="btn btn-warning" 
+            <button
+              type="button"
+              class="btn btn-warning"
               @click="confirmPublish"
               :disabled="!canActuallyPublish || isPublishing"
             >
@@ -405,6 +405,287 @@ import { useAuthStore } from '@/store/auth'
 import { articleAPI, portfolioAPI, aiAPI } from '@/api'
 import Editor from '@toast-ui/editor'
 import '@toast-ui/editor/dist/toastui-editor.css'
+
+const router = useRouter()
+const route = useRoute()
+const authStore = useAuthStore()
+
+const articleForm = ref({
+  title: '',
+  excerpt: '',
+  content: '',
+  tags: [],
+  portfolioId: '',
+  allowComments: true,
+  coverImg: null
+})
+
+const showPublishModal = ref(false)
+const wordCount = ref(0)
+const newTag = ref('')
+const selectedPortfolioId = ref('')
+const portfolios = ref([])
+const newPortfolioName = ref('')
+const isPortfolioDropdownOpen = ref(false)
+const portfolioSelectContainer = ref(null)
+const isCreatingPortfolio = ref(false)
+const isPublishing = ref(false)
+const coverPreview = ref(null)
+const coverInput = ref(null)
+const isEditMode = ref(false)
+const editingArticleId = ref(null)
+const isSaving = ref(false)
+const autoSaveStatus = ref('')
+const autoSaveTimeout = ref(null)
+const isGeneratingSummary = ref(false)
+const notification = ref({ show: false, message: '', type: 'success' })
+const editorWrapper = ref(null)
+const editorContainer = ref(null)
+let editorInstance = null;
+const imageUploadInput = ref(null);
+
+const canPublish = computed(() => {
+  return articleForm.value.title.trim() !== '' && articleForm.value.content.trim() !== '';
+})
+
+const canActuallyPublish = computed(() => {
+  return articleForm.value.title.trim() !== '' &&
+         articleForm.value.content.trim() !== '' &&
+         articleForm.value.excerpt.trim() !== '';
+})
+
+const showNotification = (message, type = 'success') => {
+  notification.value = { show: true, message, type };
+  setTimeout(() => {
+    notification.value.show = false;
+  }, 3000);
+};
+
+const handleTitleChange = () => {
+  // Trigger auto-save or other logic when title changes
+};
+
+const updateWordCount = () => {
+  if (editorInstance) {
+    const markdown = editorInstance.getMarkdown();
+    const text = markdown.replace(/<\/?[^>]+(>|$)/g, ""); // strip html tags
+    const matches = text.match(/[\u4e00-\u9fa5]|\b\w+\b/g); // count chinese characters and english words
+    wordCount.value = matches ? matches.length : 0;
+  }
+};
+
+const initEditor = async () => {
+  if (editorContainer.value) {
+    editorInstance = new Editor({
+      el: editorContainer.value,
+      height: '500px',
+      initialEditType: 'markdown',
+      previewStyle: 'vertical',
+      events: {
+        change: () => {
+          articleForm.value.content = editorInstance.getMarkdown();
+          updateWordCount();
+        }
+      }
+    });
+  }
+};
+
+const saveDraft = async () => {
+  isSaving.value = true;
+  autoSaveStatus.value = '正在自动保存...';
+  try {
+    const draftData = {
+      ...articleForm.value,
+      tags: articleForm.value.tags,
+      portfolioName: getSelectedPortfolioName()
+    };
+    if (editingArticleId.value) {
+        draftData.id = editingArticleId.value;
+    }
+    const response = await articleAPI.saveDraft(draftData);
+    if(response && response.articleId) {
+        editingArticleId.value = response.articleId;
+    }
+    autoSaveStatus.value = `已自动保存 ${new Date().toLocaleTimeString()}`;
+    showNotification('草稿保存成功', 'success');
+  } catch (error) {
+    autoSaveStatus.value = '自动保存失败';
+    showNotification('草稿保存失败', 'danger');
+  } finally {
+    isSaving.value = false;
+  }
+};
+
+const togglePublishModal = () => {
+  showPublishModal.value = !showPublishModal.value;
+};
+
+const confirmPublish = async () => {
+  isPublishing.value = true;
+  try {
+    const articleData = {
+      ...articleForm.value
+    };
+    if (isEditMode.value) {
+      await articleAPI.updateArticle(editingArticleId.value, articleData);
+      showNotification('文章更新成功', 'success');
+    } else {
+      await articleAPI.publishArticle(articleData);
+      showNotification('文章发布成功', 'success');
+    }
+    router.push('/'); // Redirect to home or article page
+  } catch (error) {
+    showNotification('发布失败', 'danger');
+  } finally {
+    isPublishing.value = false;
+  }
+};
+
+const handleImageUpload = (e) => {
+    // Logic to upload image and insert into editor
+};
+
+const generateAISummary = async () => {
+    isGeneratingSummary.value = true;
+    try {
+        const response = await aiAPI.generateSummary(articleForm.value.content);
+        articleForm.value.excerpt = response.summary;
+    } catch (error) {
+        showNotification('AI摘要生成失败', 'danger');
+    } finally {
+        isGeneratingSummary.value = false;
+    }
+};
+
+const clearExcerpt = () => {
+    articleForm.value.excerpt = '';
+};
+
+const triggerCoverUpload = () => {
+    coverInput.value.click();
+};
+
+const handleCoverUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            coverPreview.value = e.target.result;
+        };
+        reader.readAsDataURL(file);
+        articleForm.value.coverImg = file;
+    }
+};
+
+const removeCover = () => {
+    coverPreview.value = null;
+    articleForm.value.coverImg = null;
+    coverInput.value.value = '';
+};
+
+const addTag = () => {
+    const tag = newTag.value.trim();
+    if (tag && !articleForm.value.tags.includes(tag)) {
+        articleForm.value.tags.push(tag);
+    }
+    newTag.value = '';
+};
+
+const removeTag = (tag) => {
+    articleForm.value.tags = articleForm.value.tags.filter(t => t !== tag);
+};
+
+const loadPortfolios = async () => {
+    try {
+        const response = await portfolioAPI.getUserPortfolios(authStore.user.id);
+        portfolios.value = response;
+    } catch (error) {
+        // handle error
+    }
+};
+
+const togglePortfolioDropdown = () => {
+    isPortfolioDropdownOpen.value = !isPortfolioDropdownOpen.value;
+};
+
+const getPortfolioSelectText = () => {
+    if (selectedPortfolioId.value) {
+        const portfolio = portfolios.value.find(p => p.id === selectedPortfolioId.value);
+        return portfolio ? portfolio.title : '-- 选择现有作品集 --';
+    }
+    return '-- 选择现有作品集 --';
+};
+
+const selectPortfolio = (id) => {
+    selectedPortfolioId.value = id;
+    articleForm.value.portfolioId = id;
+    isPortfolioDropdownOpen.value = false;
+};
+
+const createNewPortfolio = async () => {
+    const name = newPortfolioName.value.trim();
+    if (name) {
+        isCreatingPortfolio.value = true;
+        try {
+            const newPortfolio = await portfolioAPI.createPortfolio({ name });
+            portfolios.value.push(newPortfolio);
+            selectPortfolio(newPortfolio.id);
+            newPortfolioName.value = '';
+        } catch (error) {
+            // handle error
+        } finally {
+            isCreatingPortfolio.value = false;
+        }
+    }
+};
+
+const getSelectedPortfolioName = () => {
+    if (articleForm.value.portfolioId) {
+        const portfolio = portfolios.value.find(p => p.id === articleForm.value.portfolioId);
+        return portfolio ? portfolio.title : '';
+    }
+    return newPortfolioName.value || '';
+};
+
+const clearPortfolio = () => {
+    selectedPortfolioId.value = '';
+    articleForm.value.portfolioId = '';
+    newPortfolioName.value = '';
+};
+
+const getStatusClass = (field) => {
+    // logic to return success/warning/danger class
+    return 'text-success';
+};
+
+const getStatusText = (field) => {
+    switch(field) {
+        case 'excerpt':
+            return articleForm.value.excerpt.trim() ? '已填写' : '未填写';
+        case 'portfolio':
+            return getSelectedPortfolioName() ? getSelectedPortfolioName() : '未选择';
+        case 'tags':
+            return articleForm.value.tags.length > 0 ? articleForm.value.tags.join(', ') : '未添加';
+        default:
+            return '';
+    }
+};
+
+const handleClickOutside = (event) => {
+  if (portfolioSelectContainer.value && !portfolioSelectContainer.value.contains(event.target)) {
+    isPortfolioDropdownOpen.value = false;
+  }
+};
+
+watch(() => route.query, (query) => {
+    if (query.edit) {
+        loadArticleForEdit(query.edit);
+    } else if (query.draft) {
+        loadDraftForEdit(query.draft);
+    }
+}, { immediate: true });
+
 // 组件挂载
 onMounted(async () => {
   import('highlight.js/styles/github.css');
@@ -412,18 +693,18 @@ onMounted(async () => {
     router.push('/login')
     return
   }
-  
+
   // 等待DOM完全渲染后再初始化Vditor
   await nextTick()
-  
+
   // 初始化Toast UI编辑器
   await initEditor()
-  
+
   loadPortfolios()
-  
+
   // 添加点击外部关闭下拉框的监听器
   document.addEventListener('click', handleClickOutside)
-  
+
   // 确保字数统计从0开始
   updateWordCount()
 })
@@ -431,13 +712,13 @@ onMounted(async () => {
 // 加载文章用于编辑
 const loadArticleForEdit = async (articleSlug) => {
   try {
-    
+
     // 直接通过slug获取文章数据
     const article = await articleAPI.getArticleBySlug(articleSlug)
-    
+
     // 检查数据结构，适配不同的响应格式
     const articleData = article?.data || article
-    
+
     if (articleData && articleData.articleId) {
       // 填充表单数据
       articleForm.value = {
@@ -448,18 +729,18 @@ const loadArticleForEdit = async (articleSlug) => {
         portfolioId: articleData.portfolioId || '',
         allowComments: articleData.allowComments !== false
       }
-      
-      
+
+
       // 设置封面图片
       if (articleData.coverImg) {
         coverPreview.value = articleData.coverImg
       }
-      
+
       // 设置作品集
       if (articleData.portfolioId) {
         selectedPortfolioId.value = articleData.portfolioId
       }
-      
+
       // 设置编辑器内容
       if (editorInstance && articleData.content) {
         try {
@@ -468,16 +749,16 @@ const loadArticleForEdit = async (articleSlug) => {
         }
       } else {
       }
-      
+
       // 更新字数统计
       updateWordCount()
 
       // 设置编辑文章ID
       editingArticleId.value = articleData.articleId
-      
+
       // 重要：设置编辑模式为true，确保后续发布时调用updateArticle
       isEditMode.value = true
-      
+
       showNotification('文章加载成功，可以开始编辑', 'success')
     } else {
       showNotification('文章数据为空', 'danger')
@@ -491,10 +772,10 @@ const loadArticleForEdit = async (articleSlug) => {
 const loadDraftForEdit = async (draftId) => {
   try {
     const draft = await articleAPI.getDraftById(draftId)
-    
+
     // 检查数据结构，适配不同的响应格式
     const draftData = draft?.data || draft
-    
+
     if (draftData && draftData.articleId) {
       // 填充表单数据
       articleForm.value = {
@@ -505,8 +786,8 @@ const loadDraftForEdit = async (draftId) => {
         portfolioId: draftData.portfolioId || '',
         allowComments: true
       }
-      
-      
+
+
       // 设置编辑器内容
       if (editorInstance && draftData.content) {
         try {
@@ -515,10 +796,10 @@ const loadDraftForEdit = async (draftId) => {
         }
       } else {
       }
-      
+
       // 更新字数统计
       updateWordCount()
-      
+
       showNotification('草稿加载成功，可以继续编辑', 'success')
     } else {
       showNotification('草稿数据为空', 'danger')
@@ -531,7 +812,7 @@ const loadDraftForEdit = async (draftId) => {
 // 组件卸载时移除监听器
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
-  
+
   // 清理定时器和事件监听器
   if (window.contentCheckIntervalRef) {
     clearInterval(window.contentCheckIntervalRef)
@@ -539,13 +820,13 @@ onUnmounted(() => {
   if (window.handleResizeRef) {
     window.removeEventListener('resize', window.handleResizeRef)
   }
-  
+
   // 清除自动保存定时器
   if (autoSaveTimeout.value) {
     clearTimeout(autoSaveTimeout.value)
     autoSaveTimeout.value = null
   }
-  
+
   // 销毁Toast UI编辑器
   if (editorInstance) {
     editorInstance.destroy()
@@ -1615,12 +1896,12 @@ onUnmounted(() => {
     margin-right: 1rem;
     padding: 1rem 1.5rem;
   }
-  
+
   .publish-content {
     margin-left: 1rem;
     margin-right: 1rem;
   }
-  
+
   .header-title-input {
     min-width: 400px;
   }
@@ -1634,23 +1915,23 @@ onUnmounted(() => {
     margin-right: 0.5rem;
     padding: 1rem;
   }
-  
+
   .publish-content {
     margin-left: 0.5rem;
     margin-right: 0.5rem;
   }
-  
+
   .edit-section {
     height: 100%;
     padding: 1rem;
   }
-  
+
   .header-title-input {
     min-width: 100%;
     font-size: 1.3rem;
     text-align: center;
   }
-  
+
   .title-section {
     width: 100%;
     justify-content: center;
@@ -1661,90 +1942,90 @@ onUnmounted(() => {
   .publish-page {
     padding: 0.5rem 0;
   }
-  
+
   .publish-header {
     padding: 1rem;
     margin: 0.5rem;
   }
-  
+
   .header-title-input {
     font-size: 1.2rem;
   }
-  
+
   .header-actions {
     justify-content: center;
     width: 100%;
   }
-  
+
   .edit-section {
     padding: 0.75rem;
   }
-  
+
   .editor-header-content {
     flex-direction: column;
     gap: 1rem;
     text-align: center;
   }
-  
+
   .editor-toolbar {
     justify-content: center;
   }
-  
+
   .editor-toolbar .btn {
     padding: 0.4rem 0.6rem;
     font-size: 0.8rem;
   }
-  
+
   /* 移动端作品集输入优化 */
   .portfolio-input-group {
     padding: 0;
   }
-  
+
   .portfolio-input-group .input-group {
     flex-direction: column;
   }
-  
+
   .portfolio-input-group .input-group .form-control {
     border-radius: 0.375rem;
     margin-bottom: 0.5rem;
     border-right: 1px solid #dee2e6;
   }
-  
+
   .portfolio-input-group .input-group .btn {
     border-radius: 0.375rem;
     border-left: 1px solid #dee2e6;
   }
-  
+
   /* 移动端下拉框优化 */
   .custom-select {
     width: 100%;
   }
-  
+
   .select-dropdown {
     max-height: 150px;
   }
-  
+
   /* 移动端模态框优化 */
   .publish-settings-modal .modal-dialog {
     max-width: 98vw;
     width: 98vw;
     margin: 1rem auto 0.5rem auto;
   }
-  
+
   .publish-settings-modal .modal-body {
     max-height: calc(90vh - 100px);
     padding: 1.5rem;
   }
-  
+
   .publish-settings-modal .modal-header,
   .publish-settings-modal .modal-footer {
     padding: 1.5rem;
   }
-  
+
   .publish-settings-modal .modal-title {
     font-size: 1.3rem;
   }
-  
+
   .publish-settings-modal .setting-card {
     padding: 1.5rem;
     min-height: 150px;
@@ -1880,16 +2161,16 @@ onUnmounted(() => {
     width: 95vw;
     margin: 2rem auto 1rem auto;
   }
-  
+
   .publish-settings-modal .modal-body {
     max-height: calc(90vh - 160px);
     padding: 2rem;
   }
-  
+
   .publish-settings-modal .modal-header {
     padding: 1.5rem 2rem;
   }
-  
+
   .publish-settings-modal .modal-footer {
     padding: 1.5rem 2rem;
   }
