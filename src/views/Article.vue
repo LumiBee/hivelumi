@@ -4,7 +4,7 @@
     <div class="back-to-top" @click="scrollToTop" v-show="showBackToTop">
       <i class="fas fa-arrow-up"></i>
     </div>
-    <div class="article-hero" v-if="article">
+    <div class="article-hero" v-if="article" :style="heroStyle">
       <div class="hero-overlay"></div>
       <div class="container-fluid" style="max-width: 1400px; position: relative; z-index: 2;">
         <div class="article-hero-content">
@@ -101,19 +101,23 @@
         <!-- 文章内容 -->
         <div class="col-lg-8 position-relative">
           <!-- 左侧快捷按钮栏 -->
-                      <div class="article-quick-actions">
-              <div class="quick-action-btn" @click="toggleLike" :class="{ 'active': article.liked }" :title="article.liked ? '取消点赞' : '点赞'">
+                      <div class="article-quick-actions-panel">
+              <div class="quick-action-item" @click="toggleLike" :class="[{ 'active': article.liked }, {'heart-pulse-anim': article.liked && animateLike}]" @animationend="animateLike = false" :title="article.liked ? '取消点赞' : '点赞'">
                 <i :class="[article.liked ? 'fas fa-heart' : 'far fa-heart']"></i>
-                <span class="action-count">{{ article.likes || 0 }}</span>
+                <span class="item-label">点赞</span>
+                <span class="item-count">{{ article.likes || 0 }}</span>
               </div>
-            <div class="quick-action-btn" @click="toggleFavorite" :class="{ 'active': article.isFavorited }" :title="article.isFavorited ? '取消收藏' : '收藏'">
+            <div class="quick-action-item" @click="toggleFavorite" :class="[{ 'active': article.isFavorited }, {'bookmark-fill-anim': article.isFavorited && animateFavorite}]" @animationend="animateFavorite = false" :title="article.isFavorited ? '取消收藏' : '收藏'">
               <i :class="[article.isFavorited ? 'fas fa-bookmark' : 'far fa-bookmark']"></i>
+              <span class="item-label">收藏</span>
             </div>
-            <div class="quick-action-btn" @click="shareArticle" title="分享">
+            <div class="quick-action-item" @click="shareArticle" title="分享">
               <i class="fas fa-share-alt"></i>
+              <span class="item-label">分享</span>
             </div>
-            <div class="quick-action-btn" @click="scrollToComments" title="查看评论">
+            <div class="quick-action-item" @click="scrollToComments" title="查看评论">
               <i class="fas fa-comment-alt"></i>
+              <span class="item-label">评论</span>
             </div>
           </div>
           <article class="article-content-wrapper shadow-sm rounded p-4 bg-white">
@@ -164,27 +168,28 @@
                 <div class="action-buttons">
                   <button
                     @click="toggleLike"
-                    :class="['btn', article.liked ? 'btn-danger' : 'btn-outline-danger']"
+                    :class="['action-btn', 'action-btn-like', { 'active': article.liked }]"
                     :disabled="!authStore.isAuthenticated"
                   >
-                    <i :class="[article.liked ? 'fas fa-heart me-1' : 'far fa-heart me-1']"></i>
-                    {{ article.liked ? '已点赞' : '点赞' }} ({{ article.likes || 0 }})
+                    <i :class="[article.liked ? 'fas fa-heart' : 'far fa-heart']"></i>
+                    <span class="btn-text">{{ article.liked ? '已点赞' : '点赞' }}</span>
+                    <span class="btn-count">{{ article.likes || 0 }}</span>
                   </button>
                   
                   <button
                     @click="toggleFavorite"
-                    :class="['btn ms-2', article.isFavorited ? 'btn-warning' : 'btn-outline-warning']"
+                    :class="['action-btn', 'action-btn-favorite', { 'active': article.isFavorited }]"
                     :disabled="!authStore.isAuthenticated"
                   >
-                    <i :class="[article.isFavorited ? 'fas fa-star me-1' : 'far fa-star me-1']"></i>
-                    {{ article.isFavorited ? '已收藏' : '收藏' }}
+                    <i :class="[article.isFavorited ? 'fas fa-bookmark' : 'far fa-bookmark']"></i>
+                    <span class="btn-text">{{ article.isFavorited ? '已收藏' : '收藏' }}</span>
                   </button>
                 </div>
                 
                 <div class="share-buttons">
-                  <button class="btn btn-outline-secondary btn-sm" @click="shareArticle">
-                                      <i class="fas fa-share-alt me-1"></i>
-                  分享
+                  <button class="action-btn action-btn-share" @click="shareArticle">
+                      <i class="fas fa-share-alt"></i>
+                      <span class="btn-text">分享</span>
                   </button>
                 </div>
               </div>
@@ -201,16 +206,16 @@
         <div class="col-lg-4">
           <div class="sidebar-sticky">
             <!-- 文章目录 - 移到最上面 -->
-            <div v-if="tableOfContents.length > 0" class="toc-card card mb-4 shadow-sm border-0" data-aos="fade-left">
-              <div class="card-header bg-white py-2">
+            <div v-if="tableOfContents.length > 0" class="article-toc-panel" data-aos="fade-left">
+              <div class="article-toc-panel__header">
                 <h6 class="mb-0"><i class="fas fa-list-ul me-2"></i>文章目录</h6>
               </div>
-              <div class="card-body p-0">
+              <div class="article-toc-panel__body">
                 <nav class="article-toc">
                   <ul class="toc-list">
-                    <li v-for="(item, index) in tableOfContents" :key="index" :class="['toc-item', `toc-level-${item.level}`]">
+                    <li v-for="(item, index) in tableOfContents" :key="index" :class="['toc-item', `toc-level-${item.level}`]" :data-id="item.id">
                       <a :href="`#${item.id}`" class="toc-link" @click.prevent="scrollToHeading(item.id)">
-                        {{ cleanText(item.text) }}
+                        <span class="toc-text">{{ cleanText(item.text) }}</span>
                       </a>
                     </li>
                   </ul>
@@ -268,7 +273,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
+import { ref, onMounted, onBeforeUnmount, nextTick, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
 import { articleAPI, userAPI, favoriteAPI } from '@/api'
@@ -285,13 +290,27 @@ const router = useRouter()
 const authStore = useAuthStore()
 
 // Reactive State
-const article = ref(null)
-const loading = ref(true)
-const relatedArticles = ref([])
-const tableOfContents = ref([])
-const renderedContent = ref('')
-const showFavoriteModal = ref(false)
-const showBackToTop = ref(false)
+const article = ref(null);
+const loading = ref(true);
+const relatedArticles = ref([]);
+const tableOfContents = ref([]);
+const renderedContent = ref('');
+const showFavoriteModal = ref(false);
+const showBackToTop = ref(false);
+const animateLike = ref(false);
+const animateFavorite = ref(false);
+
+const heroStyle = computed(() => {
+  if (article.value?.coverImageUrl) {
+    return { backgroundImage: `url(${article.value.coverImageUrl})` };
+  }
+  return { backgroundImage: 'linear-gradient(135deg, #2d3748 0%, #1a202c 100%)' };
+});
+
+watch(article, () => {
+  animateLike.value = false;
+  animateFavorite.value = false;
+});
 
 // --- Core Logic ---
 
@@ -336,11 +355,35 @@ const renderMarkdownContent = () => {
     return `<h${level} id="${id}">${text}</h${level}>`;
   };
 
+  // 彻底接管行内代码的渲染，强制应用我们自己的样式
+  renderer.codespan = (text) => {
+    // 直接返回带有最高优先级内联样式的HTML
+    return `<code style="background-color: #edf2f7 !important; color: #e83e8c; padding: 0.2rem 0.4rem; border-radius: 3px; font-size: 0.9em;">${text}</code>`;
+  };
+
   renderer.code = (code, language) => {
     const validLanguage = hljs.getLanguage(language) ? language : 'plaintext';
     const highlightedCode = hljs.highlight(code, { language: validLanguage, ignoreIllegals: true }).value;
-    const copyButton = '<button class="copy-btn" type="button" title="复制代码">复制</button>';
-    return `<div class="code-block-wrapper"><pre><code class="language-${language}">${highlightedCode}</code></pre>${copyButton}</div>`;
+    
+    // 新的、更健壮的 HTML 结构
+    const copyButton = `<button class="copy-btn" type="button" title="复制代码">复制</button>`;
+    const header = `
+      <div class="mac-window-header">
+        <div class="mac-window-dots">
+          <span class="dot red"></span>
+          <span class="dot yellow"></span>
+          <span class="dot green"></span>
+        </div>
+        <div class="mac-window-title">${language || ''}</div>
+        ${copyButton}
+      </div>`;
+    
+    const body = `
+      <div class="mac-window-body">
+        <pre><code class="language-${language}">${highlightedCode}</code></pre>
+      </div>`;
+
+    return `<div class="code-block-wrapper mac-window">${header}${body}</div>`;
   };
   
   renderedContent.value = DOMPurify.sanitize(marked(article.value.content, { renderer }));
@@ -363,7 +406,12 @@ const toggleLike = async () => {
     if (response) {
       article.value.liked = response.liked
       article.value.likes = response.likeCount
-      window.$toast?.[response.liked ? 'success' : 'info'](response.liked ? '点赞成功！' : '已取消点赞');
+      if (response.liked) { // 成功点赞时触发动画
+        animateLike.value = true;
+        window.$toast?.success('点赞成功！');
+      } else {
+        window.$toast?.info('已取消点赞');
+      }
     }
   } catch (error) {
     console.error('Toggle like failed:', error)
@@ -380,6 +428,7 @@ const toggleFavorite = () => {
     unfavoriteArticle();
   } else {
     showFavoriteModal.value = true
+    animateFavorite.value = true; // 成功收藏时触发动画
   }
 }
 
@@ -396,8 +445,9 @@ const unfavoriteArticle = async () => {
 
 
 const handleFavoriteSuccess = () => {
-  article.value.isFavorited = true
-  showFavoriteModal.value = false
+  article.value.isFavorited = true;
+  showFavoriteModal.value = false;
+  animateFavorite.value = true; // 成功时触发动画
   window.$toast?.success('收藏成功！');
 }
 
@@ -415,7 +465,7 @@ const toggleFollow = async () => {
     const response = await userAPI.toggleFollow(userIdStr)
     if (response) {
       article.value.isFollowed = response.isFollowing
-      window.$toast?.[response.isFollowing ? 'success' : 'info'](response.message || (response.isFollowing ? '关注成功！' : '已取消关注'));
+      window.$toast?.[response.isFollowing ? 'success' : 'info'](response.isFollowing ? '关注成功！' : '已取消关注');
     }
   } catch (error) {
     console.error('Toggle follow failed:', error)
@@ -487,22 +537,32 @@ const handleScroll = () => {
 
 const highlightCurrentHeading = () => {
   if (tableOfContents.value.length === 0) return;
-  
+
+  const TOP_OFFSET = 101; // 为顶部导航栏和一些缓冲留出空间
+  const scrollPosition = window.scrollY + TOP_OFFSET;
+
   let currentHeadingId = null;
-  const scrollPosition = window.scrollY + 150;
 
   for (let i = tableOfContents.value.length - 1; i >= 0; i--) {
     const heading = tableOfContents.value[i];
     const element = document.getElementById(heading.id);
+    
     if (element && element.offsetTop <= scrollPosition) {
       currentHeadingId = heading.id;
       break;
     }
+    
   }
 
-  document.querySelectorAll('.toc-link.active').forEach(link => link.classList.remove('active'));
+  // 移除所有旧的 active class
+  document.querySelectorAll('.toc-item.active').forEach(item => item.classList.remove('active'));
+
   if (currentHeadingId) {
-    document.querySelector(`.toc-link[href="#${currentHeadingId}"]`)?.classList.add('active');
+    const activeItem = document.querySelector(`.toc-item[data-id="${currentHeadingId}"]`);
+    if (activeItem) {
+      // 唯一的工作：添加 active 类
+      activeItem.classList.add('active');
+    }
   }
 };
 
@@ -522,9 +582,13 @@ const installDelegatedCopy = () => {
   delegatedCopyHandler = async (e) => {
     const btn = e.target.closest('.copy-btn');
     if (!btn) return;
-    const pre = btn.closest('pre');
+
+    // 新的查找逻辑：先找到父容器，再向下找到pre
+    const wrapper = btn.closest('.code-block-wrapper');
+    if (!wrapper) return;
+    const pre = wrapper.querySelector('pre');
     if (!pre) return;
-    
+
     const code = pre.querySelector('code')?.innerText || '';
     try {
       await navigator.clipboard.writeText(code);
@@ -572,807 +636,795 @@ watch(() => route.params.slug, (newSlug, oldSlug) => {
 </script>
 
 <style scoped>
-/* 全局覆盖 highlight.js 样式 */
-:deep(.hljs) {
-  background: #0b0f19 !important;
-  background-color: #0b0f19 !important;
-  color: #9fef00 !important;
-}
-
-:deep(pre.hljs) {
-  background: #0b0f19 !important;
-  background-color: #0b0f19 !important;
-  color: #9fef00 !important;
-}
-
-:deep(pre code.hljs) {
-  background: transparent !important;
-  background-color: transparent !important;
-  color: #9fef00 !important;
-}
-
-/* 代码块样式 - 覆盖 highlight.js 样式 */
-.code-block-wrapper {
-  position: relative;
-  margin: 1.5rem 0;
-  border-radius: 14px;
+/* === 全新 macOS 风格代码块样式 (适配新HTML结构, 使用 :deep() 穿透 v-html) Start === */
+:deep(.mac-window) {
+  margin: 1.8rem 0;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.05);
   overflow: hidden;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
-  border: 1px solid #0e1424;
-  background: #0b0f19 !important;
+  background-color: #2d3748; /* 默认深色背景，适配常见代码主题 */
 }
 
-/* 顶部终端栏与三色圆点 */
-.code-block-wrapper::before {
-  content: '';
-  display: block;
-  height: 34px;
-  background: #121829;
-  border-bottom: 1px solid #0e1424;
-}
-.code-block-wrapper::after {
-  content: '';
-  position: absolute;
-  top: 10px;
-  left: 14px;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #ff5f56;              /* red */
-  box-shadow: 16px 0 0 #ffbd2e,     /* yellow */
-              32px 0 0 #27c93f;     /* green */
-}
-
-.code-block-wrapper pre {
-  position: relative;
-  margin: 0;
-  padding: 1rem 1.2rem 1.2rem;
-  background: #0b0f19 !important;
-  background-color: #0b0f19 !important;
-  border-radius: 14px;
-  overflow-x: auto;
-  color: #9fef00 !important;
-  border: none;
-}
-
-.terminal-block .terminal-header {
-  height: 34px;
-  background: #121829;
-  border-bottom: 1px solid #0e1424;
+:deep(.mac-window-header) {
   display: flex;
   align-items: center;
+  height: 40px;
+  background-color: #f1f5f9;
+  border-bottom: 1px solid #d1d5db;
   padding: 0 12px;
+  position: relative;
 }
-.terminal-block .dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  display: inline-block;
-  margin-right: 8px;
-}
-.terminal-block .dot-red { background: #ff5f56; }
-.terminal-block .dot-yellow { background: #ffbd2e; }
-.terminal-block .dot-green { background: #27c93f; }
 
-.code-block-wrapper pre code {
-  padding: 0;
-  background: transparent !important;
-  background-color: transparent !important;
-  margin: 0;
-  display: block;
-  color: #9fef00 !important;
-  font-family: 'Fira Code', Consolas, Monaco, 'Andale Mono', monospace;
-  font-size: 0.95rem;
-  line-height: 1.6;
-  text-shadow: none;
+:deep(.mac-window-dots) {
+  display: flex;
+  gap: 8px;
+}
+
+:deep(.dot) {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+:deep(.dot.red) { background-color: #ff5f56; }
+:deep(.dot.yellow) { background-color: #ffbd2e; }
+:deep(.dot.green) { background-color: #27c93f; }
+
+:deep(.mac-window-title) {
+  color: #4a5568;
+  font-size: 0.85rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   font-weight: 500;
 }
 
-/* 覆盖 highlight.js 的全局样式 */
-.code-block-wrapper pre.hljs,
-.code-block-wrapper pre code.hljs {
-  background: #0b0f19 !important;
-  background-color: #0b0f19 !important;
-  color: #9fef00 !important;
+:deep(.mac-window-body) {
+  /* 这个容器让 pre/code 可以自由滚动 */
+  overflow: auto;
 }
 
-.code-block-wrapper pre code.hljs {
-  background: transparent !important;
-  background-color: transparent !important;
+/* 让 pre 标签填充 body，并移除我们之前的所有强制样式 */
+:deep(.mac-window-body pre) {
+  margin: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 1.25rem !important; /* 增加一点内边距 */
 }
 
-/* 移除了代码语言标签样式 */
-
-/* 移除了复制按钮相关样式 */
-
-.markdown-content pre {
-  position: relative;
-  margin: 0;
-  padding: 2.2rem 1.2rem 1.2rem; /* 预留顶栏空间 */
-  background: #0b0f19;
-  border-radius: 14px;
-  overflow-x: auto;
-  color: #9fef00;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
-  border: 1px solid #0e1424;
-}
-
-/* Markdown直接渲染的代码块也加上顶栏与三色圆点 */
-.markdown-content pre::before {
-  content: '';
+/* 复制按钮样式 */
+:deep(.copy-btn) {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 34px;
-  background: #121829;
-  border-bottom: 1px solid #0e1424;
-  border-top-left-radius: 14px;
-  border-top-right-radius: 14px;
-}
-.markdown-content pre::after {
-  content: '';
-  position: absolute;
-  top: 10px;
-  left: 14px;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #ff5f56;
-  box-shadow: 16px 0 0 #ffbd2e, 32px 0 0 #27c93f;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  background-color: rgba(0,0,0,0.08);
+  border: none;
+  color: rgba(0,0,0,0.5);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 2;
 }
 
-.markdown-content pre code {
-  padding: 0;
-  background: transparent;
-  margin-top: 0.5rem;
-  display: block;
-  color: #9fef00;
+:deep(.copy-btn:hover) {
+  background-color: rgba(0,0,0,0.15);
+  color: #000;
 }
-.article-page {
-  padding: 70px 0 2rem 0; /* 为固定导航栏预留空间 */
-  background-color: #f8f9fa;
+:deep(.copy-btn.copied) {
+  background-color: #27c93f;
+  color: #fff;
 }
+
+/* === 全新 macOS 风格代码块样式 End === */
+
+
 
 .article-hero {
-  background-color: #2d3748;
-  background-image: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
-  padding: 2.5rem 0 2rem;
-  margin-bottom: 2rem;
+
+  /* 1. 结构与布局 */
+
   position: relative;
-  overflow: hidden;
-  color: white;
+
+  height: 500px; /* 设定最小高度，确保视觉冲击力 */
+  display: flex; /* 使用 Flexbox 布局 */
+  align-items: center; /* 垂直居中内容 */
+  justify-content: center; /* 水平居中内容 */
+  background-size: cover; /* 确保背景图片覆盖整个区域 */
+  background-position: center center; /* 背景图片居中 */
+  background-repeat: no-repeat; /* 不重复背景图片 */
+  overflow: hidden; /* 隐藏溢出内容 */
+  isolation: isolate; /* 创建新的堆叠上下文，确保 overlay 在其之上 */
+  padding: 4rem 0; /* 顶部和底部留白 */
 }
 
 .hero-overlay {
   position: absolute;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-    background-size: cover;
-  opacity: 0.1;
-  z-index: 1;
+  width: 100%;
+  height: 100%;
+  /* 柔和的渐变蒙版，提升文本对比度 */
+  background: linear-gradient(
+    180deg,
+    rgba(26, 32, 44, 0.4) 0%, /* 顶部稍透明 */
+    rgba(26, 32, 44, 0.7) 100% /* 底部更深 */
+  );
+  z-index: 1; /* 确保在背景图片之上，内容之下 */
 }
 
 .article-hero-content {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 0 1rem;
   position: relative;
-  z-index: 2;
+  z-index: 2; /* 确保内容在蒙版之上 */
+  text-align: center; /* 文本居中 */
+  color: #ffffff; /* 确保文本颜色在高对比度背景下可见 */
+  max-width: 800px; /* 限制内容宽度，避免过宽 */
+  padding: 0 1rem; /* 左右内边距 */
 }
 
 .article-hero-title {
-  font-size: 2.4rem;
-  font-weight: 800;
-  margin-bottom: 1.25rem;
+  font-family: 'Playfair Display', Georgia, serif; /* 引入更具吸引力的字体 */
+  font-size: 3.5rem; /* 更大的标题字体 */
+  font-weight: 700; /* 加粗 */
+  margin-bottom: 1.5rem; /* 增加底部间距 */
   line-height: 1.2;
-  text-shadow: 0 4px 8px rgba(0,0,0,0.15);
-  background: linear-gradient(45deg, #ffffff, #f8fafc);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.4); /* 添加柔和的阴影，提升立体感 */
 }
 
 /* 标签和作品集样式 */
 .hero-tags-portfolio {
-  margin-bottom: 1.25rem;
   display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
+  justify-content: center;
   align-items: center;
+  flex-wrap: wrap; /* 允许标签换行 */
+  gap: 1rem; /* 标签和作品集之间的间距 */
+  margin-bottom: 1.5rem;
 }
 
-.hero-tags {
-  display: flex;
-  align-items: center;
-}
-
-.tags-container {
+.hero-tags .tags-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  justify-content: center;
+  gap: 0.5rem; /* 标签之间的间距 */
 }
 
 .hero-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.25rem 0.75rem;
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 4px;
-  color: white;
-  text-decoration: none;
+  background-color: rgba(255, 255, 255, 0.2); /* 半透明背景 */
+  color: #fff;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
   font-size: 0.85rem;
-  font-weight: 500;
-  transition: all 0.3s ease;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(5px); /* 增加模糊效果 */
+  -webkit-backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.3); /* 轻微边框 */
 }
 
 .hero-tag:hover {
-  background: rgba(255, 255, 255, 0.25);
-  color: white;
-  text-decoration: none;
+  background-color: rgba(246, 185, 59, 0.8); /* 悬停时品牌色 */
+  border-color: #f6b93b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .hero-tag i {
+  margin-right: 0.3rem;
   font-size: 0.8rem;
-  color: #f6d55c;
 }
 
-.hero-portfolio {
-  display: flex;
-  align-items: center;
-}
-
-.portfolio-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.25rem 0.75rem;
-  background: rgba(246, 213, 92, 0.25);
-  border: 1px solid rgba(246, 213, 92, 0.4);
-  border-radius: 4px;
-  color: #f6d55c;
-  text-decoration: none;
+.hero-portfolio .portfolio-link {
+  background-color: rgba(246, 185, 59, 0.7); /* 作品集使用品牌色 */
+  color: #2d3748; /* 深色文本 */
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
   font-size: 0.85rem;
-  font-weight: 600;
-  transition: all 0.3s ease;
-}
-
-.portfolio-link:hover {
-  background: rgba(246, 213, 92, 0.3);
-  color: #f6d55c;
   text-decoration: none;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  border: 1px solid rgba(246, 185, 59, 0.8);
 }
 
-.portfolio-link i {
-  font-size: 0.9rem;
+.hero-portfolio .portfolio-link:hover {
+  background-color: #f6b93b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* 文章基本信息样式 */
+.hero-portfolio .portfolio-link i {
+  margin-right: 0.3rem;
+  font-size: 0.8rem;
+}
+
+/* 作者信息区域 */
 .article-hero-meta {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  margin-bottom: 1.25rem;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.meta-left {
-  display: flex;
-  align-items: center;
+  gap: 2rem; /* 左右间距 */
+  margin-top: 1.5rem;
+  padding: 1rem 0; /* 顶部和底部内边距 */
+  border-top: 1px solid rgba(255, 255, 255, 0.2); /* 分隔线 */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2); /* 分隔线 */
 }
 
 .author-info {
   display: flex;
   align-items: center;
-  gap: 1rem;
-}
-
-.hero-avatar-link {
-  display: block;
-  transition: transform 0.3s ease;
-}
-
-.hero-avatar-link:hover {
-  transform: scale(1.05);
+  gap: 0.75rem;
 }
 
 .hero-avatar {
-  width: 48px;
-  height: 48px;
+  width: 56px; /* 更大的头像 */
+  height: 56px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transition: all 0.3s ease;
+  border: 3px solid #f6b93b; /* 品牌色边框 */
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3), 0 4px 12px rgba(0, 0, 0, 0.3); /* 双层阴影 */
+  transition: transform 0.3s ease;
 }
 
-.hero-avatar-link:hover .hero-avatar {
-  border-color: rgba(246, 213, 92, 0.6);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-}
-
-.author-details {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+.hero-avatar:hover {
+  transform: scale(1.05);
 }
 
 .hero-author {
-  font-weight: 700;
   font-size: 1.1rem;
-  color: white;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 0.2rem;
+  display: block;
 }
 
 .hero-date {
+  font-size: 0.9rem;
   color: rgba(255, 255, 255, 0.8);
+}
+
+.follow-btn {
+  border-radius: 24px;
+  font-weight: 500;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-width: 1.5px;
+  padding: 8px 20px;
   font-size: 0.9rem;
 }
 
-.meta-right {
-  display: flex;
-  align-items: center;
+.follow-btn.btn-warning {
+  background-color: #f6b93b;
+  border-color: #f6b93b;
+  color: #2d3748;
 }
 
-.article-stats {
-  display: flex;
-  gap: 1.5rem;
+.follow-btn.btn-warning:hover {
+  background-color: #e0a800;
+  border-color: #e0a800;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(246, 185, 59, 0.4);
 }
 
-.hero-stat {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: rgba(255, 255, 255, 0.9);
+.follow-btn.btn-secondary {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
 }
 
-.hero-stat i {
-  color: #f6d55c;
-  font-size: 1rem;
+.follow-btn.btn-secondary:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-.stat-number {
-  font-weight: 600;
-  font-size: 1rem;
-}
-
-/* Hero区域作者详细信息样式 */
+/* 作者详细信息区域 */
 .hero-author-details {
-  margin-top: 1.25rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 0.9);
+  margin-top: 1.5rem;
+  text-align: center;
+  padding: 0 1rem;
 }
 
 .author-bio-hero {
-  font-size: 0.9rem;
-  line-height: 1.6;
-  margin-bottom: 1rem;
+  font-size: 0.95rem;
   color: rgba(255, 255, 255, 0.9);
-  font-style: italic;
+  max-width: 600px;
+  margin: 0 auto 1rem auto;
+  line-height: 1.6;
 }
 
 .author-stats-hero {
   display: flex;
-  align-items: center;
-  margin-bottom: 1rem;
+  justify-content: center;
+  gap: 2rem;
   flex-wrap: wrap;
-  gap: 1.25rem;
 }
 
 .stat-item-hero {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.8);
   font-size: 0.9rem;
 }
 
 .stat-item-hero i {
-  color: #f6d55c;
-  font-size: 1rem;
+  font-size: 1.2rem;
+  margin-bottom: 0.3rem;
+  color: #f6b93b; /* 图标使用品牌色 */
 }
 
 .stat-item-hero .stat-number {
-  font-weight: 700;
   font-size: 1.1rem;
-  color: white;
+  font-weight: 600;
+  color: #fff;
 }
 
 .stat-item-hero .stat-label {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.85rem;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.7);
 }
 
-.follow-btn {
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  font-weight: 600;
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .article-hero {
+    height: auto; /* 移动端高度自适应 */
+    padding: 3rem 0;
+  }
+
+  .article-hero-title {
+    font-size: 2.5rem; /* 移动端标题字体略小 */
+    margin-bottom: 1rem;
+  }
+
+  .hero-tags-portfolio {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .article-hero-meta {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+    border-top: none;
+    border-bottom: none;
+  }
+
+  .author-info {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .hero-avatar {
+    width: 48px;
+    height: 48px;
+    border-width: 2px;
+  }
+
+  .hero-author {
+    font-size: 1rem;
+  }
+
+  .hero-date {
+    font-size: 0.85rem;
+  }
+
+  .author-stats-hero {
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .article-hero-title {
+    font-size: 2rem;
+  }
+  .author-bio-hero {
+    font-size: 0.85rem;
+  }
+}
+
+/* === 目录美化 V6: 返璞归真 · macOS 控制中心风格 Start === */
+.article-toc-panel {
+  /* 布局补偿 */
+  margin-bottom: 1.5rem;
+
+  /* 1. 纯粹的玻璃 (Purity) */
+  background-color: rgba(242, 245, 248, 0.82); /* 带有极轻微蓝色调的半透明背景 */
+  backdrop-filter: blur(20px) saturate(180%);
+
+  /* 2. 微妙的光影 (Subtlety) */
+  border-radius: 16px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1), /* 主阴影 */
+              inset 0 0 0 0.5px rgba(255, 255, 255, 0.5); /* 微光内边框 */
+
+  padding: 0.75rem;
   transition: all 0.3s ease;
-  border: none;
 }
 
-.follow-btn:hover {
-  transform: translateY(-1px);
+.article-toc-panel:hover {
+    box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.12),
+                inset 0 0 0 0.5px rgba(255, 255, 255, 0.6);
+    transform: translateY(-2px);
 }
 
-/* 文章目录样式 - 更紧凑的设计 */
-.article-toc {
-  width: 100%;
-}
-
-.toc-list {
-  list-style: none;
-  padding: 0;
+/* 3. 精致化的标题栏 */
+.article-toc-panel__header {
+  display: flex;
+  align-items: center;
+  background: transparent;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+  padding: 0.5rem 0.75rem 0.75rem 0.75rem;
   margin: 0;
 }
 
+.article-toc-panel__header h6 {
+  color: rgba(0, 0, 0, 0.7) !important;
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  margin: 0 !important;
+  line-height: 1 !important;
+}
+
+.article-toc-panel__header .fas {
+  color: rgba(0, 0, 0, 0.4); /* 图标颜色更柔和 */
+  font-size: 0.95rem;
+  margin-right: 0.65rem;
+}
+
+/* 4. 优化的内部布局 */
+.article-toc-panel__body {
+  padding: 0.75rem 0 0.25rem 0;
+}
+
+.article-toc { width: 100%; }
+
+.toc-list {
+  position: relative;
+  list-style: none;
+  padding: 0 1.25rem;
+  margin: 0;
+}
+
+/* 时间线轨迹 */
+.toc-list::before {
+  content: '';
+  position: absolute;
+  left: 1.25rem;
+  top: 0.75rem;
+  bottom: 0.75rem;
+  width: 1.5px;
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 1px;
+}
+
 .toc-item {
-  padding: 0;
-  margin: 0 0 0.15rem 0; /* 减少项目间距 */
-  line-height: 1.3; /* 更紧凑的行高 */
+  position: relative;
+  padding-left: 0.75rem;
+  margin: 0;
 }
 
 .toc-link {
   display: block;
-  padding: 0.35rem 0.75rem; /* 减少内边距 */
-  color: #4a5568;
+  padding: 0.4rem 0;
+  color: rgba(0, 0, 0, 0.65);
   text-decoration: none;
-  border-left: 2px solid transparent;
-  transition: all 0.2s ease;
-  font-size: 0.85rem; /* 稍微减小字体 */
-  white-space: normal;
-  word-break: break-word;
-  line-height: 1.4; /* 更紧凑的行高 */
-  margin-bottom: 0.1rem; /* 减少底部间距 */
-  border-radius: 0 4px 4px 0;
+  transition: color 0.25s ease;
+  font-size: 0.88rem;
+  line-height: 1.45;
 }
 
-.toc-link:hover {
-  background-color: rgba(246, 213, 92, 0.1);
-  color: #f6d55c;
-  border-left-color: #f6d55c;
-}
-
-.toc-link.active {
-  background-color: rgba(246, 213, 92, 0.15);
-  color: #f6d55c;
-  border-left-color: #f6d55c;
-  font-weight: 600;
-}
-
-/* 目录层级缩进 - 更紧凑 */
-.toc-level-1 {
-  font-weight: 600;
-}
-
-.toc-level-2 {
-  padding-left: 0.3rem; /* 减少缩进 */
-}
-
-.toc-level-3 {
-  padding-left: 0.6rem; /* 减少缩进 */
-}
-
-.toc-level-4 {
-  padding-left: 0.9rem; /* 减少缩进 */
-}
-
-.toc-level-5, .toc-level-6 {
-  padding-left: 1.2rem; /* 减少缩进 */
-  font-size: 0.8em; /* 更小的字体 */
-}
-
-.toc-card .card-header {
-  border-bottom: 1px solid rgba(0,0,0,0.05);
-  padding: 0.75rem 1rem; /* 减少头部内边距 */
-}
-
-.toc-card .card-header h6 {
-  color: #4a5568;
-  font-size: 0.9rem; /* 稍微减小标题字体 */
-  margin: 0;
-}
-
-/* 文章标题移到hero区域 */
-
-.author-avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.author-avatar-link {
-  text-decoration: none;
-  transition: transform 0.2s ease;
-  display: inline-block;
-}
-
-.author-avatar-link:hover {
-  transform: scale(1.05);
-}
-
-.author-avatar-large {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.author-name {
-  font-weight: 600;
-  color: #2d3748;
-}
-
-.article-content {
-  margin: 2rem 0;
-}
-
-.markdown-content {
-  line-height: 1.8;
-  color: #4a5568;
-  font-size: 1.05rem;
-}
-
-.article-content-wrapper {
-  border-radius: 8px;
-}
-
-.markdown-content h1,
-.markdown-content h2,
-.markdown-content h3,
-.markdown-content h4,
-.markdown-content h5,
-.markdown-content h6 {
-  margin-top: 2rem;
-  margin-bottom: 1rem;
-  font-weight: 600;
-  color: #2d3748;
-}
-
-.markdown-content p {
-  margin-bottom: 1rem;
-}
-
-.markdown-content img {
-  max-width: 100%;
-  height: auto;
-  border-radius: 8px;
-  margin: 1rem 0;
-}
-
-.markdown-content blockquote {
-  border-left: 4px solid #f6d55c;
-  padding-left: 1rem;
-  margin: 1.5rem 0;
-  color: #718096;
-  font-style: italic;
-}
-
-.markdown-content code {
-  background: #edf2f7;
-  padding: 0.2rem 0.4rem;
-  border-radius: 4px;
-  font-family: 'Fira Code', Consolas, Monaco, 'Andale Mono', monospace;
-  font-size: 0.875rem;
-  color: #2d3748;
-  border: 1px solid #e2e8f0;
-}
-
-.markdown-content pre {
-  background: #f1f5f9 !important;
-  background-color: #f1f5f9 !important;
-  color: #1e293b !important;
-  padding: 1rem;
-  border-radius: 8px;
-  overflow-x: auto;
-  position: relative;
-  border: 1px solid #e2e8f0;
-}
-
-.markdown-content pre code {
-  background: none !important;
-  background-color: transparent !important;
-  color: #1e293b !important;
-  padding: 0;
-  font-family: 'Fira Code', Consolas, Monaco, 'Andale Mono', monospace;
-  font-size: 0.95rem;
-  line-height: 1.6;
-  text-shadow: none;
-  font-weight: 500;
-}
-
-/* 覆盖所有可能的 highlight.js 样式 */
-.markdown-content pre.hljs,
-.markdown-content pre code.hljs,
-.markdown-content .hljs {
-  background: #f1f5f9 !important;
-  background-color: #f1f5f9 !important;
-  color: #1e293b !important;
-}
-
-.markdown-content pre code.hljs {
-  background: transparent !important;
-  background-color: transparent !important;
-}
-
-.author-card, .toc-card, .related-articles {
-  border: none;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.stat-number {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #2d3748;
-}
-
-.stat-label {
-  font-size: 0.875rem;
-  color: #718096;
-}
-
-.related-article-item {
-  display: block;
-  padding: 1rem;
-  border-bottom: 1px solid #e2e8f0;
-  text-decoration: none;
-  color: inherit;
-  transition: background 0.2s ease;
-}
-
-.related-article-item:hover {
-  background: #f7fafc;
-  text-decoration: none;
-  color: inherit;
-}
-
-.related-article-item:last-child {
-  border-bottom: none;
-}
-
-.related-article-title {
-  font-size: 0.9rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  line-height: 1.4;
-}
-
-.sidebar-sticky {
-  position: sticky;
-  top: 90px; /* 为固定导航栏预留空间 (70px + 20px) */
-}
-
-/* 左侧快捷按钮样式 */
-.article-quick-actions {
-  position: fixed;
-  left: 3rem;
-  top: 45%;
+/* 时间线上的节点 */
+.toc-link::before {
+  content: '';
+  position: absolute;
+  left: -2.25px;
+  top: 50%;
   transform: translateY(-50%);
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  z-index: 100;
+  width: 8px;
+  height: 8px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 50%;
+  transition: all 0.25s ease;
+  z-index: 1;
 }
 
-.quick-action-btn {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background-color: white;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+.toc-link:hover .toc-text {
+  color: #000;
+}
+
+.toc-link:hover::before {
+  transform: translateY(-50%) scale(1.2);
+}
+
+.toc-item.active .toc-link .toc-text {
+  color: #000;
+  font-weight: 600;
+}
+
+.toc-item.active .toc-link::before {
+  background-color: #f6b93b; /* 激活时才显示品牌色 */
+  transform: translateY(-50%) scale(1.5);
+  box-shadow: 0 0 8px 0 rgba(246, 185, 59, 0.5);
+}
+
+/* 动态指示器 - 简化为激活节点的背景光晕，不再需要独立元素 */
+.toc-indicator { display: none; } /* 彻底隐藏旧的指示器 */
+
+/* 层级样式 */
+.toc-level-1 { font-weight: 500; }
+.toc-level-2 { margin-left: 0.85rem; }
+.toc-level-2 .toc-link::before { width: 7px; height: 7px; left: -1.75px; }
+
+.toc-level-3 { margin-left: 1.7rem; }
+.toc-level-3 .toc-link { color: rgba(0, 0, 0, 0.5); font-size: 0.85rem; }
+.toc-level-3 .toc-link::before { width: 6px; height: 6px; left: -1.25px; background-color: rgba(0, 0, 0, 0.15); }
+
+.toc-level-4, .toc-level-5, .toc-level-6 { display: none; }
+
+/* === 目录美化 V6: 返璞归真 · macOS 控制中心风格 End === */
+
+/* === 底部文章操作按钮美化 Start (双子星动效按钮) === */
+.article-actions {
+  padding: 1.5rem 0;
+  margin-top: 2rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: center; /* 居中显示按钮组 */
+  align-items: center;
+  gap: 1rem; /* 按钮组内部间距 */
+}
+
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+.share-buttons {
+  margin-left: 2rem;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.75rem 1.25rem;
+  border-radius: 14px; /* 柔和的圆角 */
+  background-color: rgba(255, 255, 255, 0.6); /* 半透明的轻量背景 */
+  border: 1px solid rgba(0, 0, 0, 0.08); /* 轻微的边框感 */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* 柔和阴影 */
+  color: rgba(0, 0, 0, 0.7);
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.4, 1);
+  backdrop-filter: blur(8px);
+}
+
+.action-btn:hover {
+  background-color: rgba(255, 255, 255, 0.8); /* 悬停时背景稍亮 */
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+  color: rgba(0, 0, 0, 0.85);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  background-color: rgba(255, 255, 255, 0.4);
+}
+
+.action-btn i {
+  margin-right: 0.6rem;
+  font-size: 1.1rem;
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.4, 1);
+}
+
+.action-btn .btn-text {
+  line-height: 1;
+}
+
+.action-btn .btn-count {
+  margin-left: 0.4rem;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.6);
+  line-height: 1;
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.4, 1);
+}
+
+/* 点赞按钮 */
+.action-btn-like i {
+  color: #e53e3e; /* 默认红色 */
+}
+
+.action-btn-like.active {
+  background-color: rgba(246, 185, 59, 0.15); /* 激活时带品牌色背景 */
+  border-color: rgba(246, 185, 59, 0.3);
+  color: #c59306;
+  box-shadow: 0 4px 15px rgba(246, 185, 59, 0.2);
+}
+
+.action-btn-like.active i {
+  color: #f6b93b; /* 激活时金色 */
+}
+
+.action-btn-like.active .btn-count {
+  color: #c59306;
+}
+
+/* 收藏按钮 */
+.action-btn-favorite i {
+  color: #f6b93b; /* 默认金色 */
+}
+
+.action-btn-favorite.active {
+  background-color: rgba(246, 185, 59, 0.15);
+  border-color: rgba(246, 185, 59, 0.3);
+  color: #c59306;
+  box-shadow: 0 4px 15px rgba(246, 185, 59, 0.2);
+}
+
+.action-btn-favorite.active i {
+  color: #f6b93b; /* 激活时金色 */
+}
+
+/* 分享按钮 */
+.action-btn-share i {
+  color: #4a5568;
+}
+
+/* --- 动画 --- */
+/* 点赞心跳动画 */
+@keyframes heart-pulse {
+  0% { transform: scale(1); opacity: 1; }
+  25% { transform: scale(1.2); opacity: 0.8; }
+  50% { transform: scale(0.9); opacity: 1; }
+  75% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* 收藏填充动画 (用于图标) */
+@keyframes bookmark-fill {
+  0% { transform: rotateY(0deg); }
+  50% { transform: rotateY(180deg); }
+  100% { transform: rotateY(360deg); }
+}
+
+.heart-pulse-anim i { animation: heart-pulse 0.6s ease-out; }
+.bookmark-fill-anim i { animation: bookmark-fill 0.6s ease-out; }
+.btn-count-pulse-anim { animation: heart-pulse 0.6s ease-out; }
+
+/* === 底部文章操作按钮美化 End === */
+
+/* === 左侧快捷操作按钮美化 Start (macOS 胶囊导航) === */
+.article-quick-actions-panel {
+  position: fixed;
+  left: calc(50% - 700px - 3rem - 27px); /* 50% - (max-width/2) - desired_gap - (panel_width/2) */
+  top: 45%;
+  transform: translateY(-50%); /* Vertical centering only */
   display: flex;
   flex-direction: column;
+  gap: 0.5rem; /* 按钮间距 */
+  z-index: 100;
+
+  /* macOS 胶囊面板质感 */
+  background-color: rgba(242, 245, 248, 0.82); /* 带有极轻微蓝色调的半透明背景 */
+  backdrop-filter: blur(20px) saturate(180%);
+  border-radius: 28px; /* 胶囊形状 */
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1), /* 主阴影 */
+              inset 0 0 0 0.5px rgba(255, 255, 255, 0.5); /* 微光内边框 */
+  padding: 0.75rem 0.6rem; /* 垂直内边距，左右为图标宽度 */
+
+  /* 展开动画 */
+  width: 54px; /* 默认宽度 (图标 + 左右padding) */
+  overflow: hidden;
+  transition: width 0.3s cubic-bezier(0.2, 0.8, 0.4, 1),
+              background-color 0.3s ease,
+              box-shadow 0.3s ease,
+              transform 0.3s ease;
+}
+
+.article-quick-actions-panel:hover {
+  width: 140px; /* 悬停展开宽度 */
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.12),
+              inset 0 0 0 0.5px rgba(255, 255, 255, 0.6);
+  transform: translateY(-50%) scale(1.01); /* Only vertical transform and scale */
+}
+
+.quick-action-item {
+  display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: center; /* Default: center the icon */
+  width: 100%;
+  height: 40px; /* 统一高度 */
+  border-radius: 20px; /* 圆角 */
+  padding: 0 0.6rem; /* 左右内边距 */
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 0.9rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.4, 1);
   position: relative;
 }
 
-.quick-action-btn i {
-  font-size: 1.2rem;
-  transition: all 0.3s ease;
+.article-quick-actions-panel:hover .quick-action-item {
+  justify-content: flex-start; /* On hover: align to start for text */
 }
 
-/* 各个按钮的颜色 */
-.quick-action-btn:nth-child(1) i {
-  color: #e53e3e; /* 点赞按钮红色 */
-}
-
-.quick-action-btn:nth-child(2) i {
-  color: #f6d55c; /* 收藏按钮黄色 */
-}
-
-.quick-action-btn:nth-child(3) i {
-  color: #38a169; /* 分享按钮绿色 */
-}
-
-.quick-action-btn:nth-child(4) i {
-  color: #3182ce; /* 评论按钮蓝色 */
-}
-
-.quick-action-btn .action-count {
-  font-size: 0.7rem;
-  margin-top: 0.1rem;
-  color: #718096;
-}
-
-.quick-action-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
-}
-
-.quick-action-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
-}
-
-/* 激活状态颜色增强 */
-.quick-action-btn:nth-child(1).active i {
-  color: #e53e3e;
-  filter: drop-shadow(0 0 3px rgba(229, 62, 62, 0.3));
-}
-
-.quick-action-btn:nth-child(2).active i {
-  color: #f6d55c;
-  filter: drop-shadow(0 0 3px rgba(246, 213, 92, 0.3));
-}
-
-.quick-action-btn:nth-child(3).active i {
-  color: #38a169;
-  filter: drop-shadow(0 0 3px rgba(56, 161, 105, 0.3));
-}
-
-.quick-action-btn:nth-child(4).active i {
-  color: #3182ce;
-  filter: drop-shadow(0 0 3px rgba(49, 130, 206, 0.3));
-}
-
-/* 回到顶部按钮样式 */
-.back-to-top {
-  position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background-color: #f6d55c;
-  color: white;
+.quick-action-item i {
+  font-size: 1.1rem;
   display: flex;
-  align-items: center;
   justify-content: center;
-  cursor: pointer;
-  z-index: 100;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
-  transition: all 0.3s ease;
+  align-items: center;
+  width: 32px; /* Fixed width for the icon area */
+  height: 40px;
+  flex-shrink: 0;
+  margin-right: 0; /* No margin in default state */
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.4, 1);
 }
 
-.back-to-top:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+.article-quick-actions-panel:hover .quick-action-item i {
+  margin-right: 0.2rem; /* Add margin on hover */
 }
 
-.back-to-top i {
-  font-size: 1.5rem;
+.quick-action-item .item-label {
+  opacity: 0;
+  white-space: nowrap;
+  flex-grow: 0; /* Don't grow in default state */
+  width: 0; /* Collapse width in default state */
+  overflow: hidden; /* Hide overflow when width is 0 */
+  padding-left: 0;
+  transition: opacity 0.15s ease-in-out 0.1s, width 0.3s ease, flex-grow 0.3s ease; /* Add width and flex-grow to transition */
 }
 
-/* 点赞动画效果 */
-@keyframes likeAnimation {
-  0% { transform: scale(1); }
-  25% { transform: scale(1.2); }
-  50% { transform: scale(0.95); }
-  75% { transform: scale(1.1); }
-  100% { transform: scale(1); }
+.article-quick-actions-panel:hover .quick-action-item .item-label {
+  opacity: 1;
+  width: auto; /* Expand width on hover */
+  flex-grow: 1; /* Allow to grow on hover */
 }
 
-.like-animation {
-  animation: likeAnimation 0.5s ease-in-out;
+.quick-action-item .item-count {
+  margin-left: 0; /* Remove default margin */
+  opacity: 0;
+  white-space: nowrap;
+  width: 0; /* Collapse width in default state */
+  overflow: hidden; /* Hide overflow when width is 0 */
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: opacity 0.15s ease-in-out 0.1s, width 0.3s ease, margin-left 0.3s ease; /* Add width and margin-left to transition */
+}
+
+.article-quick-actions-panel:hover .quick-action-item .item-count {
+  opacity: 1;
+  width: auto; /* Expand width on hover */
+  margin-left: auto; /* Push to right on hover */
+}
+
+/* 点赞按钮 */
+.quick-action-item:nth-child(1) i { color: rgba(0, 0, 0, 0.4); } /* 默认图标颜色 */
+.quick-action-item:nth-child(1).active i { color: #f6b93b; } /* 激活时金色 */
+
+/* 收藏按钮 */
+.quick-action-item:nth-child(2) i { color: rgba(0, 0, 0, 0.4); } /* 默认图标颜色 */
+.quick-action-item:nth-child(2).active i { color: #f6b93b; } /* 激活时金色 */
+
+/* 分享按钮 */
+.quick-action-item:nth-child(3) i { color: rgba(0, 0, 0, 0.4); }
+
+/* 评论按钮 */
+.quick-action-item:nth-child(4) i { color: rgba(0, 0, 0, 0.4); }
+/* === 左侧快捷操作按钮美化 End === */
+
+/* Media Queries */
+
+@media (max-width: 1490px) {
+  .article-quick-actions-panel {
+    left: 3rem; /* Fixed margin from left viewport edge */
+    transform: translateY(-50%); /* Only vertical centering */
+  }
 }
 
 @media (max-width: 768px) {
@@ -1445,29 +1497,8 @@ watch(() => route.params.slug, (newSlug, oldSlug) => {
   }
   
   /* 移动端目录卡片顶部间距 */
-  .toc-card {
+  .article-toc-panel {
     margin-top: 1rem;
-  }
-  
-  .article-quick-actions {
-    position: fixed;
-    left: 0;
-    bottom: 0;
-    top: auto;
-    transform: none;
-    flex-direction: row;
-    width: 100%;
-    background: white;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-    padding: 0.5rem;
-    justify-content: space-around;
-  }
-  
-  .quick-action-btn {
-    width: 40px;
-    height: 40px;
-    border: 1px solid rgba(0, 0, 0, 0.15);
-    box-shadow: none;
   }
   
   .hero-avatar {
@@ -1493,6 +1524,10 @@ watch(() => route.params.slug, (newSlug, oldSlug) => {
     right: 1rem;
     width: 40px;
     height: 40px;
+  }
+  .article-quick-actions-panel {
+    left: 1rem; /* Even smaller margin on very small screens */
+    transform: translateY(-50%); /* Only vertical centering */
   }
 }
 

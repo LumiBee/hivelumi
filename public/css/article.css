@@ -242,15 +242,7 @@ li p {
     border-bottom-color: #2c5282;
 }
 
-.article-content blockquote {
-    border-left: 4px solid #ffda58;
-    padding: 0.5rem 0 0.5rem 1rem;
-    margin: 1.5rem 0;
-    background-color: #f8f9fa;
-    font-style: italic;
-    color: #4a5568;
-    text-indent: 0;
-}
+
 
 .article-content img {
     max-width: 100%;
@@ -623,47 +615,89 @@ article:first-letter {
     color: #333;
 }
 
-/* 代码块样式 - 强制覆盖为灰色背景 */
-.article-content pre {
-    position: relative;
-    background-color: #f7fafc !important;
-    background: #f7fafc !important;
-    border-radius: 5px;
-    padding: 1rem;
-    margin: 1.5rem 0;
-    overflow: auto;
-    border-left: 4px solid #ffda58;
-    text-indent: 0;
+/* === 全新 macOS 风格代码块样式 (适配新HTML结构) Start === */
+.mac-window {
+  margin: 1.8rem 0;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  background-color: #2d3748; /* 默认深色背景，适配常见代码主题 */
 }
 
-.article-content pre code {
-    display: block;
-    font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-    font-size: 0.9rem;
-    color: #2d3748 !important;
-    line-height: 1.6;
-    text-indent: 0;
-    background-color: transparent !important;
-    background: transparent !important;
+.mac-window-header {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  background-color: #f1f5f9;
+  border-bottom: 1px solid #d1d5db;
+  padding: 0 12px;
+  position: relative;
+}
+
+.mac-window-dots {
+  display: flex;
+  gap: 8px;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+.dot.red { background-color: #ff5f56; }
+.dot.yellow { background-color: #ffbd2e; }
+.dot.green { background-color: #27c93f; }
+
+.mac-window-title {
+  color: #4a5568;
+  font-size: 0.85rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-weight: 500;
+}
+
+.mac-window-body {
+  /* 这个容器让 pre/code 可以自由滚动 */
+  overflow: auto;
+}
+
+/* 让 pre 标签填充 body，并移除我们之前的所有强制样式 */
+.mac-window-body pre {
+  margin: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 1rem !important; /* highlight.js 可能会覆盖，但我们尽量设置一个默认值 */
 }
 
 /* 复制按钮样式 */
 .copy-btn {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    background-color: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-radius: 3px;
-    padding: 3px 8px;
-    font-size: 0.75rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  background-color: rgba(0,0,0,0.08);
+  border: none;
+  color: rgba(0,0,0,0.5);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 2;
 }
 
 .copy-btn:hover {
-    background-color: #e9ecef;
+  background-color: rgba(0,0,0,0.15);
+  color: #000;
 }
+.copy-btn.copied {
+  background-color: #27c93f;
+  color: #fff;
+}
+/* === 全新 macOS 风格代码块样式 End === */
 
 /* 图片样式 */
 .article-content img {
@@ -682,14 +716,7 @@ article:first-letter {
 }
 
 /* 引用样式 */
-.article-content blockquote {
-    border-left: 4px solid #ffda58;
-    padding: 1rem 1.5rem;
-    margin: 1.5rem 0;
-    background-color: #f8f9fa;
-    font-style: italic;
-    text-indent: 0;
-}
+.article-content 
 
 /* 标签样式 */
 .badge-tag {
@@ -786,7 +813,7 @@ article:first-letter {
 
 /* 内联代码样式 */
 .article-content code:not([class*="language-"]) {
-    background-color: #f8f9fa;
+    background-color: #edf2f7 !important;
     padding: 0.2rem 0.4rem;
     border-radius: 3px;
     font-size: 0.9em;

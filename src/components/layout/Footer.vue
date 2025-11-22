@@ -5,8 +5,6 @@
     
     <div class="noise-overlay"></div>
     
-    <div class="scan-line"></div>
-    
     <div class="hover-light" :style="glowStyle"></div>
 
     <div class="top-ruler"></div>
@@ -167,35 +165,6 @@ onUnmounted(() => {
 
 /* === 2. 动态特效 (Effects) === */
 
-/* === 雷达扫描线 === */
-.scan-line {
-  position: absolute;
-  top: 0;
-  left: -50%; /* 起始位置 */
-  width: 60%; /* 增加宽度，制造拖尾效果 */
-  height: 100%;
-  
-  /* 关键修改：透明 -> 淡淡的琥珀色 -> 亮琥珀色边缘 */
-  background: linear-gradient(
-    90deg, 
-    transparent 0%, 
-    rgba(245, 158, 11, 0.05) 50%, 
-    rgba(245, 158, 11, 0.2) 90%, 
-    rgba(245, 158, 11, 0.6) 100%
-  );
-  
-  transform: skewX(-25deg); /* 加大倾斜角度 */
-  pointer-events: none;
-  z-index: 2; /* 提升层级，确保在网格之上 */
-  mix-blend-mode: screen; /* 使用滤色模式，让它发光 */
-  animation: radar-scan 12s infinite linear;
-  will-change: left; /* 性能优化 */
-}
-
-@keyframes radar-scan {
-  30% { left: 100%; }
-  100% { left: 160%; } /* 确保完全扫出屏幕 */
-}
 /* 鼠标光斑 (Glow) */
 .hover-light {
   position: absolute;
