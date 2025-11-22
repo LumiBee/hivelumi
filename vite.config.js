@@ -14,12 +14,12 @@ export default defineConfig(({ mode }) => {
       }
       return envApiUrl
     }
-    
+
     // 开发环境默认使用localhost
     if (mode === 'development') {
       return 'http://localhost:8090'
     }
-    
+
     // 生产环境默认（需要用户配置）
     return 'https://api.hivelumi.com'
   }

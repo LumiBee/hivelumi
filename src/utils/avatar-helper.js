@@ -28,21 +28,28 @@ export const getAuthorAvatarUrl = (avatarUrl) => {
   if (!avatarUrl || avatarUrl.includes('default')) {
     return logo;
   }
-  
+
   // Process backend-specific URLs
-  if (avatarUrl.startsWith('http://localhost:8090/')) {
+  if (avatarUrl.includes('localhost:8090')) {
     avatarUrl = avatarUrl.replace('http://localhost:8090', '');
   }
+
+  // Handle relative paths
+  if (!avatarUrl.startsWith('/') && !avatarUrl.startsWith('http')) {
+    avatarUrl = '/' + avatarUrl;
+  }
+
+  // Add /api prefix for local uploads if missing
   if (avatarUrl.startsWith('/uploads/')) {
     avatarUrl = '/api' + avatarUrl;
   }
-  
+
   // Append timestamp to prevent caching for non-default, non-OSS images
   if (!avatarUrl.startsWith('https://files.hivelumi.com/')) {
     const timestamp = new Date().getTime();
     const separator = avatarUrl.includes('?') ? '&' : '?';
     return `${avatarUrl}${separator}t=${timestamp}`;
   }
-  
+
   return avatarUrl;
 };

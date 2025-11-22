@@ -229,6 +229,7 @@ import CommentSection from '@/components/CommentSection.vue'
 import { getAuthorAvatarUrl } from '@/utils/avatar-helper'
 import { ensureBigIntAsString } from '@/utils/bigint-helper'
 import hljs from 'highlight.js'
+import 'highlight.js/styles/atom-one-dark.css'
 
 // === State ===
 const route = useRoute()
@@ -297,9 +298,12 @@ const renderMarkdown = () => {
             <span class="dot green"></span>
           </div>
           <span class="mac-title">${language || 'code'}</span>
+          <button class="mac-copy-btn" data-clipboard-text="${encodeURIComponent(code)}">
+            <i class="far fa-copy"></i>
+          </button>
         </div>
         <div class="mac-body">
-          <pre><code class="language-${validLang}">${highlighted}</code></pre>
+          <pre><code class="hljs language-${validLang}">${highlighted}</code></pre>
         </div>
       </div>
     `
@@ -445,7 +449,25 @@ const closeZoom = () => {
 }
 
 const installCopyButtons = () => {
-  // Simplified for brevity, can add back if needed
+  const btns = document.querySelectorAll('.mac-copy-btn')
+  btns.forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation()
+      const code = decodeURIComponent(btn.getAttribute('data-clipboard-text'))
+      try {
+        await navigator.clipboard.writeText(code)
+        const icon = btn.querySelector('i')
+        icon.className = 'fas fa-check'
+        setTimeout(() => {
+          icon.className = 'far fa-copy'
+        }, 2000)
+        window.$toast?.success('Copied!')
+      } catch (err) {
+        console.error('Failed to copy:', err)
+        window.$toast?.error('Failed to copy')
+      }
+    })
+  })
 }
 
 // === Lifecycle ===
@@ -471,12 +493,18 @@ watch(() => route.params.slug, (newSlug) => {
   --apple-gray: #86868b;
   --hive-gold: #f6b93b;
   --hive-gold-hover: #e5a52a;
-  --glass-bg: rgba(255, 255, 255, 0.75);
-  --glass-border: rgba(255, 255, 255, 0.5);
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
-  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.08);
+  --glass-bg: rgba(255, 255, 255, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.4);
+  --glass-highlight: rgba(255, 255, 255, 0.5);
+  --glass-shadow: rgba(0, 0, 0, 0.05);
   
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  /* Noise Texture (Base64 SVG) */
+  --noise-pattern: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+
+  --shadow-sm: 0 4px 24px -4px var(--glass-shadow);
+  --shadow-lg: 0 24px 48px -12px rgba(0, 0, 0, 0.1);
+  
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   background-color: var(--apple-bg);
   color: var(--apple-text);
   min-height: 100vh;
@@ -484,8 +512,8 @@ watch(() => route.params.slug, (newSlug) => {
   
   /* 页面背景纹理增强 */
   background-image: 
-    radial-gradient(circle at 10% 20%, rgba(246, 185, 59, 0.05) 0%, transparent 20%),
-    radial-gradient(circle at 90% 80%, rgba(66, 153, 225, 0.05) 0%, transparent 20%);
+    radial-gradient(circle at 10% 20%, rgba(246, 185, 59, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(66, 153, 225, 0.08) 0%, transparent 40%);
 }
 
 /* === Layout === */
@@ -497,34 +525,58 @@ watch(() => route.params.slug, (newSlug) => {
 
 .article-layout {
   display: flex;
-  gap: 40px;
+  gap: 60px; /* Increased gap for breathability */
   align-items: flex-start;
 }
 
 .layout-main {
   flex: 1;
   min-width: 0; /* 防止 flex 子项溢出 */
+  max-width: 720px; /* Limit content width for readability */
 }
 
 .layout-sidebar {
-  width: 300px;
+  width: 320px;
   flex-shrink: 0;
 }
 
 .sidebar-sticky-wrapper {
   position: sticky;
-  top: 100px; /* 距离顶部距离 */
+  top: 120px; /* 距离顶部距离 */
 }
 
-.nav-spacer { height: 80px; }
+.nav-spacer { height: 100px; }
 
-/* === Glass Panel Utility === */
+/* === Glass Panel Utility (Glassmorphism 2.0) === */
 .glass-panel {
+  position: relative;
   background: var(--glass-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
   border: 1px solid var(--glass-border);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 
+    var(--shadow-sm),
+    inset 0 1px 0 0 var(--glass-highlight),
+    inset 0 -1px 0 0 rgba(0,0,0,0.05); /* Edge Highlight */
+  overflow: hidden;
+}
+
+/* Noise Overlay */
+.glass-panel::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background-image: var(--noise-pattern);
+  opacity: 1;
+  pointer-events: none;
+  z-index: 0;
+  mix-blend-mode: overlay;
+}
+
+/* Ensure content is above noise */
+.glass-panel > * {
+  position: relative;
+  z-index: 1;
 }
 
 /* === 1. Hero Card === */
@@ -543,9 +595,16 @@ watch(() => route.params.slug, (newSlug) => {
   top: 0; left: 0; width: 100%; height: 100%;
   background-size: cover;
   background-position: center;
-  filter: blur(30px) brightness(0.7); /* Frosted background */
-  transform: scale(1.1); /* Prevent blur edges */
+  filter: blur(10px) brightness(0.8); /* Reduced blur for "Cinematic" feel */
+  transform: scale(1.1);
   z-index: 0;
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.6)); /* Cinematic Gradient */
+  z-index: 1;
 }
 
 .hero-content {
@@ -554,15 +613,17 @@ watch(() => route.params.slug, (newSlug) => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: 24px;
+  padding: 60px 20px;
 }
 
 .hero-title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
-  text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  font-size: 3.5rem; /* Huge Title */
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.03em; /* Tight tracking */
+  text-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  max-width: 800px;
 }
 
 .apple-pill {
@@ -581,19 +642,23 @@ watch(() => route.params.slug, (newSlug) => {
 /* Hexagon Avatar */
 /* Hexagon Avatar -> Circle Avatar */
 .hexagon-avatar-wrapper {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%; /* Circle */
+  width: 64px;
+  height: 64px;
+  border-radius: 50%; /* Pure Circle */
   overflow: hidden;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-  border: 2px solid #fff; /* Optional: white border */
+  box-shadow: var(--shadow-sm);
+  border: 2px solid rgba(255,255,255,0.8);
+  
+  background: var(--hive-gold);
+  transition: transform 0.3s ease;
+}
+.hexagon-avatar-wrapper:hover {
+  transform: scale(1.05);
 }
 .hexagon-avatar {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  /* clip-path removed */
-  background: #fff;
 }
 
 .hero-meta {
@@ -634,37 +699,51 @@ watch(() => route.params.slug, (newSlug) => {
 .apple-btn-sm.active { background: rgba(255,255,255,0.2); color: #fff; }
 
 /* === 2. Article Body === */
+/* === 2. Article Body (Rhythm) === */
 .article-body {
-  font-size: 1.15rem;
-  line-height: 1.7;
+  font-size: 1.2rem; /* Slightly larger for reading */
+  line-height: 1.8;
   color: #333;
 }
 
-/* Typography Overrides for Markdown */
-:deep(.markdown-content h2) {
-  font-size: 1.8rem;
-  font-weight: 700;
-  margin-top: 2.5rem;
-  margin-bottom: 1rem;
-  letter-spacing: -0.01em;
+/* Typography Overrides */
+:deep(.markdown-content) {
+  max-width: 680px; /* Narrower for focus */
+  margin: 0 auto; /* Center content within layout-main if needed */
 }
-:deep(.markdown-content p) { margin-bottom: 1.5rem; }
+:deep(.markdown-content h2) {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-top: 3rem;
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.02em;
+  color: #111;
+}
+:deep(.markdown-content p) { 
+  margin-bottom: 2em; /* Breathable paragraphs */
+  opacity: 0.9;
+}
 :deep(.markdown-content img) {
   width: 100%;
   border-radius: 16px;
-  margin: 2rem 0;
+  margin: 3rem 0;
   cursor: zoom-in;
-  transition: transform 0.3s;
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  box-shadow: var(--shadow-lg);
+}
+:deep(.markdown-content img:hover) {
+  transform: scale(1.02);
 }
 :deep(.markdown-content img.zoomed) {
   position: fixed;
   top: 50%; left: 50%;
   transform: translate(-50%, -50%) scale(1);
-  max-height: 90vh;
-  max-width: 90vw;
+  max-height: 95vh;
+  max-width: 95vw;
   z-index: 10001;
   cursor: zoom-out;
   object-fit: contain;
+  box-shadow: 0 40px 80px rgba(0,0,0,0.5);
 }
 
 /* Mac Window Code Block */
@@ -677,7 +756,7 @@ watch(() => route.params.slug, (newSlug) => {
 }
 :deep(.mac-header) {
   background: #2d2d2d;
-  padding: 10px 16px;
+  padding: 6px 16px; /* Reduced vertical padding */
   display: flex;
   align-items: center;
   position: relative;
@@ -692,46 +771,80 @@ watch(() => route.params.slug, (newSlug) => {
   left: 50%; transform: translateX(-50%);
   color: #999; font-size: 0.8rem;
 }
-:deep(.mac-body) { padding: 20px; overflow-x: auto; }
+:deep(.mac-copy-btn) {
+  margin-left: auto;
+  background: transparent;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+:deep(.mac-copy-btn:hover) {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+:deep(.mac-body) { 
+  padding: 12px 16px 6px 16px; /* Reduced bottom padding */
+  overflow-x: auto; 
+}
+:deep(code.hljs) {
+  padding: 0; /* Remove default hljs padding to rely on container */
+  background: transparent; /* Ensure background matches container */
+}
 :deep(code) { font-family: 'Menlo', 'Monaco', monospace; font-size: 0.9rem; }
 
-/* === 5. Floating Dock === */
+/* === 5. Floating Dock (Liquid Physics) === */
 .dock-wrapper {
   position: fixed;
-  bottom: 30px;
+  bottom: 40px;
   left: 0; width: 100%;
   display: flex;
   justify-content: center;
   z-index: 100;
-  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); /* Springy show/hide */
 }
-.dock-wrapper.dock-hidden { transform: translateY(150%); }
+.dock-wrapper.dock-hidden { transform: translateY(200%); }
 
 .apple-dock {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 20px;
-  border-radius: 24px;
-  background: rgba(255, 255, 255, 0.85); /* Slightly more opaque */
+  gap: 16px;
+  padding: 16px 24px;
+  border-radius: 32px;
+  background: rgba(255, 255, 255, 0.7); /* More transparent for glass effect */
+  backdrop-filter: blur(20px) saturate(180%);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+  border: 1px solid rgba(255,255,255,0.5);
 }
 
 .dock-item {
-  width: 44px; height: 44px;
-  border-radius: 12px;
+  width: 50px; height: 50px;
+  border-radius: 16px;
   border: none;
-  background: transparent;
+  background: rgba(255,255,255,0.5);
   color: var(--apple-text);
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); /* Liquid Scale */
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
 }
-.dock-item:hover { background: rgba(0,0,0,0.05); transform: translateY(-2px); }
-.dock-item.active { color: var(--hive-gold); }
+.dock-item:hover { 
+  background: #fff; 
+  transform: translateY(-8px) scale(1.15); 
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+.dock-item:active {
+  transform: translateY(-4px) scale(0.95);
+}
+.dock-item.active { 
+  color: var(--hive-gold); 
+  background: #fff;
+}
 .dock-item.active i { transform: scale(1.1); }
 
 .dock-badge {
@@ -858,9 +971,9 @@ watch(() => route.params.slug, (newSlug) => {
   margin-bottom: 20px;
 }
 .hexagon-avatar-wrapper.lg { 
-  width: 80px; 
-  height: 80px; 
-  border-radius: 50%; /* Circle */
+  width: 90px; 
+  height: 90px; 
+  /* Inherits mask from base class */
 }
 .author-info-lg { width: 100%; }
 .author-name-lg { font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; }
