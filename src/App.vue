@@ -4,7 +4,7 @@
     <Navbar />
     
     <!-- 主要内容区域 -->
-    <main class="main-content">
+    <main class="main-content" :style="{ marginTop: isSpecialLayout ? '0' : '67px' }">
       <router-view />
     </main>
     
@@ -38,10 +38,16 @@ const route = useRoute()
 // Token 监控相关
 let stopTokenMonitoring = null
 
-// 判断当前是否为发布文章页面
+// 判断当前是否为特殊布局页面（如文章页或发布页）
+const isSpecialLayout = computed(() => {
+  return route.path.startsWith('/article/') || route.path === '/publish';
+});
+
+// 为了保持 Footer 的逻辑不变，保留 isPublishPage
 const isPublishPage = computed(() => {
-  return route.path === '/publish'
-})
+  return route.path === '/publish';
+});
+
 
 
 

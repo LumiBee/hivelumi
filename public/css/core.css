@@ -31,7 +31,6 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  padding-top: 67px; /* 为固定导航栏留出空间 */
 }
 
 /* 布局容器 */
