@@ -167,12 +167,14 @@
           <div class="sidebar-sticky">
             <div class="profile-card glass-panel">
               <div class="profile-header">
-                <div class="avatar-container">
-                  <LazyImage 
-                    :src="getAvatarUrl(profileData.user?.avatarUrl) || logo" 
-                    :alt="profileData.user?.name" 
-                    class="profile-avatar"
-                  />
+                <div class="avatar-wrapper">
+                  <div class="avatar-container">
+                    <LazyImage 
+                      :src="getAvatarUrl(profileData.user?.avatarUrl) || logo" 
+                      :alt="profileData.user?.name" 
+                      class="profile-avatar"
+                    />
+                  </div>
                   <div class="status-indicator" v-if="isOwner"></div>
                 </div>
                 <h2 class="profile-name">{{ profileData.user?.name || 'Loading...' }}</h2>
@@ -1053,25 +1055,36 @@ onMounted(() => {
   text-align: center;
 }
 .profile-header { margin-bottom: 24px; }
-.avatar-container {
+.avatar-wrapper {
   position: relative;
-  width: 120px; height: 120px;
+  width: 120px;
+  height: 120px;
   margin: 0 auto 16px;
 }
-.profile-avatar {
-  width: 100%; height: 100%;
+.avatar-container {
+  position: relative;
+  width: 100%; 
+  height: 100%;
   border-radius: 50%;
+  overflow: hidden;
   border: 4px solid #fff;
   box-shadow: var(--shadow-lg);
+}
+.profile-avatar {
+  width: 100%; 
+  height: 100%;
   object-fit: cover;
+  display: block;
 }
 .status-indicator {
   position: absolute;
-  bottom: 8px; right: 8px;
+  bottom: 4px; 
+  right: 4px;
   width: 16px; height: 16px;
   background: #2ecc71;
   border: 3px solid #fff;
   border-radius: 50%;
+  z-index: 1;
 }
 .profile-name { font-size: 1.6rem; font-weight: 700; margin-bottom: 4px; letter-spacing: -0.5px; }
 .profile-handle { color: var(--apple-gray); font-size: 0.95rem; }

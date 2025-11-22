@@ -1,4 +1,7 @@
 // 高级图片优化工具
+// import logo from '@/assets/img/logo.webp' // No longer used
+const defaultAvatar = '/img/default.jpg';
+
 export class ImageOptimizer {
   constructor() {
     this.processedImages = new Set()
@@ -17,10 +20,10 @@ export class ImageOptimizer {
   setupOptimizations() {
     // 优化所有图片
     this.optimizeAllImages()
-    
+
     // 监听DOM变化，优化新添加的图片
     this.observeDOMChanges()
-    
+
     // 添加图片错误处理
     this.setupErrorHandling()
   }
@@ -28,7 +31,7 @@ export class ImageOptimizer {
   optimizeAllImages() {
     // 获取所有图片
     const images = document.querySelectorAll('img')
-    
+
     images.forEach(img => {
       this.optimizeImage(img)
     })
@@ -38,28 +41,28 @@ export class ImageOptimizer {
     // 避免重复处理
     if (this.processedImages.has(img)) return
     this.processedImages.add(img)
-    
+
     // 添加加载效果
     img.style.transition = 'opacity 0.3s ease'
-    
+
     // 如果图片还没加载，先设置透明度
     if (!img.complete) {
       img.style.opacity = '0.7'
     }
-    
+
     // 添加loading属性
     img.loading = 'lazy'
-    
+
     // 添加尺寸属性（如果没有）
     if (!img.getAttribute('width') && !img.getAttribute('height')) {
       // 设置默认尺寸，减少布局偏移
       img.setAttribute('width', '100%')
       img.setAttribute('height', 'auto')
     }
-    
+
     // 添加解码属性
     img.decoding = 'async'
-    
+
     // 添加事件处理
     img.onload = () => {
       img.style.opacity = '1'
@@ -69,7 +72,7 @@ export class ImageOptimizer {
       img.style.opacity = '1'
       // 设置默认图片
       if (!img.src.includes('default')) {
-        img.src = '/img/optimized/logo.png'
+        img.src = defaultAvatar
       }
     }
   }
@@ -85,7 +88,7 @@ export class ImageOptimizer {
               // 优化新添加的图片
               const images = node.querySelectorAll('img')
               images.forEach(img => this.optimizeImage(img))
-              
+
               // 检查节点本身是否是图片
               if (node.tagName === 'IMG') {
                 this.optimizeImage(node)
@@ -95,7 +98,7 @@ export class ImageOptimizer {
         }
       })
     })
-    
+
     // 开始监听
     observer.observe(document.body, {
       childList: true,
@@ -107,12 +110,12 @@ export class ImageOptimizer {
     // 全局图片错误处理
     window.addEventListener('error', (event) => {
       const target = event.target
-      
+
       // 检查是否是图片加载错误
       if (target.tagName === 'IMG') {
         // 设置默认图片
         if (!target.src.includes('default')) {
-          target.src = '/img/default.jpg'
+          target.src = defaultAvatar
         }
       }
     }, true)
@@ -124,7 +127,7 @@ export class ImageOptimizer {
     const supportsWebP = document.createElement('canvas')
       .toDataURL('image/webp')
       .indexOf('data:image/webp') === 0
-    
+
     if (supportsWebP) {
       // 如果是JPG或PNG，转换为WebP
       if (url.match(/\.(jpg|jpeg|png)(\?.*)?$/i)) {
@@ -139,7 +142,7 @@ export class ImageOptimizer {
         }
       }
     }
-    
+
     return url
   }
 }

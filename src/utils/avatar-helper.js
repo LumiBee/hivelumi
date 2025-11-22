@@ -7,11 +7,12 @@
  * @param {string} avatarUrl - 原始头像URL
  * @returns {string} 处理后的头像URL
  */
-import logo from '@/assets/img/default.webp';
+// import logo from '@/assets/img/logo.webp'; // No longer used
+const defaultAvatar = '/img/default.jpg';
 
 export const getAvatarUrl = (avatarUrl) => {
   if (!avatarUrl || avatarUrl.includes('default')) {
-    return logo;
+    return defaultAvatar;
   }
   // For other valid URLs, append a timestamp to prevent caching
   const timestamp = new Date().getTime();
@@ -25,8 +26,11 @@ export const getAvatarUrl = (avatarUrl) => {
  * @returns {string} 处理后的头像URL
  */
 export const getAuthorAvatarUrl = (avatarUrl) => {
+  // Debug log to see what's coming in
+  if (!avatarUrl) console.warn('getAuthorAvatarUrl received empty url');
+
   if (!avatarUrl || avatarUrl.includes('default')) {
-    return logo;
+    return defaultAvatar;
   }
 
   // Process backend-specific URLs
