@@ -4,7 +4,7 @@
       v-if="hasSource"
       :src="imageSource"
       :alt="alt"
-      :class="['lazy-image', imageClass]"
+      :class="['lazy-image', imageClass, { 'shape-hexagon': shape === 'hexagon' }]"
       :style="imageStyle"
       loading="lazy"
       :fetchpriority="fetchpriority"
@@ -38,6 +38,11 @@ export default {
     fetchpriority: {
       type: String,
       default: null
+    },
+    shape: {
+      type: String,
+      default: 'rect', // 'rect' | 'hexagon'
+      validator: (value) => ['rect', 'hexagon', 'circle'].includes(value)
     }
   },
   setup(props) {

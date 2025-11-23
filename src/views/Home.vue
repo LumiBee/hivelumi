@@ -23,19 +23,20 @@
                   class="carousel-image"
                   :no-lazy="index === 0"
                 />
-                <div class="carousel-overlay"></div>
+                <div class="carousel-overlay cinematic-overlay"></div>
               </div>
               
               <div class="carousel-content-wrapper">
-                <div class="carousel-content glass-panel-dark">
+                <div class="carousel-content">
                   <div class="carousel-meta">
                     <div class="carousel-author">
                       <div class="author-avatar-wrapper">
-                        <LazyImage 
-                          :src="getAuthorAvatarUrl(article.avatarUrl)" 
-                          :alt="article.userName || '匿名'"
-                          class="author-avatar-img"
-                        />
+                          <LazyImage 
+                            :src="getAuthorAvatarUrl(article.avatarUrl)" 
+                            :alt="article.userName || '匿名'"
+                            class="author-avatar-img"
+                            shape="hexagon"
+                          />
                       </div>
                       <span class="author-name">{{ article.userName || '匿名' }}</span>
                     </div>
@@ -63,7 +64,7 @@
                 <div class="carousel-overlay"></div>
               </div>
               <div class="carousel-content-wrapper">
-                <div class="carousel-content glass-panel-dark">
+                <div class="carousel-content">
                   <h1 class="carousel-title">欢迎来到 Lumi Hive</h1>
                   <p class="carousel-excerpt">探索、分享、连接 —— 您的优质知识社区</p>
                 </div>
@@ -101,7 +102,7 @@
     </section>
 
     <!-- Main Content Section -->
-    <section class="content-section">
+    <section class="content-section" style="padding: 80px 0;">
       <div class="apple-container">
         <div class="row">
           <!-- Main Column: Article List -->
@@ -121,7 +122,7 @@
                 :data-aos-delay="index * 50"
                 @click="$router.push(`/article/${article.slug}`)"
               >
-                <div class="article-card glass-panel">
+                <div class="article-card glass-panel hover-magnetic">
                   <div class="card-body">
                     <div class="article-main">
                       <h3 class="article-title">{{ article.title }}</h3>
@@ -134,6 +135,7 @@
                               :src="getAuthorAvatarUrl(article.avatarUrl)" 
                               :alt="article.userName"
                               class="avatar-img"
+                              shape="hexagon"
                             />
                           </div>
                           <span class="author-name">{{ article.userName || '佚名' }}</span>
@@ -274,13 +276,25 @@ const pagination = ref({
 })
 
 // 计算属性
-const startPage = computed(() => Math.max(1, pagination.value.current - 1))
-const endPage = computed(() => Math.min(pagination.value.totalPages, pagination.value.current + 1))
 const pageRange = computed(() => {
+  const current = pagination.value.current
+  const total = pagination.value.totalPages
   const range = []
-  for (let i = startPage.value; i <= endPage.value; i++) {
+  
+  // 显示最多7个页码
+  const maxPages = 7
+  let start = Math.max(1, current - Math.floor(maxPages / 2))
+  let end = Math.min(total, start + maxPages - 1)
+  
+  // 调整start以确保显示maxPages个页码（如果可能）
+  if (end - start + 1 < maxPages) {
+    start = Math.max(1, end - maxPages + 1)
+  }
+  
+  for (let i = start; i <= end; i++) {
     range.push(i)
   }
+  
   return range
 })
 
@@ -296,10 +310,10 @@ const loadHomeData = async (page = 1) => {
     if (homeRes.articles && homeRes.articles.records) {
       articles.value = homeRes.articles.records
       pagination.value = {
-        current: homeRes.articles.current,
-        size: homeRes.articles.size,
-        totalPages: homeRes.articles.pages,
-        total: homeRes.articles.total
+        current: parseInt(homeRes.articles.current),
+        size: parseInt(homeRes.articles.size),
+        totalPages: parseInt(homeRes.articles.pages),
+        total: parseInt(homeRes.articles.total)
       }
     } else {
       articles.value = []
@@ -493,6 +507,11 @@ const initSmartTagCloud = () => {
           padding: `${paddingValue}px`,
           left: `${finalPos.x}px`,
           top: `${finalPos.y}px`,
+          clipPath: 'var(--shape-hexagon)', // Force hexagon shape
+          borderRadius: '0', // Remove border radius for clip-path
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
           transform: ''
         }
       });
@@ -716,7 +735,7 @@ onBeforeUnmount(() => {
   max-width: 1400px;
   margin: 0 auto;
   padding: 0 20px;
-  height: 600px;
+  height: 500px;
   position: relative;
 }
 
@@ -759,7 +778,16 @@ onBeforeUnmount(() => {
 .carousel-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.1) 100%);
+  background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.1) 100%);
+}
+
+.cinematic-overlay {
+  background: linear-gradient(to top, 
+    rgba(0,0,0,0.9) 0%, 
+    rgba(0,0,0,0.5) 40%, 
+    rgba(0,0,0,0.1) 70%, 
+    transparent 100%
+  );
 }
 
 .carousel-content-wrapper {
@@ -1087,37 +1115,53 @@ onBeforeUnmount(() => {
   display: flex;
   list-style: none;
   padding: 0;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.5);
-  padding: 6px;
-  border-radius: 100px;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.65);
+  padding: 12px 24px;
+  border-radius: 24px;
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 
+    0 10px 40px -10px rgba(0,0,0,0.15),
+    inset 0 0 0 1px rgba(255,255,255,0.5);
+  transition: all 0.3s ease;
+  align-items: flex-end; /* Align items to bottom for wave effect */
 }
 
 .page-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px; /* Rounded square like app icons */
   border: none;
   background: transparent;
   color: var(--apple-text);
-  font-weight: 500;
+  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+  font-size: 1.1rem;
+}
+
+.page-btn:active {
+  transform: scale(0.9); /* Spring click effect */
 }
 
 .page-btn:hover:not(:disabled) {
-  background: rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.8);
+  transform: translateY(-8px) scale(1.2); /* Wave magnification */
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  z-index: 10;
 }
 
 .active .page-btn {
-  background: var(--apple-text);
+  background: var(--hive-gold);
   color: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 20px var(--hive-gold-glow);
+  font-weight: 700;
+  transform: translateY(-8px) scale(1.2);
 }
 
 .disabled .page-btn {
@@ -1175,17 +1219,28 @@ onBeforeUnmount(() => {
   flex: 1;
 }
 
-.popular-title {
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: 6px;
-  line-height: 1.4;
-  color: var(--apple-text);
+.carousel-title {
+  font-size: 3.5rem;
+  font-weight: 800;
+  margin-bottom: 16px;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  text-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  font-family: "SF Pro Display", var(--font-family-base);
+}
+
+.carousel-excerpt {
+  font-size: 1.25rem;
+  line-height: 1.6;
+  opacity: 0.9;
+  margin-bottom: 32px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  max-width: 80%;
 }
 
 .popular-meta {
