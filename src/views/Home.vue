@@ -1,97 +1,81 @@
 <template>
   <div class="home-page">
-    <!-- Hero Section with Modern Carousel -->
+    <!-- Cinematic Hero Section -->
     <section class="hero-section">
-      <div class="container-fluid" style="max-width: 1400px; width: 100%;">
-        <!-- 现代化轮播图 -->
-        <div class="modern-carousel-container">
-          <div
-            id="modernCarousel"
-            class="modern-carousel"
-            data-bs-ride="carousel"
-          >
-            <!-- 轮播内容 -->
-            <div class="modern-carousel-inner">
-              <!-- 特色文章 -->
-              <div 
-                v-for="(article, index) in featuredArticles" 
-                :key="article.articleId"
-                :class="['modern-carousel-item', { active: index === 0 }]"
-                @click="$router.push(`/article/${article.slug}`)"
-              >
-                <div class="carousel-image-wrapper">
-                  <LazyImage 
-                    :src="getProcessedImageUrl(article.backgroundUrl) || '/img/optimized/demo/1.webp'" 
-                    :alt="article.title"
-                    class="carousel-image"
-                    :no-lazy="index === 0"
-                  />
-                  <div class="carousel-overlay"></div>
-                </div>
-                
-                <div class="modern-carousel-content">
+      <div class="cinematic-carousel-container">
+        <div
+          id="modernCarousel"
+          class="modern-carousel"
+          data-bs-ride="carousel"
+        >
+          <div class="modern-carousel-inner">
+            <!-- Featured Articles -->
+            <div 
+              v-for="(article, index) in featuredArticles" 
+              :key="article.articleId"
+              :class="['modern-carousel-item', { active: index === 0 }]"
+              @click="$router.push(`/article/${article.slug}`)"
+            >
+              <div class="carousel-image-wrapper">
+                <LazyImage 
+                  :src="getProcessedImageUrl(article.backgroundUrl) || '/img/optimized/demo/1.webp'" 
+                  :alt="article.title"
+                  class="carousel-image"
+                  :no-lazy="index === 0"
+                />
+                <div class="carousel-overlay"></div>
+              </div>
+              
+              <div class="carousel-content-wrapper">
+                <div class="carousel-content glass-panel-dark">
                   <div class="carousel-meta">
                     <div class="carousel-author">
-                      <LazyImage 
-                        :src="getAuthorAvatarUrl(article.avatarUrl)" 
-                        :alt="article.userName || '匿名'"
-                        class="carousel-author-avatar"
-                      />
-                      <span>{{ article.userName || '匿名' }}</span>
+                      <div class="author-avatar-wrapper">
+                        <LazyImage 
+                          :src="getAuthorAvatarUrl(article.avatarUrl)" 
+                          :alt="article.userName || '匿名'"
+                          class="author-avatar-img"
+                        />
+                      </div>
+                      <span class="author-name">{{ article.userName || '匿名' }}</span>
                     </div>
+                    <span class="meta-dot">·</span>
+                    <span class="publish-date">{{ formatTime(article.gmtModified) }}</span>
                   </div>
                   
                   <h2 class="carousel-title">{{ article.title }}</h2>
-                  <p class="carousel-excerpt">{{ article.excerpt }}</p>
+                  <p class="carousel-excerpt">{{ getExcerpt(article) }}</p>
                   
                   <div class="carousel-actions">
-                    <button class="carousel-read-btn">阅读文章 <i class="fas fa-arrow-right"></i></button>
+                    <button class="apple-glass-btn">
+                      <span class="btn-text">阅读文章</span>
+                      <i class="fas fa-arrow-right"></i>
+                    </button>
                   </div>
-                </div>
-              </div>
-              
-              <!-- 默认轮播图 -->
-              <div v-if="!featuredArticles.length" class="modern-carousel-item active">
-                <div class="carousel-image-wrapper">
-                  <LazyImage src="/img/optimized/demo/1.webp" alt="欢迎来到Lumi Hive" class="carousel-image" :no-lazy="true" />
-                  <div class="carousel-overlay"></div>
-                </div>
-                
-                <div class="modern-carousel-content">
-                  <h1 class="carousel-title">欢迎来到Lumi Hive</h1>
-                  <p class="carousel-excerpt">您的知识分享社区</p>
-                </div>
-              </div>
-              
-              <div v-if="!featuredArticles.length" class="modern-carousel-item">
-                <div class="carousel-image-wrapper">
-                  <LazyImage src="/img/optimized/demo/2.webp" alt="分享您的知识" class="carousel-image" />
-                  <div class="carousel-overlay"></div>
-                </div>
-                
-                <div class="modern-carousel-content">
-                  <h2 class="carousel-title">分享您的知识</h2>
-                  <p class="carousel-excerpt">创建文章，分享您的专业知识和见解</p>
-                </div>
-              </div>
-              
-              <div v-if="!featuredArticles.length" class="modern-carousel-item">
-                <div class="carousel-image-wrapper">
-                  <LazyImage src="/img/optimized/demo/3.webp" alt="探索精彩内容" class="carousel-image" />
-                  <div class="carousel-overlay"></div>
-                </div>
-                
-                <div class="modern-carousel-content">
-                  <h2 class="carousel-title">探索精彩内容</h2>
-                  <p class="carousel-excerpt">浏览各种主题的优质文章</p>
                 </div>
               </div>
             </div>
             
-            <!-- 轮播指示器 -->
+            <!-- Default Slides (if no featured articles) -->
+            <div v-if="!featuredArticles.length" class="modern-carousel-item active">
+              <div class="carousel-image-wrapper">
+                <LazyImage src="/img/optimized/demo/1.webp" alt="欢迎来到Lumi Hive" class="carousel-image" :no-lazy="true" />
+                <div class="carousel-overlay"></div>
+              </div>
+              <div class="carousel-content-wrapper">
+                <div class="carousel-content glass-panel-dark">
+                  <h1 class="carousel-title">欢迎来到 Lumi Hive</h1>
+                  <p class="carousel-excerpt">探索、分享、连接 —— 您的优质知识社区</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Indicators -->
+          <div class="carousel-indicators-wrapper">
             <div class="modern-carousel-indicators">
               <button 
-                v-for="(article, index) in featuredArticles.length ? featuredArticles : [1, 2, 3]" 
+                v-for="(article, index) in featuredArticles.length ? featuredArticles : [1]" 
                 :key="index"
                 type="button" 
                 :class="{ active: index === 0 }"
@@ -99,200 +83,166 @@
                 :aria-label="`Go to slide ${index + 1}`"
               ></button>
             </div>
-            
-            <!-- 轮播控制按钮 -->
-            <button class="modern-carousel-control prev" @click="prevSlide" aria-label="Previous slide">
-              <i class="fas fa-chevron-left"></i>
-            </button>
-            <button class="modern-carousel-control next" @click="nextSlide" aria-label="Next slide">
-              <i class="fas fa-chevron-right"></i>
-            </button>
           </div>
+          
+          <!-- Controls -->
+          <button class="carousel-control prev" @click="prevSlide" aria-label="Previous slide">
+            <div class="control-icon-wrapper glass-panel">
+              <i class="fas fa-chevron-left"></i>
+            </div>
+          </button>
+          <button class="carousel-control next" @click="nextSlide" aria-label="Next slide">
+            <div class="control-icon-wrapper glass-panel">
+              <i class="fas fa-chevron-right"></i>
+            </div>
+          </button>
         </div>
       </div>
     </section>
 
     <!-- Main Content Section -->
     <section class="content-section">
-      <div class="container-fluid" style="max-width: 1400px;">
-      <div class="row justify-content-between">
-        <!-- 主要内容区域 -->
-        <div class="col-md-8">
-          <h2 class="font-weight-bold spanborder">
-            <span>所有文章</span>
-</h2>
-          
-          <!-- 文章列表 -->
-          <ol class="list-unstyled compact-article-list" v-if="articles.length > 0">
-            <li
-              v-for="(article, index) in articles"
-              :key="article.articleId"
-              class="compact-article-item"
-              data-aos="fade-up"
-              :data-aos-delay="index * 50"
-              @click="$router.push(`/article/${article.slug}`)"
-            >
-              <div class="compact-article-content">
-                <h4 class="compact-article-title">
-                  <span class="text-dark">
-                    {{ article.title }}
-                  </span>
-                </h4>
-                <p class="compact-article-excerpt">{{ article.excerpt }}</p>
-                <div class="compact-article-meta">
-                  <div class="compact-author-info">
-                    <router-link 
-                      :to="`/profile/${article.userName}`" 
-                      class="author-avatar-link"
-                      @click.stop
-                    >
-                      <img
-                        v-if="article.avatarUrl"
-                        :src="getAuthorAvatarUrl(article.avatarUrl)"
-                        alt="作者头像"
-                        class="compact-author-avatar"
-                      />
-                      <div class="compact-author-avatar" v-else>
-                        {{ (article.userName || '佚名').charAt(0).toUpperCase() }}
-                      </div>
-                    </router-link>
-                    <span class="compact-author-name">{{ article.userName || '佚名' }}</span>
-                    <span class="compact-time">{{ formatTime(article.gmtModified) }}</span>
-                  </div>
-                  <div class="compact-stats">
-                    <span class="compact-stat-item">
-                      <i class="fas fa-eye"></i>
-                      <span>{{ article.viewCount || 0 }}</span>
-                    </span>
-                    <span class="compact-stat-item">
-                      <i class="fas fa-heart"></i>
-                      <span>{{ article.likes || 0 }}</span>
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </li>
-          </ol>
-          
-          <!-- 无文章提示 -->
-          <div v-else-if="!loading" class="empty-state">
-            <div class="empty-state-icon">📝</div>
-            <h3 class="empty-state-title">暂时还没有文章哦</h3>
-            <p class="empty-state-text">敬请期待精彩内容的到来</p>
-          </div>
-          
-          <!-- 分页 -->
-          <nav v-if="pagination.totalPages > 1" aria-label="Page navigation" class="mt-5">
-            <ul class="pagination justify-content-center modern-pagination">
-              <li class="page-item" :class="{ disabled: pagination.current === 1 }">
-                <a class="page-link" href="#" @click.prevent="changePage(pagination.current - 1)">上一页</a>
-              </li>
-              
-              <li v-if="startPage > 1" class="page-item">
-                <a class="page-link" href="#" @click.prevent="changePage(1)">1</a>
-              </li>
-              <li v-if="startPage > 2" class="page-item disabled">
-                <span class="page-link">...</span>
-              </li>
-              
-              <li
-                v-for="i in pageRange"
-                :key="i"
-                class="page-item"
-                :class="{ active: i === pagination.current }"
+      <div class="apple-container">
+        <div class="row">
+          <!-- Main Column: Article List -->
+          <div class="col-lg-8">
+            <div class="section-header">
+              <h2 class="section-title">最新文章</h2>
+              <div class="section-line"></div>
+            </div>
+            
+            <!-- Article List -->
+            <div class="article-list" v-if="articles.length > 0">
+              <div
+                v-for="(article, index) in articles"
+                :key="article.articleId"
+                class="article-card-wrapper"
+                data-aos="fade-up"
+                :data-aos-delay="index * 50"
+                @click="$router.push(`/article/${article.slug}`)"
               >
-                <a class="page-link" href="#" @click.prevent="changePage(i)">{{ i }}</a>
-              </li>
-              
-              <li v-if="endPage < pagination.totalPages - 1" class="page-item disabled">
-                <span class="page-link">...</span>
-              </li>
-              <li v-if="endPage < pagination.totalPages" class="page-item">
-                <a class="page-link" href="#" @click.prevent="changePage(pagination.totalPages)">{{ pagination.totalPages }}</a>
-              </li>
-              
-              <li class="page-item" :class="{ disabled: pagination.current === pagination.totalPages }">
-                <a class="page-link" href="#" @click.prevent="changePage(pagination.current + 1)">下一页</a>
-              </li>
-            </ul>
-          </nav>
-        </div>
-
-        <!-- 侧边栏 -->
-        <div class="col-md-4 ps-4">
-          <!-- 热门阅读 -->
-          <h2 class="font-weight-bold spanborder">
-            <span>热门阅读</span>
-</h2>
-          <ol class="list-unstyled compact-popular-list" v-if="popularArticles.length > 0">
-            <li
-              v-for="(article, index) in popularArticles"
-              :key="article.articleId"
-              class="compact-popular-item"
-              data-aos="fade-left"
-              :data-aos-delay="index * 100"
-            >
-              <div class="compact-article-content">
-                <h4 class="compact-article-title">
-                  <router-link :to="`/article/${article.slug}`" class="text-dark">
-                    {{ article.title }}
-                  </router-link>
-                </h4>
-                <div class="compact-article-meta">
-                  <div class="compact-author-info">
-                    <img
-                      v-if="article.avatarUrl"
-                      :src="getAuthorAvatarUrl(article.avatarUrl)"
-                      alt="作者头像"
-                      class="compact-author-avatar"
-                    />
-                    <span class="compact-author-name">{{ article.userName || '佚名' }}</span>
-                  </div>
-                  <div class="compact-stats">
-                    <span class="compact-stat-item">
-                      <i class="fas fa-eye"></i>
-                      <span>{{ article.viewCount || 0 }}</span>
-                    </span>
-                    <span class="compact-stat-item">
-                      <i class="fas fa-heart"></i>
-                      <span>{{ article.likes || 0 }}</span>
-                    </span>
+                <div class="article-card glass-panel">
+                  <div class="card-body">
+                    <div class="article-main">
+                      <h3 class="article-title">{{ article.title }}</h3>
+                      <p class="article-excerpt">{{ getExcerpt(article) }}</p>
+                      
+                      <div class="article-meta">
+                        <div class="author-info">
+                          <div class="author-avatar-sm">
+                            <LazyImage 
+                              :src="getAuthorAvatarUrl(article.avatarUrl)" 
+                              :alt="article.userName"
+                              class="avatar-img"
+                            />
+                          </div>
+                          <span class="author-name">{{ article.userName || '佚名' }}</span>
+                        </div>
+                        <span class="meta-separator">·</span>
+                        <span class="publish-time">{{ formatTime(article.gmtModified) }}</span>
+                        
+                        <div class="article-stats">
+                          <span class="stat-item">
+                            <i class="far fa-eye"></i> {{ article.viewCount || 0 }}
+                          </span>
+                          <span class="stat-item">
+                            <i class="far fa-heart"></i> {{ article.likes || 0 }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- Optional Thumbnail -->
+                    <div class="article-thumbnail" v-if="article.thumbnailUrl || article.backgroundUrl">
+                       <LazyImage 
+                        :src="getProcessedImageUrl(article.thumbnailUrl || article.backgroundUrl)" 
+                        :alt="article.title"
+                        class="thumbnail-img"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
-            </li>
-          </ol>
-
-          <!-- 热门标签 -->
-          <h2 class="font-weight-bold spanborder">
-            <span>热门标签</span>
-</h2>
-          <div
-            v-if="tags.length > 0"
-            id="tagBubbleContainer"
-            class="tag-cloud-container"
-            style="position: relative; height: 800px; margin-bottom: 20px; overflow: hidden;"
-          >
-            <router-link
-              v-for="tag in tags"
-              :key="tag.id"
-              :to="`/tags#${tag.name}`"
-              class="tag-bubble"
-              :data-count="tag.articleCount || 0"
-              @click="navigateToTag(tag.name)"
-            >
-              <span class="tag-content">
-                {{ tag.name }}
-                <small class="tag-count">({{ tag.articleCount }})</small>
-              </span>
-            </router-link>
+            </div>
+            
+            <!-- Empty State -->
+            <div v-else-if="!loading" class="empty-state glass-panel">
+              <div class="empty-icon">📝</div>
+              <h3>暂无文章</h3>
+              <p>敬请期待精彩内容的到来</p>
+            </div>
+            
+            <!-- Pagination -->
+            <nav v-if="pagination.totalPages > 1" class="pagination-wrapper">
+              <ul class="apple-pagination">
+                <li :class="{ disabled: pagination.current === 1 }">
+                  <button @click.prevent="changePage(pagination.current - 1)" class="page-btn prev">
+                    <i class="fas fa-chevron-left"></i>
+                  </button>
+                </li>
+                
+                <li v-for="i in pageRange" :key="i" :class="{ active: i === pagination.current }">
+                  <button @click.prevent="changePage(i)" class="page-btn number">{{ i }}</button>
+                </li>
+                
+                <li :class="{ disabled: pagination.current === pagination.totalPages }">
+                  <button @click.prevent="changePage(pagination.current + 1)" class="page-btn next">
+                    <i class="fas fa-chevron-right"></i>
+                  </button>
+                </li>
+              </ul>
+            </nav>
           </div>
-          
-          <div v-else-if="!loading">
-            <p>暂无分类标签。</p>
+
+          <!-- Sidebar -->
+          <div class="col-lg-4 ps-lg-5">
+            <div class="sidebar-sticky">
+              <!-- Popular Articles -->
+              <div class="sidebar-widget glass-panel mb-4">
+                <h3 class="widget-title">热门阅读</h3>
+                <div class="popular-list">
+                  <div
+                    v-for="(article, index) in popularArticles"
+                    :key="article.articleId"
+                    class="popular-item"
+                    @click="$router.push(`/article/${article.slug}`)"
+                  >
+                    <div class="popular-index" :class="{'top-3': index < 3}">{{ index + 1 }}</div>
+                    <div class="popular-content">
+                      <h4 class="popular-title">{{ article.title }}</h4>
+                      <div class="popular-meta">
+                        <span>{{ article.userName || '佚名' }}</span>
+                        <span>·</span>
+                        <span>{{ article.viewCount || 0 }} 阅读</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tags Cloud -->
+              <div class="sidebar-widget glass-panel">
+                <h3 class="widget-title">热门标签</h3>
+                <div
+                  v-if="tags.length > 0"
+                  id="tagBubbleContainer"
+                  class="tag-cloud-container"
+                >
+                  <router-link
+                    v-for="tag in tags"
+                    :key="tag.id"
+                    :to="`/tags#${tag.name}`"
+                    class="tag-bubble"
+                    :data-count="tag.articleCount || 0"
+                  >
+                    <span class="tag-text">{{ tag.name }}</span>
+                  </router-link>
+                </div>
+                <div v-else class="text-center py-3 text-muted">暂无标签</div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
       </div>
     </section>
   </div>
@@ -430,6 +380,23 @@ const getProcessedImageUrl = (url) => {
   }
   
   return url
+}
+
+// 获取文章摘要，如果为空则从内容生成
+const getExcerpt = (article) => {
+  if (article.excerpt && article.excerpt.trim()) {
+    return article.excerpt
+  }
+  
+  // 如果没有摘要，尝试从内容生成
+  if (article.content) {
+    // 移除HTML标签
+    const textContent = article.content.replace(/<[^>]+>/g, '')
+    // 截取前100个字符
+    return textContent.slice(0, 100) + (textContent.length > 100 ? '...' : '')
+  }
+  
+  return '暂无摘要'
 }
 
 // 智能泡泡标签云实现 - 优化版，防止强制重排
@@ -678,288 +645,104 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-/* ===== 整体布局 ===== */
+/* ===== Global Variables & Reset ===== */
+:root {
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+  --glass-dark-bg: rgba(0, 0, 0, 0.6);
+  --hive-gold: #F6B93B;
+  --hive-gold-glow: rgba(246, 185, 59, 0.4);
+  --apple-gray: #86868b;
+  --apple-text: #1d1d1f;
+  --noise-pattern: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+}
+
 .home-page {
-  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  background-color: #fbfbfd;
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(246, 185, 59, 0.05) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(66, 153, 225, 0.05) 0%, transparent 40%);
   min-height: 100vh;
-  padding-top: 70px; /* 为固定导航栏预留空间 */
+  padding-top: 60px;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  color: var(--apple-text);
 }
 
-.hero-section {
-  padding: 2rem 0;
-  background: white;
-}
-
-.content-section {
-  padding: 3rem 0;
-  background: white;
-  margin-top: -1rem;
-  border-radius: 2rem 2rem 0 0;
-  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.05);
-}
-
-/* ===== 文章卡片 ===== */
-.article-link {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.article-link:hover {
-  transform: translateY(-8px);
-}
-
-.article-card {
-  background: white;
-  border-radius: 1.2rem;
-  border: 1px solid rgba(255, 193, 7, 0.08);
-  box-shadow: 0 3px 15px rgba(255, 193, 7, 0.05), 0 1px 3px rgba(0, 0, 0, 0.04);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
+/* ===== Glass Panel Utility ===== */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.02),
+    0 2px 4px -1px rgba(0, 0, 0, 0.02),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+  border-radius: 24px;
   position: relative;
-  margin-bottom: 1rem;
+  overflow: hidden;
 }
 
-.article-card::before {
-  content: '';
+.glass-panel::before {
+  content: "";
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #ffc107 0%, #ffda58 100%);
-  transform: scaleX(0);
-  transition: transform 0.3s ease;
-  transform-origin: left;
-}
-
-.article-link:hover .article-card {
-  box-shadow: 0 12px 40px rgba(255, 193, 7, 0.12), 0 4px 12px rgba(0, 0, 0, 0.08);
-  border-color: rgba(255, 193, 7, 0.2);
-}
-
-.article-link:hover .article-card::before {
-  transform: scaleX(1);
-}
-
-.article-title {
-  color: #2c3e50;
-  font-weight: 700;
-  line-height: 1.3;
-  margin-bottom: 0.3rem;
-  transition: color 0.3s ease;
-}
-
-.article-link:hover .article-title {
-  color: #ffc107;
-}
-
-.article-excerpt {
-  color: #64748b;
-  line-height: 1.5;
-  margin-bottom: 0.3rem;
-}
-
-.author-info {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  padding: 0.1rem 0;
-}
-
-.author-avatar {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  object-fit: cover;
-  background: linear-gradient(135deg, #ffc107 0%, #ffda58 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: 600;
-  font-size: 11px;
-  box-shadow: 0 2px 6px rgba(255, 193, 7, 0.25);
-  transition: transform 0.3s ease;
-}
-
-.author-avatar-link {
-  text-decoration: none;
-  transition: transform 0.2s ease;
-  display: inline-block;
-}
-
-.author-avatar-link:hover {
-  transform: scale(1.05);
-}
-
-.article-link:hover .author-avatar {
-  transform: scale(1.1);
-}
-
-.article-meta {
-  padding-top: 0.2rem;
-  border-top: 1px solid #f1f5f9;
-  margin-top: 0.2rem;
-  padding-bottom: 0.1rem;
-}
-
-.article-stats {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.stat-item {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  color: #64748b;
-  font-size: 0.875rem;
-  transition: color 0.3s ease;
-}
-
-.stat-item i {
-  opacity: 0.8;
-  color: #ffc107;
-  font-size: 0.875rem;
-  transition: all 0.3s ease;
-}
-
-.article-link:hover .stat-item i {
+  top: 0; left: 0; width: 100%; height: 100%;
+  background-image: var(--noise-pattern);
   opacity: 1;
-  transform: scale(1.1);
+  pointer-events: none;
+  z-index: 0;
+  mix-blend-mode: overlay;
 }
 
-.article-link:hover .stat-item {
-  color: #ffc107;
-}
-
-/* ===== 智能泡泡标签样式 ===== */
-.tag-bubble {
-  position: absolute;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  text-decoration: none;
-  box-sizing: border-box;
-  overflow: hidden;
-  font-weight: 600;
+.glass-panel-dark {
+  background: rgba(28, 28, 30, 0.65);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  border-radius: 24px;
   color: white;
-  cursor: pointer;
-  z-index: 1;
-  
-  /* 简洁的泡泡效果 */
-  border: none;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  
-  transition: all 0.3s ease;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-  
-  /* 防止文字选中 */
-  user-select: none;
-  -webkit-user-select: none;
-  
-  /* 为奇数和偶数标签添加不同的浮动动画 */
-  will-change: transform;
 }
 
-.tag-bubble:hover {
-  transform: scale(1.1);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-  color: white;
-  text-decoration: none;
-  z-index: 100;
-  filter: brightness(1.1);
-}
-
-/* 点击效果 */
-.tag-bubble:active {
-  transform: scale(1.05);
-  transition: all 0.1s ease;
-}
-
-/* 标签内容样式 */
-.tag-content {
-  display: block;
-  line-height: 1.3;
-  text-align: center;
-  word-break: break-all;
-  max-width: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  padding: 0 8px;
-}
-
-.tag-count {
-  display: block;
-  font-size: 0.85em;
-  opacity: 0.9;
-  margin-top: 4px;
-  font-weight: normal;
-}
-
-/* 轻微的浮动动画效果 */
-@keyframes float-up {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
-}
-
-@keyframes float-down {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(5px); }
-}
-
-/* ===== 现代化轮播图样式 ===== */
-.modern-carousel-container {
-  margin-bottom: 2rem;
+/* ===== Cinematic Hero Section ===== */
+.hero-section {
+  padding: 20px 0 40px;
   position: relative;
-  overflow: hidden;
-  border-radius: 20px;
-  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.1);
+}
+
+.cinematic-carousel-container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 20px;
+  height: 600px;
+  position: relative;
 }
 
 .modern-carousel {
-  position: relative;
-  width: 100%;
-  height: 450px;
+  height: 100%;
+  border-radius: 32px;
   overflow: hidden;
-}
-
-.modern-carousel-inner {
+  box-shadow: 0 20px 40px -10px rgba(0,0,0,0.15);
   position: relative;
-  width: 100%;
+}
+
+.modern-carousel-inner, .modern-carousel-item {
   height: 100%;
 }
 
-.modern-carousel .modern-carousel-item {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 1.5s ease, visibility 1.5s ease;
+.modern-carousel-item {
+  position: relative;
   cursor: pointer;
-}
-
-.modern-carousel .modern-carousel-item.active {
-  opacity: 1;
-  visibility: visible;
-  z-index: 2;
+  transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .carousel-image-wrapper {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
   height: 100%;
-  z-index: 1;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
 }
 
 .carousel-image {
@@ -969,270 +752,528 @@ onBeforeUnmount(() => {
   transition: transform 8s ease;
 }
 
-.modern-carousel .modern-carousel-item.active .carousel-image {
+.modern-carousel-item:hover .carousel-image {
   transform: scale(1.05);
 }
 
 .carousel-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    to right,
-    rgba(0, 0, 0, 0.8) 0%,
-    rgba(0, 0, 0, 0.6) 30%,
-    rgba(0, 0, 0, 0.4) 60%,
-    rgba(0, 0, 0, 0.2) 100%
-  );
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.1) 100%);
+}
+
+.carousel-content-wrapper {
+  position: absolute;
+  bottom: 60px;
+  left: 60px;
+  max-width: 600px;
   z-index: 2;
 }
 
-.modern-carousel-content {
-  position: relative;
-  z-index: 3;
-  width: 100%;
-  max-width: 800px;
-  padding: 3rem 6rem 3rem 4rem;
-  margin-left: 50px;
-  color: white;
+.carousel-content {
+  padding: 40px;
+  transform: translateY(20px);
+  opacity: 0;
+  transition: all 0.6s cubic-bezier(0.215, 0.610, 0.355, 1.000);
+  transition-delay: 0.1s;
+}
+
+.modern-carousel-item.active .carousel-content {
+  transform: translateY(0);
+  opacity: 1;
 }
 
 .carousel-meta {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.carousel-author {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: 0.95rem;
-  font-weight: 500;
+  gap: 12px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
   color: rgba(255, 255, 255, 0.9);
 }
 
-.carousel-author-avatar {
-  width: 36px;
-  height: 36px;
+.author-avatar-wrapper {
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid rgba(255,255,255,0.8);
+}
+
+.author-avatar-img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
-
-.carousel-stats {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.carousel-stats i {
-  margin-right: 0.35rem;
-  color: #ffda58;
 }
 
 .carousel-title {
-  font-size: 2.75rem;
-  font-weight: 700;
-  line-height: 1.2;
-  margin-bottom: 1.25rem;
-  color: white;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-  letter-spacing: -0.5px;
-  max-width: 90%;
+  font-size: 2.5rem;
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 16px;
+  letter-spacing: -0.02em;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.3);
 }
 
 .carousel-excerpt {
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   line-height: 1.6;
-  margin-bottom: 2rem;
-  color: rgba(255, 255, 255, 0.85);
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  max-width: 80%;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 24px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
 }
 
-.carousel-actions {
-  margin-top: 1rem;
-}
-
-.carousel-read-btn {
-  background: #ffda58;
-  color: #2d3748;
-  border: none;
-  border-radius: 30px;
-  padding: 0.85rem 2rem;
-  font-size: 1rem;
+.apple-glass-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 100px;
   font-weight: 600;
-  cursor: pointer;
+  backdrop-filter: blur(10px);
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(255, 218, 88, 0.3);
   display: inline-flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 8px;
 }
 
-.carousel-read-btn:hover {
-  background: #ffd333;
-  transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(255, 218, 88, 0.4);
+.apple-glass-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.02);
 }
 
-.carousel-read-btn i {
-  font-size: 0.85rem;
-  transition: transform 0.3s ease;
+/* Indicators & Controls */
+.carousel-indicators-wrapper {
+  position: absolute;
+  bottom: 30px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  z-index: 10;
 }
 
-.carousel-read-btn:hover i {
-  transform: translateX(4px);
+.modern-carousel-indicators {
+  display: flex;
+  gap: 8px;
+  background: rgba(0,0,0,0.3);
+  padding: 8px 12px;
+  border-radius: 100px;
+  backdrop-filter: blur(10px);
 }
 
-/* 轮播图控制按钮 */
-.modern-carousel-control {
+.modern-carousel-indicators button {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.4);
+  padding: 0;
+  transition: all 0.3s ease;
+}
+
+.modern-carousel-indicators button.active {
+  background: white;
+  transform: scale(1.2);
+}
+
+.carousel-control {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
   z-index: 10;
-  width: 50px;
-  height: 50px;
+  background: none;
+  border: none;
+  padding: 20px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.modern-carousel:hover .carousel-control {
+  opacity: 1;
+}
+
+.carousel-control.prev { left: 20px; }
+.carousel-control.next { right: 20px; }
+
+.control-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: var(--apple-text);
+  font-size: 1.2rem;
+  transition: transform 0.2s ease;
+}
+
+.control-icon-wrapper:hover {
+  transform: scale(1.1);
+  background: rgba(255, 255, 255, 0.8);
+}
+
+/* ===== Main Content ===== */
+.apple-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.section-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--apple-text);
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.section-line {
+  flex: 1;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(0,0,0,0.05), transparent);
+  border-radius: 2px;
+}
+
+/* Article List */
+.article-card-wrapper {
+  margin-bottom: 24px;
+  cursor: pointer;
+}
+
+.article-card {
+  padding: 0;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+}
+
+.article-card:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+}
+
+.card-body {
+  padding: 32px;
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+}
+
+.article-main {
+  flex: 1;
+}
+
+.article-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  line-height: 1.3;
+  color: var(--apple-text);
+  transition: color 0.2s ease;
+}
+
+.article-card:hover .article-title {
+  color: var(--hive-gold);
+}
+
+.article-excerpt {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--apple-gray);
+  margin-bottom: 20px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.article-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.9rem;
+  color: var(--apple-gray);
+}
+
+.author-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.author-avatar-sm {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.author-name {
+  font-weight: 500;
+  color: var(--apple-text);
+}
+
+.article-stats {
+  margin-left: auto;
+  display: flex;
+  gap: 16px;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.article-thumbnail {
+  width: 160px;
+  height: 100px;
+  border-radius: 12px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.thumbnail-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.article-card:hover .thumbnail-img {
+  transform: scale(1.1);
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--apple-gray);
+}
+
+.empty-icon {
+  font-size: 4rem;
+  margin-bottom: 16px;
+}
+
+/* Pagination */
+.pagination-wrapper {
+  margin-top: 40px;
+  display: flex;
+  justify-content: center;
+}
+
+.apple-pagination {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.5);
+  padding: 6px;
+  border-radius: 100px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+.page-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--apple-text);
+  font-weight: 500;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  backdrop-filter: blur(5px);
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
 }
 
-.modern-carousel-control.prev {
-  left: 20px;
+.page-btn:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.05);
 }
 
-.modern-carousel-control.next {
-  right: 20px;
-}
-
-.modern-carousel-control i {
+.active .page-btn {
+  background: var(--apple-text);
   color: white;
-  font-size: 1rem;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  transition: transform 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-.modern-carousel-control:hover {
-  background: rgba(255, 255, 255, 0.25);
-  transform: translateY(-50%) scale(1.1);
+.disabled .page-btn {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
-.modern-carousel-control.prev:hover i {
-  transform: translateX(-2px);
+/* ===== Sidebar ===== */
+.sidebar-sticky {
+  position: sticky;
+  top: 90px;
 }
 
-.modern-carousel-control.next:hover i {
-  transform: translateX(2px);
+.widget-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  color: var(--apple-text);
 }
 
-/* 轮播图指示器 */
-.modern-carousel-indicators {
-  position: absolute;
-  bottom: 30px;
-  right: 50px;
-  z-index: 10;
+.sidebar-widget {
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+/* Popular List */
+.popular-item {
   display: flex;
-  gap: 0.75rem;
-}
-
-.modern-carousel-indicators button {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.4);
-  border: none;
+  gap: 16px;
+  padding: 12px 0;
   cursor: pointer;
-  transition: all 0.3s ease;
-  padding: 0;
+  transition: transform 0.2s ease;
 }
 
-.modern-carousel-indicators button.active {
-  background: #ffda58;
-  transform: scale(1.2);
-  box-shadow: 0 0 10px rgba(255, 218, 88, 0.5);
+.popular-item:hover {
+  transform: translateX(4px);
 }
 
-/* 响应式调整 */
+.popular-index {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #e5e5e5;
+  line-height: 1;
+  min-width: 24px;
+}
+
+.popular-index.top-3 {
+  color: var(--hive-gold);
+  opacity: 0.8;
+}
+
+.popular-content {
+  flex: 1;
+}
+
+.popular-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+  line-height: 1.4;
+  color: var(--apple-text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.popular-meta {
+  font-size: 0.8rem;
+  color: var(--apple-gray);
+  display: flex;
+  gap: 6px;
+}
+
+/* Tag Cloud */
+.tag-cloud-container {
+  position: relative;
+  height: 400px; /* Reduced height for better fit */
+  overflow: hidden;
+}
+
+.tag-bubble {
+  position: absolute;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  will-change: transform;
+}
+
+.tag-bubble:hover {
+  transform: scale(1.1) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+}
+
+.tag-text {
+  text-align: center;
+  line-height: 1.2;
+  pointer-events: none;
+}
+
+/* Responsive */
 @media (max-width: 992px) {
-  .modern-carousel {
-    height: 400px;
+  .cinematic-carousel-container {
+    height: 500px;
+    padding: 0 16px;
   }
   
-  .modern-carousel-content {
-    padding: 2rem 3rem;
+  .carousel-content-wrapper {
+    left: 30px;
+    bottom: 30px;
+    right: 30px;
   }
   
   .carousel-title {
-    font-size: 2.25rem;
+    font-size: 1.8rem;
   }
   
-  .carousel-excerpt {
-    font-size: 1.05rem;
+  .card-body {
+    flex-direction: column;
+  }
+  
+  .article-thumbnail {
+    width: 100%;
+    height: 200px;
+    order: -1;
+    margin-bottom: 16px;
   }
 }
 
 @media (max-width: 768px) {
+  .hero-section {
+    padding-top: 0;
+  }
+  
+  .cinematic-carousel-container {
+    height: 400px;
+    padding: 0;
+  }
+  
   .modern-carousel {
-    height: 350px;
+    border-radius: 0;
   }
   
-  .modern-carousel-content {
-    padding: 1.5rem 2rem;
-  }
-  
-  .carousel-title {
-    font-size: 1.75rem;
-    margin-bottom: 1rem;
-  }
-  
-  .carousel-excerpt {
-    font-size: 1rem;
-    margin-bottom: 1.5rem;
-    max-width: 100%;
-  }
-  
-  .carousel-meta {
-    margin-bottom: 1rem;
-  }
-  
-  .carousel-overlay {
-    background: linear-gradient(
-      to right,
-      rgba(0, 0, 0, 0.85) 0%,
-      rgba(0, 0, 0, 0.7) 50%,
-      rgba(0, 0, 0, 0.5) 100%
-    );
-  }
-  
-  .modern-carousel-indicators {
-    right: auto;
-    left: 50%;
-    transform: translateX(-50%);
-  }
-}
-
-@media (max-width: 576px) {
-  .modern-carousel {
-    height: 300px;
-  }
-  
-  .modern-carousel-content {
-    padding: 1rem 1.5rem;
+  .carousel-content {
+    padding: 24px;
+    background: rgba(0, 0, 0, 0.7); /* Darker for better readability on mobile */
   }
   
   .carousel-title {
@@ -1240,689 +1281,11 @@ onBeforeUnmount(() => {
   }
   
   .carousel-excerpt {
-    font-size: 0.95rem;
-    margin-bottom: 1rem;
+    display: none; /* Hide excerpt on mobile */
   }
   
-  .carousel-read-btn {
-    padding: 0.75rem 1.5rem;
-    font-size: 0.9rem;
+  .apple-container {
+    padding: 0 16px;
   }
-  
-  .carousel-author-avatar {
-    width: 30px;
-    height: 30px;
-  }
-  
-  .modern-carousel-control {
-    width: 40px;
-    height: 40px;
-  }
-  
-  .modern-carousel-control.prev {
-    left: 10px;
-  }
-  
-  .modern-carousel-control.next {
-    right: 10px;
-  }
-}
-
-.carousel-control-prev,
-.carousel-control-next {
-  width: 50px;
-  height: 50px;
-  background: transparent;
-  border: none;
-  top: 50%;
-  transform: translateY(-50%);
-  opacity: 0.8;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.carousel-control-prev {
-  left: 1.5rem;
-}
-
-.carousel-control-next {
-  right: 1.5rem;
-}
-
-.carousel-control-prev:hover,
-.carousel-control-next:hover {
-  transform: translateY(-50%) scale(1.15);
-  opacity: 1;
-}
-
-.carousel-control-prev:hover .carousel-control-prev-icon,
-.carousel-control-next:hover .carousel-control-next-icon {
-  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.7));
-}
-
-.carousel-control-prev-icon,
-.carousel-control-next-icon {
-  width: 30px;
-  height: 30px;
-  background-color: white;
-  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.5));
-  opacity: 0.9;
-}
-
-/* ===== 章节标题 ===== */
-.spanborder {
-  position: relative;
-  margin-bottom: 2.5rem;
-  padding-bottom: 1.5rem;
-}
-
-.spanborder::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 1px;
-  background: linear-gradient(90deg, #dee2e6 0%, transparent 100%);
-}
-
-.spanborder span {
-  display: inline-block;
-  background: white;
-  padding-right: 2rem;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #2c3e50;
-  position: relative;
-}
-
-.spanborder span::before {
-  content: '';
-  position: absolute;
-  bottom: -1.5rem;
-  left: 0;
-  width: 3rem;
-  height: 3px;
-  background: linear-gradient(90deg, #ffc107 0%, #ffda58 100%);
-  border-radius: 1.5px;
-}
-
-/* ===== 侧边栏美化 ===== */
-.col-md-4 {
-  padding-left: 2rem;
-}
-
-.col-md-4 .spanborder span::before {
-  width: 2.5rem;
-  background: linear-gradient(90deg, #ffda58 0%, #ffc107 100%);
-}
-
-/* 热门阅读列表 - 紧凑样式 */
-.compact-popular-list {
-  margin: 0;
-  padding: 0;
-}
-
-.compact-popular-item {
-  padding: 0.8rem 0;
-  border-bottom: 1px solid #f1f5f9;
-  transition: all 0.3s ease;
-  margin-bottom: 0.3rem;
-  position: relative;
-}
-
-.compact-popular-item:last-child {
-  border-bottom: none;
-}
-
-.compact-popular-item:hover {
-  background: linear-gradient(135deg, rgba(255, 193, 7, 0.02) 0%, rgba(255, 218, 88, 0.02) 100%);
-  transform: translateX(4px);
-  border-color: rgba(255, 193, 7, 0.1);
-  padding-left: 0.5rem;
-  border-radius: 0.5rem;
-}
-
-.compact-article-content {
-  width: 100%;
-}
-
-.compact-article-title {
-  margin: 0 0 0.25rem 0;
-  font-size: 1.1rem;
-  font-weight: 600;
-  line-height: 1.3;
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  line-clamp: 1;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.compact-article-title a {
-  color: #2c3e50;
-  text-decoration: none;
-  transition: color 0.3s ease;
-}
-
-.compact-popular-item:hover .compact-article-title a {
-  color: #ffc107;
-}
-
-.compact-article-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  margin-top: 8px;
-}
-
-.compact-author-info {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.compact-author-avatar {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 1px solid rgba(255, 193, 7, 0.2);
-  margin-right: 4px;
-}
-
-.compact-author-name {
-  font-size: 0.95rem;
-  color: #64748b;
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100px;
-}
-
-.compact-stats {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-left: auto;
-}
-
-.compact-stat-item {
-  display: flex;
-  align-items: center;
-  gap: 0.2rem;
-  font-size: 0.9rem;
-  color: #64748b;
-  margin-left: 8px;
-}
-
-.compact-stat-item i {
-  color: #ffc107;
-  font-size: 0.85rem;
-  opacity: 0.8;
-}
-
-.compact-popular-item:hover .compact-stat-item i {
-  opacity: 1;
-  transform: scale(1.1);
-}
-
-.compact-popular-item:hover .compact-stat-item {
-  color: #ffc107;
-}
-
-/* 所有文章区域紧凑布局 */
-.compact-article-list {
-  margin: 0;
-  padding: 0;
-}
-
-.compact-article-item {
-  padding: 1.5rem;
-  border: 1px solid #eaedf1;
-  border-radius: 12px;
-  transition: all 0.3s ease;
-  margin-bottom: 1.5rem; /* 增加底部间距，使卡片之间的空间更大 */
-  position: relative;
-  background-color: #ffffff;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
-  cursor: pointer;
-}
-
-.compact-article-item:last-child {
-  border-bottom: none;
-}
-
-.compact-article-item:hover {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(255, 252, 240, 1) 100%);
-  transform: translateY(-5px);
-  border-color: rgba(255, 193, 7, 0.2);
-  box-shadow: 0 10px 20px rgba(255, 193, 7, 0.1);
-}
-
-.compact-article-item .compact-article-title {
-  margin: 0 0 0.8rem 0;
-  font-size: 1.5rem;
-  font-weight: 700;
-  line-height: 1.3;
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  line-clamp: 1;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.compact-article-item .compact-article-title span {
-  color: #2c3e50;
-  text-decoration: none;
-  transition: color 0.3s ease;
-}
-
-.compact-article-item:hover .compact-article-title span {
-  color: #ffc107;
-}
-
-.compact-article-excerpt {
-  color: #64748b;
-  font-size: 1.15rem;
-  line-height: 1.6;
-  margin: 0.8rem 0 1.2rem 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 3; /* 从2行增加到3行 */
-  line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-height: 5.5rem; /* 确保有足够的高度显示3行内容 */
-}
-
-.compact-time {
-  font-size: 0.9rem;
-  color: #94a3b8;
-  margin-left: 10px;
-  background-color: transparent;
-  padding: 0.2rem 0.5rem;
-  border-radius: 12px;
-}
-
-/* 所有文章区域的作者信息和统计信息样式 */
-.compact-article-item .compact-article-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  margin-top: 15px;
-  padding-top: 15px;
-  border-top: 1px solid #f1f5f9;
-}
-
-.compact-article-item .compact-author-info {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.compact-article-item .compact-author-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid rgba(255, 193, 7, 0.2);
-  margin-right: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: 600;
-  font-size: 14px;
-  background: linear-gradient(135deg, #ffc107 0%, #ffda58 100%);
-  box-shadow: 0 2px 6px rgba(255, 193, 7, 0.15);
-  position: relative;
-  z-index: 2;
-}
-
-.compact-article-item .compact-author-name {
-  font-size: 1rem;
-  color: #4b5563;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 120px;
-}
-
-.compact-article-item .compact-stats {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-left: auto;
-}
-
-.compact-article-item .compact-stat-item {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: 1rem;
-  color: #64748b;
-  margin-left: 10px;
-  background-color: transparent;
-  padding: 0.3rem 0.6rem;
-  border-radius: 20px;
-  transition: all 0.3s ease;
-}
-
-.compact-article-item .compact-stat-item i {
-  color: #ffc107;
-  font-size: 0.95rem;
-  opacity: 0.9;
-}
-
-.compact-article-item:hover .compact-stat-item i {
-  opacity: 1;
-  transform: scale(1.1);
-}
-
-.compact-article-item:hover .compact-stat-item {
-  color: #ffc107;
-  background-color: transparent;
-}
-
-/* 保留原有的通用样式作为备用 */
-.list-unstyled li h6 a {
-  color: #2c3e50;
-  font-weight: 600;
-  font-size: 0.9rem;
-  line-height: 1.2;
-  transition: color 0.3s ease;
-}
-
-.list-unstyled li:hover h6 a {
-  color: #ffc107;
-}
-
-/* 智能标签云容器 */
-.tag-cloud-container {
-  background: #ffffff;
-  border-radius: 1rem;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  border: 1px solid #f0f0f0;
-  padding: 1.5rem;
-  position: relative;
-  overflow: hidden;
-  min-height: 500px;
-}
-
-.tag-cloud-container::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #ffc107 0%, #ffda58 100%);
-  border-radius: 1.5rem 1.5rem 0 0;
-}
-
-/* ===== 响应式设计 ===== */
-@media (max-width: 768px) {
-  .hero-section {
-    padding: 1rem 0;
-  }
-  
-  .content-section {
-    padding: 2rem 0;
-    margin-top: 0;
-    border-radius: 1rem 1rem 0 0;
-  }
-  
-  .container-fluid {
-    padding-left: 1rem;
-    padding-right: 1rem;
-  }
-  
-  .carousel {
-    height: 250px !important;
-    border-radius: 1rem;
-  }
-  
-  .carousel .carousel-item img {
-    height: 250px !important;
-  }
-  
-  .carousel-caption {
-    padding: 1.5rem 1rem 1rem;
-  }
-  
-  .carousel-caption h5 {
-    font-size: 1.25rem;
-  }
-  
-  .carousel-caption p {
-    font-size: 0.95rem;
-  }
-  
-  .col-md-4 {
-    margin-top: 3rem;
-    padding-left: 0 !important;
-  }
-  
-  .tag-cloud-container {
-    min-height: 400px !important;
-    height: 400px !important;
-    padding: 1rem;
-  }
-  
-  .article-meta {
-    flex-direction: row;
-    justify-content: space-between !important;
-    align-items: center !important;
-    gap: 0;
-  }
-  
-  .article-card {
-    border-radius: 1rem;
-  }
-  
-  .spanborder span {
-    font-size: 1.25rem;
-  }
-  
-  .tag-bubble {
-    min-width: 45px !important;
-    min-height: 45px !important;
-    font-size: 10px !important; /* 在移动设备上统一字体大小 */
-    padding: 4px 6px !important;
-  }
-  
-  /* 移动端使用更紧凑的网格 */
-  .tag-cloud-container {
-    overflow-x: hidden;
-  }
-}
-
-/* ===== 动画效果 ===== */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-.article-card {
-  animation: fadeInUp 0.6s ease-out;
-  animation-fill-mode: both;
-}
-
-.list-unstyled li {
-  animation: slideInLeft 0.5s ease-out;
-  animation-fill-mode: both;
-}
-
-.tag-cloud-container {
-  animation: fadeInUp 0.7s ease-out;
-  animation-fill-mode: both;
-  animation-delay: 0.2s;
-}
-
-/* 为不同位置的元素添加延迟 */
-.article-card:nth-child(1) { animation-delay: 0.1s; }
-.article-card:nth-child(2) { animation-delay: 0.2s; }
-.article-card:nth-child(3) { animation-delay: 0.3s; }
-.article-card:nth-child(4) { animation-delay: 0.4s; }
-
-.list-unstyled li:nth-child(1) { animation-delay: 0.1s; }
-.list-unstyled li:nth-child(2) { animation-delay: 0.2s; }
-.list-unstyled li:nth-child(3) { animation-delay: 0.3s; }
-.list-unstyled li:nth-child(4) { animation-delay: 0.4s; }
-.list-unstyled li:nth-child(5) { animation-delay: 0.5s; }
-
-/* ===== 分页样式 ===== */
-.modern-pagination {
-  margin: 3rem 0 1rem;
-}
-
-.modern-pagination .page-item {
-  margin: 0 0.25rem;
-}
-
-.modern-pagination .page-link {
-  border: 2px solid transparent;
-  border-radius: 0.75rem;
-  padding: 0.75rem 1rem;
-  color: #64748b;
-  background: white;
-  font-weight: 500;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  position: relative;
-  overflow: hidden;
-}
-
-.modern-pagination .page-link::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, #ffc107 0%, #ffda58 100%);
-  transition: left 0.3s ease;
-  z-index: -1;
-}
-
-.modern-pagination .page-link:hover {
-  color: white;
-  border-color: transparent;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.2);
-}
-
-.modern-pagination .page-link:hover::before {
-  left: 0;
-}
-
-.modern-pagination .page-item.active .page-link {
-  background: linear-gradient(135deg, #ffc107 0%, #ffda58 100%);
-  color: white;
-  border-color: transparent;
-  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
-}
-
-.modern-pagination .page-item.active .page-link::before {
-  left: 0;
-}
-
-.modern-pagination .page-item.disabled .page-link {
-  color: #cbd5e1;
-  background: #f8f9fa;
-  border-color: #e2e8f0;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
-.modern-pagination .page-item.disabled .page-link:hover {
-  color: #cbd5e1;
-  background: #f8f9fa;
-  transform: none;
-  box-shadow: none;
-}
-
-.modern-pagination .page-item.disabled .page-link::before {
-  display: none;
-}
-
-/* ===== 空状态样式 ===== */
-.empty-state {
-  text-align: center;
-  padding: 4rem 2rem;
-  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-  border-radius: 1.5rem;
-  border: 1px solid rgba(255, 193, 7, 0.08);
-  margin: 2rem 0;
-  position: relative;
-  overflow: hidden;
-}
-
-.empty-state::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #ffc107 0%, #ffda58 100%);
-  border-radius: 1.5rem 1.5rem 0 0;
-}
-
-.empty-state-icon {
-  font-size: 4rem;
-  margin-bottom: 1.5rem;
-  opacity: 0.8;
-  animation: bounce 2s infinite;
-}
-
-@keyframes bounce {
-  0%, 20%, 50%, 80%, 100% {
-    transform: translateY(0);
-  }
-  40% {
-    transform: translateY(-10px);
-  }
-  60% {
-    transform: translateY(-5px);
-  }
-}
-
-.empty-state-title {
-  color: #2c3e50;
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 0.75rem;
-  line-height: 1.4;
-}
-
-.empty-state-text {
-  color: #64748b;
-  font-size: 1.1rem;
-  margin-bottom: 0;
-  line-height: 1.6;
 }
 </style>
