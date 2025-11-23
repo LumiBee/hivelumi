@@ -297,15 +297,18 @@ const handleDeleteConfirm = async () => {
 .comment-item {
   position: relative;
   padding: 1.5rem;
-  background: #ffffff;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-  transition: all 0.3s ease;
+  /* background: #ffffff; removed for glass-panel */
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .comment-item:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  border-color: #f6d55c;
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px -10px rgba(246, 185, 59, 0.15);
+  border-color: var(--hive-gold);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .comment-item.has-replies {
@@ -333,15 +336,15 @@ const handleDeleteConfirm = async () => {
 .comment-avatar {
   width: 48px;
   height: 48px;
-  border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #f1f5f9;
+  border: 2px solid rgba(255, 255, 255, 0.2);
   transition: all 0.3s ease;
+  border-radius: 50%;
 }
 
 .comment-avatar-link:hover .comment-avatar {
-  border-color: #f6d55c;
-  box-shadow: 0 2px 8px rgba(246, 213, 92, 0.3);
+  border-color: var(--hive-gold);
+  filter: drop-shadow(0 0 8px var(--hive-gold-glow));
 }
 
 .comment-content-wrapper {
@@ -362,14 +365,14 @@ const handleDeleteConfirm = async () => {
 
 .comment-author-name {
   font-weight: 600;
-  color: #2d3748;
+  color: var(--apple-text);
   text-decoration: none;
   font-size: 1rem;
   transition: color 0.3s ease;
 }
 
 .comment-author-name:hover {
-  color: #f6d55c;
+  color: var(--hive-gold);
   text-decoration: none;
 }
 
@@ -384,7 +387,7 @@ const handleDeleteConfirm = async () => {
 
 .comment-text {
   margin: 0;
-  color: #4a5568;
+  color: var(--gray-700);
   line-height: 1.7;
   font-size: 1rem;
   white-space: pre-wrap;
@@ -410,8 +413,8 @@ const handleDeleteConfirm = async () => {
 }
 
 .comment-action-btn:hover {
-  background: #f8f9fa;
-  color: #f6d55c;
+  background: rgba(246, 185, 59, 0.1);
+  color: var(--hive-gold);
 }
 
 .comment-action-btn.replying {
@@ -442,10 +445,10 @@ const handleDeleteConfirm = async () => {
 }
 
 .reply-form {
-  background: #f8f9fa;
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
   padding: 1rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .reply-form-header {
@@ -458,9 +461,9 @@ const handleDeleteConfirm = async () => {
 .reply-form-avatar {
   width: 32px;
   height: 32px;
-  border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #f6d55c;
+  border: 1px solid var(--hive-gold);
+  border-radius: 50%;
 }
 
 .reply-form-username {
@@ -478,8 +481,8 @@ const handleDeleteConfirm = async () => {
 .reply-input {
   width: 100%;
   padding: 0.75rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
   font-size: 0.95rem;
   line-height: 1.5;
   resize: vertical;
@@ -489,8 +492,9 @@ const handleDeleteConfirm = async () => {
 
 .reply-input:focus {
   outline: none;
-  border-color: #f6d55c;
-  box-shadow: 0 0 0 3px rgba(246, 213, 92, 0.1);
+  border-color: var(--hive-gold);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 0 3px var(--hive-gold-glow);
 }
 
 .reply-input:disabled {
@@ -520,8 +524,8 @@ const handleDeleteConfirm = async () => {
 
 /* 回复项样式调整 */
 .replies-container .comment-item {
-  background: #f8f9fa;
-  border-color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.05);
   padding: 1rem;
 }
 

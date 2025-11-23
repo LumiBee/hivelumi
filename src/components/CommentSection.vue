@@ -1,5 +1,5 @@
 <template>
-  <div id="article-comments" class="comment-section">
+  <div id="article-comments" class="comment-section glass-panel">
     <div class="comment-header">
       <h3 class="comment-title">
         <i class="fas fa-comments me-2"></i>
@@ -206,30 +206,30 @@ onMounted(() => {
 
 <style scoped>
 .comment-section {
-  margin-top: 3rem;
-  padding: 2rem;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin-top: 4rem;
+  padding: 2.5rem;
+  /* background: white; removed for glass-panel */
+  border-radius: 24px;
+  /* box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); removed for glass-panel */
 }
 
 .comment-header {
   margin-bottom: 2rem;
   padding-bottom: 1rem;
-  border-bottom: 2px solid #f1f5f9;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .comment-title {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #2d3748;
+  color: var(--apple-text);
   margin: 0;
   display: flex;
   align-items: center;
 }
 
 .comment-title i {
-  color: #f6d55c;
+  color: var(--hive-gold);
 }
 
 .comment-count {
@@ -245,10 +245,10 @@ onMounted(() => {
 }
 
 .comment-form {
-  background: #f8f9fa;
-  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
   padding: 1.5rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .comment-form-header {
@@ -258,17 +258,25 @@ onMounted(() => {
   margin-bottom: 1rem;
 }
 
-.comment-form-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+.comm.reply-form-avatar {
+  width: 32px;
+  height: 32px;
   object-fit: cover;
-  border: 2px solid #f6d55c;
+  border: 1px solid var(--hive-gold);
+  border-radius: 50%;
+}
+
+.comment-form-avatar {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border: 2px solid var(--hive-gold);
+  border-radius: 50%;
 }
 
 .comment-form-username {
   font-weight: 600;
-  color: #2d3748;
+  color: var(--apple-text);
 }
 
 .comment-form-body {
@@ -280,8 +288,9 @@ onMounted(() => {
 .comment-input {
   width: 100%;
   padding: 1rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 12px;
   font-size: 1rem;
   line-height: 1.6;
   resize: vertical;
@@ -291,8 +300,9 @@ onMounted(() => {
 
 .comment-input:focus {
   outline: none;
-  border-color: #f6d55c;
-  box-shadow: 0 0 0 3px rgba(246, 213, 92, 0.1);
+  border-color: var(--hive-gold);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 0 3px var(--hive-gold-glow);
 }
 
 .comment-input:disabled {
@@ -313,13 +323,17 @@ onMounted(() => {
 .comment-submit-btn {
   padding: 0.6rem 1.5rem;
   font-weight: 600;
-  border-radius: 8px;
+  border-radius: 12px;
+  background: var(--hive-gold);
+  border: none;
+  color: white;
   transition: all 0.3s ease;
 }
 
 .comment-submit-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(246, 213, 92, 0.3);
+  box-shadow: 0 4px 12px var(--hive-gold-glow);
+  filter: brightness(1.1);
 }
 
 .comment-submit-btn:disabled {
@@ -330,11 +344,12 @@ onMounted(() => {
 /* 未登录提示 */
 .comment-login-prompt {
   margin-bottom: 2rem;
-  padding: 2rem;
-  background: linear-gradient(135deg, #fff9c4 0%, #ffffff 100%);
-  border-radius: 12px;
-  border: 2px dashed #f6d55c;
+  padding: 3rem;
+  background: rgba(246, 185, 59, 0.05);
+  border-radius: 24px;
+  border: 1px dashed var(--hive-gold);
   text-align: center;
+  backdrop-filter: blur(10px);
 }
 
 .login-prompt-content {
@@ -346,7 +361,8 @@ onMounted(() => {
 
 .login-prompt-icon {
   font-size: 3rem;
-  color: #f6d55c;
+  color: var(--hive-gold);
+  margin-bottom: 1rem;
 }
 
 .login-prompt-text {

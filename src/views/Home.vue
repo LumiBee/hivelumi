@@ -231,7 +231,7 @@
                   class="tag-cloud-container"
                 >
                   <router-link
-                    v-for="tag in tags"
+                    v-for="tag in (isTagCloudExpanded ? tags : tags.slice(0, 19))"
                     :key="tag.id"
                     :to="`/tags#${tag.name}`"
                     class="tag-bubble"
@@ -241,6 +241,18 @@
                   </router-link>
                 </div>
                 <div v-else class="text-center py-3 text-muted">暂无标签</div>
+                
+                <!-- Expand Button -->
+                <div v-if="tags.length > 19" class="text-center mt-3">
+                  <button 
+                    @click="toggleTagCloud" 
+                    class="btn btn-sm btn-outline-secondary rounded-pill px-3"
+                    style="backdrop-filter: blur(10px); background: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.6);"
+                  >
+                    {{ isTagCloudExpanded ? '收起' : '展开更多' }} 
+                    <i :class="['fas', isTagCloudExpanded ? 'fa-chevron-up' : 'fa-chevron-down', 'ms-1']"></i>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -274,6 +286,7 @@ const pagination = ref({
   totalPages: 1,
   total: 0
 })
+const isTagCloudExpanded = ref(false)
 
 // 计算属性
 const pageRange = computed(() => {
@@ -414,6 +427,7 @@ const getExcerpt = (article) => {
 }
 
 // 蜂巢拼图标签云实现
+// 蜂巢拼图标签云实现
 const initSmartTagCloud = () => {
   nextTick(() => {
     const container = document.getElementById('tagBubbleContainer');
@@ -423,15 +437,31 @@ const initSmartTagCloud = () => {
     if (bubbles.length === 0) return;
 
     const containerWidth = container.offsetWidth;
-    const containerHeight = container.offsetHeight;
     
-    // 蜂巢配置
-    const hexSize = 100; // 六边形大小 (width)
+    // 蜂巢配置 - 缩小尺寸以适应侧边栏
+    const hexSize = 70; // 缩小到 70px
     const hexHeight = hexSize; 
     const hexWidth = hexSize * 0.866; // sqrt(3)/2 * size
     const margin = 4; // 间隙
     
-    // 计算中心点
+    // 计算每行能放多少个
+    // 考虑错位：奇数行 offset = hexWidth / 2
+    // 有效宽度 = cols * (hexWidth + margin) + (hexWidth / 2)
+    const effectiveHexWidth = hexWidth + margin;
+    const cols = Math.floor((containerWidth - (hexWidth / 2)) / effectiveHexWidth);
+    
+    // 如果展开，高度自动适应；否则固定高度
+    if (isTagCloudExpanded.value) {
+      const rows = Math.ceil(bubbles.length / cols) + 1;
+      const estimatedHeight = rows * (hexHeight * 0.75 + margin) + 50;
+      container.style.height = `${estimatedHeight}px`;
+    } else {
+      container.style.height = '400px';
+    }
+    
+    const containerHeight = container.offsetHeight;
+    
+    // 计算中心点 (用于未展开时的居中)
     const centerX = containerWidth / 2;
     const centerY = containerHeight / 2;
     
@@ -444,47 +474,37 @@ const initSmartTagCloud = () => {
       '#6C5CE7', '#A29BFE', '#FD79A8', '#FDCB6E', '#E84393'
     ];
 
-    // 螺旋布局算法
-    // 0: center, 1-6: ring 1, 7-18: ring 2, etc.
+    // 响应式行布局算法
     bubbles.forEach((bubble, index) => {
-      let x = 0;
-      let y = 0;
+      // 计算网格坐标 (row, col)
+      const row = Math.floor(index / cols);
+      const col = index % cols;
       
-      if (index === 0) {
-        x = 0;
-        y = 0;
-      } else {
-        // 简单的螺旋算法近似或层级填充
-        // 这里使用简化的层级填充：第n层有 6n 个元素
-        // 暂时使用简单的行列偏移布局，确保紧凑
-        
-        // 计算行和列 (近似螺旋)
-        // 这是一个难点，为了简单且美观，我们使用预定义的螺旋坐标偏移
-        // 或者使用简单的网格布局，奇数行偏移
-        
-        const colCount = Math.floor(containerWidth / (hexWidth + margin));
-        const row = Math.floor(index / 3); // 每行3个，形成窄列蜂巢
-        const col = index % 3;
-        
-        // 偏移量
-        const xOffset = (row % 2 === 0) ? 0 : (hexWidth / 2);
-        
-        // 重新计算位置以居中
-        // 让我们尝试一个更像"拼图"的算法：从中心向外生长
-        // 使用 axial coordinates (q, r) 转换为 pixel (x, y)
-        // 螺旋生成序列: (0,0), (1,0), (1,1), (0,1), (-1,0), (-1,-1), (0,-1)...
-        
-        const { q, r } = getHexSpiralCoords(index);
-        x = (q * (hexWidth + margin)) + (r * (hexWidth + margin) / 2);
-        y = (r * (hexHeight * 0.75 + margin));
+      // 计算像素坐标
+      // 偶数行: x = col * effectiveHexWidth
+      // 奇数行: x = col * effectiveHexWidth + (hexWidth / 2)
+      // y = row * (hexHeight * 0.75 + margin)
+      
+      const xOffset = (row % 2 === 1) ? (hexWidth / 2) : 0;
+      const x = col * effectiveHexWidth + xOffset + (effectiveHexWidth / 2); // + half width to center
+      const y = row * (hexHeight * 0.75 + margin) + (hexHeight / 2);
+      
+      // 计算整体偏移以居中
+      // 总宽度 = cols * effectiveHexWidth + (hexWidth / 2)
+      const totalGridWidth = cols * effectiveHexWidth + (hexWidth / 2);
+      const startX = (containerWidth - totalGridWidth) / 2;
+      
+      // 如果未展开，尝试垂直居中显示前19个
+      let finalX = startX + x - (hexSize / 2); // left position
+      let finalY = y - (hexSize / 2); // top position
+      
+      if (!isTagCloudExpanded.value) {
+         // 简单的居中偏移，假设前19个大概占4-5行
+         finalY += 40; 
       }
 
-      // 应用样式
-      const finalX = centerX + x - (hexSize / 2);
-      const finalY = centerY + y - (hexSize / 2);
-      
       const count = parseInt(bubble.getAttribute('data-count') || '0');
-      const fontSize = Math.max(12, Math.min(16, 12 + count * 0.5));
+      const fontSize = Math.max(11, Math.min(14, 11 + count * 0.4)); // 稍微调小字体
       
       Object.assign(bubble.style, {
         position: 'absolute',
@@ -498,9 +518,9 @@ const initSmartTagCloud = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '10px',
+        padding: '4px',
         textAlign: 'center',
-        transition: 'all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)', // Spring effect
+        transition: 'all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
         opacity: '0',
         transform: 'scale(0.5)'
       });
@@ -509,10 +529,16 @@ const initSmartTagCloud = () => {
       setTimeout(() => {
         bubble.style.opacity = '1';
         bubble.style.transform = 'scale(1)';
-      }, index * 50);
-      
-      // 悬停效果通过CSS处理 (.tag-bubble:hover)
+      }, index * 30);
     });
+  });
+};
+
+const toggleTagCloud = () => {
+  isTagCloudExpanded.value = !isTagCloudExpanded.value;
+  // 等待DOM更新后重新计算布局
+  nextTick(() => {
+    initSmartTagCloud();
   });
 };
 
