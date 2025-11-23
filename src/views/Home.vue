@@ -102,7 +102,7 @@
     </section>
 
     <!-- Main Content Section -->
-    <section class="content-section" style="padding: 80px 0;">
+    <section class="content-section" style="padding: 40px 0;">
       <div class="apple-container">
         <div class="row">
           <!-- Main Column: Article List -->
@@ -688,7 +688,6 @@ onBeforeUnmount(() => {
     radial-gradient(circle at 10% 20%, rgba(246, 185, 59, 0.05) 0%, transparent 40%),
     radial-gradient(circle at 90% 80%, rgba(66, 153, 225, 0.05) 0%, transparent 40%);
   min-height: 100vh;
-  padding-top: 60px;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
   color: var(--apple-text);
 }

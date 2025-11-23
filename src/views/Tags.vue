@@ -175,7 +175,7 @@ onMounted(() => {
 <style scoped>
 /* ===== 整体布局 ===== */
 .tags-page {
-  padding: 70px 0 2rem 0; /* 为固定导航栏预留空间 */
+  padding: 0 0 2rem 0; /* 为固定导航栏预留空间 */
   background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
   min-height: 100vh;
 }

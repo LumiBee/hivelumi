@@ -628,16 +628,27 @@ watch(() => route.params.slug, (newSlug) => {
 
 .apple-pill {
   display: inline-block;
-  padding: 6px 16px;
-  background: rgba(255, 255, 255, 0.2);
+  padding: 8px 20px;
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 100px;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
+  font-weight: 500;
   color: #fff;
   text-decoration: none;
-  backdrop-filter: blur(10px);
-  transition: background 0.2s;
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
-.apple-pill:hover { background: rgba(255, 255, 255, 0.3); }
+.apple-pill:hover { 
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-3px) scale(1.05);
+  border-color: var(--hive-gold);
+  color: var(--hive-gold);
+  box-shadow: 0 8px 24px rgba(246, 185, 59, 0.25);
+  text-shadow: 0 0 8px rgba(246, 185, 59, 0.5);
+}
 
 /* Hexagon Avatar */
 /* Hexagon Avatar -> Circle Avatar */

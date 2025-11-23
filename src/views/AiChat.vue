@@ -158,6 +158,30 @@ marked.setOptions({
   sanitize: false // 允许HTML标签
 })
 
+// 自定义渲染器以实现Mac终端风格代码块
+const renderer = new marked.Renderer()
+
+// Mac Window Code Block
+renderer.code = (code, language) => {
+  const validLang = language || 'plaintext'
+  return `
+    <div class="mac-window">
+      <div class="mac-header">
+        <div class="mac-dots">
+          <span class="dot red"></span>
+          <span class="dot yellow"></span>
+          <span class="dot green"></span>
+        </div>
+        <span class="mac-title">${validLang}</span>
+      </div>
+      <div class="mac-body">
+        <pre><code class="hljs language-${validLang}">${code}</code></pre>
+      </div>
+    </div>
+  `
+}
+
+
 const authStore = useAuthStore()
 const router = useRouter()
 
@@ -853,11 +877,12 @@ const formatMessage = (content) => {
       .replace(/^```/gm, '')
       .replace(/```$/gm, '')
     
-    const result = marked(processedContent)
+    // 使用自定义渲染器
+    const result = marked(processedContent, { renderer })
     
     // 如果解析失败，尝试更简单的处理
     if (!result.includes('<h1>') && !result.includes('<h2>') && !result.includes('<h3>')) {
-      const simpleResult = marked(processedContent.replace(/^```/gm, '').replace(/```$/gm, ''))
+      const simpleResult = marked(processedContent.replace(/^```/gm, '').replace(/```$/gm, ''), { renderer })
       return simpleResult
     }
     
@@ -995,7 +1020,6 @@ watch(messages, () => {
   background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
   display: flex;
   flex-direction: column;
-  padding-top: 70px; /* 为导航栏留出空间 */
 }
 
 
