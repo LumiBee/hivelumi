@@ -211,7 +211,7 @@
                   >
                     <div class="popular-index" :class="{'top-3': index < 3}">{{ index + 1 }}</div>
                     <div class="popular-content">
-                      <h4 class="popular-title">{{ article.title }}</h4>
+                      <h4 class="popular-title" style="font-size: 1.2rem;">{{ article.title }}</h4>
                       <div class="popular-meta">
                         <span>{{ article.userName || '佚名' }}</span>
                         <span>·</span>
@@ -413,7 +413,7 @@ const getExcerpt = (article) => {
   return '暂无摘要'
 }
 
-// 智能泡泡标签云实现 - 优化版，防止强制重排
+// 蜂巢拼图标签云实现
 const initSmartTagCloud = () => {
   nextTick(() => {
     const container = document.getElementById('tagBubbleContainer');
@@ -422,11 +422,20 @@ const initSmartTagCloud = () => {
     const bubbles = Array.from(container.getElementsByClassName('tag-bubble'));
     if (bubbles.length === 0) return;
 
-    // --- 1. 批量读取 ---
     const containerWidth = container.offsetWidth;
     const containerHeight = container.offsetHeight;
     
-    // ... (color and size parameters remain the same)
+    // 蜂巢配置
+    const hexSize = 100; // 六边形大小 (width)
+    const hexHeight = hexSize; 
+    const hexWidth = hexSize * 0.866; // sqrt(3)/2 * size
+    const margin = 4; // 间隙
+    
+    // 计算中心点
+    const centerX = containerWidth / 2;
+    const centerY = containerHeight / 2;
+    
+    // 颜色板
     const colorPalette = [
       '#FF6B6B', '#4ECDC4', '#45B7D1', '#FED766', '#2AB7CA',
       '#F0B67F', '#FE4A49', '#547980', '#8A9B0F', '#C3D89F',
@@ -434,133 +443,103 @@ const initSmartTagCloud = () => {
       '#D81E5B', '#F4A261', '#2A9D8F', '#E9C46A', '#264653',
       '#6C5CE7', '#A29BFE', '#FD79A8', '#FDCB6E', '#E84393'
     ];
-    const baseSize = 70, maxSize = 140, countFactor = 1.5;
-    const baseFontSize = 14, maxFontSize = 20, countFactorFont = 0.3;
 
-    let maxArticleCount = 0;
-    bubbles.forEach(bubble => {
+    // 螺旋布局算法
+    // 0: center, 1-6: ring 1, 7-18: ring 2, etc.
+    bubbles.forEach((bubble, index) => {
+      let x = 0;
+      let y = 0;
+      
+      if (index === 0) {
+        x = 0;
+        y = 0;
+      } else {
+        // 简单的螺旋算法近似或层级填充
+        // 这里使用简化的层级填充：第n层有 6n 个元素
+        // 暂时使用简单的行列偏移布局，确保紧凑
+        
+        // 计算行和列 (近似螺旋)
+        // 这是一个难点，为了简单且美观，我们使用预定义的螺旋坐标偏移
+        // 或者使用简单的网格布局，奇数行偏移
+        
+        const colCount = Math.floor(containerWidth / (hexWidth + margin));
+        const row = Math.floor(index / 3); // 每行3个，形成窄列蜂巢
+        const col = index % 3;
+        
+        // 偏移量
+        const xOffset = (row % 2 === 0) ? 0 : (hexWidth / 2);
+        
+        // 重新计算位置以居中
+        // 让我们尝试一个更像"拼图"的算法：从中心向外生长
+        // 使用 axial coordinates (q, r) 转换为 pixel (x, y)
+        // 螺旋生成序列: (0,0), (1,0), (1,1), (0,1), (-1,0), (-1,-1), (0,-1)...
+        
+        const { q, r } = getHexSpiralCoords(index);
+        x = (q * (hexWidth + margin)) + (r * (hexWidth + margin) / 2);
+        y = (r * (hexHeight * 0.75 + margin));
+      }
+
+      // 应用样式
+      const finalX = centerX + x - (hexSize / 2);
+      const finalY = centerY + y - (hexSize / 2);
+      
       const count = parseInt(bubble.getAttribute('data-count') || '0');
-      if (count > maxArticleCount) maxArticleCount = count;
-    });
-
-    // --- 2. 计算所有样式 ---
-    const stylesToApply = [];
-    let placedBubbles = [];
-
-    const sortedBubbles = [...bubbles].sort((a, b) => {
-      return parseInt(b.getAttribute('data-count') || '0') - parseInt(a.getAttribute('data-count') || '0');
-    }).slice(0, 20);
-
-    sortedBubbles.forEach((bubble, index) => {
-      const articleCount = parseInt(bubble.getAttribute('data-count') || '0');
+      const fontSize = Math.max(12, Math.min(16, 12 + count * 0.5));
       
-      let diameter = Math.max(baseSize, Math.min(maxSize, baseSize + articleCount * countFactor));
-      if (maxArticleCount > 0 && articleCount === maxArticleCount) {
-        diameter = Math.min(maxSize, diameter + 20);
-      }
-      
-      let fontSize = Math.max(baseFontSize, Math.min(maxFontSize, baseFontSize + (diameter - baseSize) * countFactorFont));
-      const paddingValue = Math.max(2, diameter * 0.05);
-
-      let bestPos = null;
-      let minOverlap = Infinity;
-
-      for (let i = 0; i < 300; i++) {
-          // Calculation logic remains the same as it doesn't touch the DOM
-          let x, y;
-          if (i < 100) {
-              const gridSize = Math.ceil(Math.sqrt(sortedBubbles.length));
-              const cellWidth = containerWidth / gridSize;
-              const cellHeight = containerHeight / gridSize;
-              const gridX = i % gridSize;
-              const gridY = Math.floor(i / gridSize) % gridSize;
-              x = gridX * cellWidth + Math.random() * (cellWidth - diameter);
-              y = gridY * cellHeight + Math.random() * (cellHeight - diameter);
-          } else {
-              x = Math.random() * (containerWidth - diameter);
-              y = Math.random() * (containerHeight - diameter);
-          }
-          
-          const adjustedX = Math.max(0, Math.min(containerWidth - diameter, x));
-          const adjustedY = Math.max(0, Math.min(containerHeight - diameter, y));
-          
-          const pos = { x: adjustedX, y: adjustedY, radius: diameter / 2 + 5 };
-          
-          const overlapAmount = calculateOverlap(pos, placedBubbles);
-          if (overlapAmount < minOverlap) {
-              minOverlap = overlapAmount;
-              bestPos = pos;
-              if (overlapAmount === 0) break;
-          }
-      }
-      
-      const finalPos = bestPos || { x: Math.random() * (containerWidth - diameter), y: Math.random() * (containerHeight - diameter) };
-      placedBubbles.push(finalPos);
-
-      stylesToApply.push({
-        element: bubble,
-        style: {
-          background: colorPalette[(index + Math.floor(Math.random() * 5)) % colorPalette.length],
-          width: `${diameter}px`,
-          height: `${diameter}px`,
-          fontSize: `${fontSize}px`,
-          padding: `${paddingValue}px`,
-          left: `${finalPos.x}px`,
-          top: `${finalPos.y}px`,
-          clipPath: 'var(--shape-hexagon)', // Force hexagon shape
-          borderRadius: '0', // Remove border radius for clip-path
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          transform: ''
-        }
+      Object.assign(bubble.style, {
+        position: 'absolute',
+        left: `${finalX}px`,
+        top: `${finalY}px`,
+        width: `${hexSize}px`,
+        height: `${hexSize}px`,
+        background: colorPalette[index % colorPalette.length],
+        fontSize: `${fontSize}px`,
+        clipPath: 'var(--shape-hexagon)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '10px',
+        textAlign: 'center',
+        transition: 'all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)', // Spring effect
+        opacity: '0',
+        transform: 'scale(0.5)'
       });
+      
+      // 入场动画
+      setTimeout(() => {
+        bubble.style.opacity = '1';
+        bubble.style.transform = 'scale(1)';
+      }, index * 50);
+      
+      // 悬停效果通过CSS处理 (.tag-bubble:hover)
     });
-
-    // --- 3. 批量写入 ---
-    stylesToApply.forEach(({ element, style }) => {
-      Object.assign(element.style, style);
-    });
-
-    // 4. 应用动画 (requestAnimationFrame for animations is good practice)
-    requestAnimationFrame(() => {
-        stylesToApply.forEach(({ element }, index) => {
-            const diameter = parseFloat(element.style.width);
-            const floatAmount = Math.max(3, Math.min(8, diameter / 15));
-            const direction = index % 2 === 0 ? 1 : -1;
-            const duration = 3000 + Math.random() * 2000;
-            const delay = Math.random() * 2000;
-            
-            element.animate([
-              { transform: 'translateY(0px)' },
-              { transform: `translateY(${direction * floatAmount}px)` },
-              { transform: 'translateY(0px)' }
-            ], {
-              duration: duration,
-              iterations: Infinity,
-              direction: 'alternate',
-              easing: 'ease-in-out',
-              delay: delay
-            });
-        });
-    });
-
-    function calculateOverlap(newBubble, existingBubbles) {
-      let totalOverlap = 0;
-      for (let existing of existingBubbles) {
-        const dx = (newBubble.x + newBubble.radius) - (existing.x + existing.radius);
-        const dy = (newBubble.y + newBubble.radius) - (existing.y + existing.radius);
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        const minDistance = newBubble.radius + existing.radius;
-        if (distance < minDistance) {
-          const overlap = minDistance - distance;
-          totalOverlap += overlap * overlap;
-        }
-      }
-      return totalOverlap;
-    }
   });
 };
+
+// 获取六边形螺旋坐标 (q, r)
+const getHexSpiralCoords = (n) => {
+  if (n === 0) return { q: 0, r: 0 };
+  
+  // 简单的螺旋生成是不够的，我们需要一个确定的序列
+  // 这里硬编码前20个坐标，或者使用算法
+  // 算法：层层向外
+  
+  let q = 0, r = 0;
+  // 这是一个简化的查找，对于少量标签足够了
+  // 更好的方式是使用 axial coordinates 遍历
+  
+  // 预计算的螺旋路径 (q, r)
+  const path = [
+    {q:0, r:0}, 
+    {q:0, r:-1}, {q:1, r:-1}, {q:1, r:0}, {q:0, r:1}, {q:-1, r:1}, {q:-1, r:0}, // Ring 1
+    {q:0, r:-2}, {q:1, r:-2}, {q:2, r:-2}, {q:2, r:-1}, {q:2, r:0}, {q:1, r:1}, {q:0, r:2}, {q:-1, r:2}, {q:-2, r:2}, {q:-2, r:1}, {q:-2, r:0}, {q:-1, r:-1} // Ring 2
+  ];
+  
+  if (n < path.length) return path[n];
+  
+  // Fallback for > 19 tags: just stack them somewhere or repeat
+  return { q: (n % 5) - 2, r: Math.floor(n / 5) + 2 };
+}
 
 // 轮播图相关方法
 const currentSlide = ref(0);
@@ -1191,6 +1170,7 @@ onBeforeUnmount(() => {
 
 /* Popular List */
 .popular-item {
+
   display: flex;
   gap: 16px;
   padding: 12px 0;
