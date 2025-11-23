@@ -162,6 +162,90 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* Popular Articles */
+.popular-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.popular-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  cursor: pointer;
+  padding: 12px;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.popular-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateX(5px);
+}
+
+.popular-index {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.2);
+  line-height: 1;
+  min-width: 24px;
+}
+
+.popular-index.top-3 {
+  color: var(--hive-gold);
+  text-shadow: 0 0 10px rgba(246, 185, 59, 0.3);
+}
+
+.popular-content {
+  flex: 1;
+}
+
+.popular-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  line-height: 1.4;
+  color: var(--apple-text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.popular-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  color: var(--apple-gray);
+}
+
+.popular-author {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.popular-avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  /* Fallback */
+  overflow: hidden;
+}
+
+.popular-stats {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.popular-stats i {
+  color: var(--hive-gold);
+  font-size: 0.75rem;
+}
+
 // 链接样式 - 基于原有设计
 // =============================================================================
 a {

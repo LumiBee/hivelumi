@@ -113,69 +113,91 @@
             </div>
             
             <!-- Article List -->
-            <div class="article-list" v-if="articles.length > 0">
-              <div
-                v-for="(article, index) in articles"
-                :key="article.articleId"
-                class="article-card-wrapper"
-                data-aos="fade-up"
-                :data-aos-delay="index * 50"
-                @click="$router.push(`/article/${article.slug}`)"
-              >
-                <div class="article-card glass-panel hover-magnetic">
-                  <div class="card-body">
-                    <div class="article-main">
-                      <h3 class="article-title">{{ article.title }}</h3>
-                      <p class="article-excerpt">{{ getExcerpt(article) }}</p>
-                      
-                      <div class="article-meta">
-                        <div class="author-info">
-                          <div class="author-avatar-sm">
-                            <LazyImage 
-                              :src="getAuthorAvatarUrl(article.avatarUrl)" 
-                              :alt="article.userName"
-                              class="avatar-img"
-                              shape="hexagon"
-                            />
-                          </div>
-                          <span class="author-name">{{ article.userName || '佚名' }}</span>
-                        </div>
-                        <span class="meta-separator">·</span>
-                        <span class="publish-time">{{ formatTime(article.gmtModified) }}</span>
-                        
-                        <div class="article-stats">
-                          <span class="stat-item">
-                            <i class="far fa-eye"></i> {{ article.viewCount || 0 }}
-                          </span>
-                          <span class="stat-item">
-                            <i class="far fa-heart"></i> {{ article.likes || 0 }}
-                          </span>
+            <div class="article-list">
+              <!-- Loading State: Skeleton Loader -->
+              <div v-if="loading" class="skeleton-list">
+                <div v-for="n in 5" :key="n" class="article-card-wrapper">
+                  <div class="article-card glass-panel">
+                    <div class="card-body">
+                      <div class="article-main">
+                        <div class="skeleton-loader skeleton-title"></div>
+                        <div class="skeleton-loader skeleton-text"></div>
+                        <div class="skeleton-loader skeleton-text short"></div>
+                        <div class="skeleton-meta">
+                          <div class="skeleton-loader skeleton-avatar"></div>
+                          <div class="skeleton-loader skeleton-info"></div>
                         </div>
                       </div>
-                    </div>
-                    
-                    <!-- Optional Thumbnail -->
-                    <div class="article-thumbnail" v-if="article.thumbnailUrl || article.backgroundUrl">
-                       <LazyImage 
-                        :src="getProcessedImageUrl(article.thumbnailUrl || article.backgroundUrl)" 
-                        :alt="article.title"
-                        class="thumbnail-img"
-                      />
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-            
-            <!-- Empty State -->
-            <div v-else-if="!loading" class="empty-state glass-panel">
-              <div class="empty-icon">📝</div>
-              <h3>暂无文章</h3>
-              <p>敬请期待精彩内容的到来</p>
+
+              <!-- Actual Content -->
+              <template v-else-if="articles.length > 0">
+                <div
+                  v-for="(article, index) in articles"
+                  :key="article.articleId"
+                  class="article-card-wrapper"
+                  data-aos="fade-up"
+                  :data-aos-delay="index * 50"
+                  @click="$router.push(`/article/${article.slug}`)"
+                >
+                  <div class="article-card glass-panel hover-magnetic">
+                    <div class="card-body">
+                      <div class="article-main">
+                        <h3 class="article-title">{{ article.title }}</h3>
+                        <p class="article-excerpt">{{ getExcerpt(article) }}</p>
+                        
+                        <div class="article-meta">
+                          <div class="author-info">
+                            <div class="author-avatar-sm">
+                              <LazyImage 
+                                :src="getAuthorAvatarUrl(article.avatarUrl)" 
+                                :alt="article.userName"
+                                class="avatar-img"
+                                shape="hexagon"
+                              />
+                            </div>
+                            <span class="author-name">{{ article.userName || '佚名' }}</span>
+                          </div>
+                          <span class="meta-separator">·</span>
+                          <span class="publish-time">{{ formatTime(article.gmtModified) }}</span>
+                          
+                          <div class="article-stats">
+                            <span class="stat-item">
+                              <i class="far fa-eye"></i> {{ article.viewCount || 0 }}
+                            </span>
+                            <span class="stat-item">
+                              <i class="far fa-heart"></i> {{ article.likes || 0 }}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <!-- Optional Thumbnail -->
+                      <div class="article-thumbnail" v-if="article.thumbnailUrl || article.backgroundUrl">
+                         <LazyImage 
+                          :src="getProcessedImageUrl(article.thumbnailUrl || article.backgroundUrl)" 
+                          :alt="article.title"
+                          class="thumbnail-img"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </template>
+              
+              <!-- Empty State -->
+              <div v-else class="empty-state glass-panel">
+                <div class="empty-icon">📝</div>
+                <h3>暂无文章</h3>
+                <p>敬请期待精彩内容的到来</p>
+              </div>
             </div>
             
             <!-- Pagination -->
-            <nav v-if="pagination.totalPages > 1" class="pagination-wrapper">
+            <nav v-if="!loading && pagination.totalPages > 1" class="pagination-wrapper">
               <ul class="apple-pagination">
                 <li :class="{ disabled: pagination.current === 1 }">
                   <button @click.prevent="changePage(pagination.current - 1)" class="page-btn prev">
@@ -211,11 +233,23 @@
                   >
                     <div class="popular-index" :class="{'top-3': index < 3}">{{ index + 1 }}</div>
                     <div class="popular-content">
-                      <h4 class="popular-title" style="font-size: 1.2rem;">{{ article.title }}</h4>
-                      <div class="popular-meta">
-                        <span>{{ article.userName || '佚名' }}</span>
-                        <span>·</span>
-                        <span>{{ article.viewCount || 0 }} 阅读</span>
+                      <h4 class="popular-title">{{ article.title }}</h4>
+                      <div class="popular-meta-row">
+                        <div class="popular-author">
+                          <div class="popular-avatar">
+                            <LazyImage 
+                              :src="getAuthorAvatarUrl(article.avatarUrl)" 
+                              :alt="article.userName"
+                              class="avatar-img"
+                              shape="hexagon"
+                            />
+                          </div>
+                          <span class="author-name">{{ article.userName || '佚名' }}</span>
+                        </div>
+                        <div class="popular-stats">
+                          <span class="stat-item me-2"><i class="far fa-eye"></i> {{ article.viewCount || 0 }}</span>
+                          <span class="stat-item"><i class="far fa-heart"></i> {{ article.likes || 0 }}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
