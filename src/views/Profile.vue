@@ -22,7 +22,8 @@
             @click="triggerFileUpload"
             :disabled="isLoading"
           >
-            <i class="fas" :class="isLoading ? 'fa-spinner fa-spin' : 'fa-camera'"></i>
+            <div v-if="isLoading" class="spinner-inline"></div>
+            <i v-else class="fas fa-camera"></i>
             <span class="btn-text">{{ isLoading ? '上传中...' : '更换封面' }}</span>
           </button>
           <input 

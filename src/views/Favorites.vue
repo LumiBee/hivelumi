@@ -82,7 +82,7 @@
               <!-- 加载中状态 -->
               <div v-if="loading" class="loading-state">
                 <div class="loading-spinner">
-                  <i class="fas fa-spinner fa-spin"></i>
+                  <div class="spinner-ring"></div>
                 </div>
                 <h3>正在加载收藏内容...</h3>
               </div>
@@ -948,9 +948,24 @@ const initBookAnimation = () => {
 }
 
 .loading-spinner {
-  font-size: 2rem;
-  color: #ffc107;
+  display: flex;
+  justify-content: center;
   margin-bottom: 1rem;
+}
+
+.spinner-ring {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 193, 7, 0.2);
+  border-radius: 50%;
+  border-top-color: #ffc107;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .loading-state h3 {

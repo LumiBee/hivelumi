@@ -40,7 +40,7 @@
               class="btn btn-warning comment-submit-btn"
               :disabled="!newComment.trim() || submitting"
             >
-              <i v-if="submitting" class="fas fa-spinner fa-spin me-1"></i>
+              <div v-if="submitting" class="spinner-inline me-1"></div>
               <i v-else class="fas fa-paper-plane me-1"></i>
               {{ submitting ? '提交中...' : '发表评论' }}
             </button>
@@ -427,6 +427,24 @@ onMounted(() => {
 
   .comment-submit-btn {
     width: 100%;
+  }
+}
+
+/* Custom Spinner Styles */
+.spinner-inline {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #ffffff;
+  animation: spin 0.8s linear infinite;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 </style>

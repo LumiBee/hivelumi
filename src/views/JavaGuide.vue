@@ -184,7 +184,7 @@
                       class="btn btn-warning send-btn"
                       :disabled="!inputMessage.trim() || isLoading"
                     >
-                      <i v-if="isLoading" class="fas fa-spinner fa-spin"></i>
+                      <div v-if="isLoading" class="spinner-inline"></div>
                       <i v-else class="fas fa-paper-plane"></i>
                     </button>
                   </div>
@@ -196,7 +196,7 @@
                   </div>
                   <div class="input-status">
                     <span v-if="isLoading" class="text-warning">
-                      <i class="fas fa-spinner fa-spin me-1"></i>
+                      <div class="spinner-inline me-1"></div>
                       AI正在思考中...
                     </span>
                     <span v-else class="text-success">

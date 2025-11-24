@@ -23,10 +23,10 @@
             {{ isSaving ? '保存中...' : '保存草稿' }}
           </button>
           <span v-if="autoSaveStatus" class="auto-save-status-inline ms-2 text-muted small">
-            <i
+            <div v-if="autoSaveStatus === '正在自动保存...'" class="spinner-inline me-1"></div>
+            <i v-else
               class="fas me-1"
               :class="{
-                'fa-spinner fa-spin': autoSaveStatus === '正在自动保存...',
                 'fa-check-circle text-success': autoSaveStatus.includes('已自动保存'),
                 'fa-exclamation-circle text-danger': autoSaveStatus === '自动保存失败'
               }"
@@ -290,7 +290,8 @@
                           @click="createNewPortfolio"
                           :disabled="!newPortfolioName.trim() || isCreatingPortfolio"
                         >
-                          <i class="fas" :class="isCreatingPortfolio ? 'fa-spinner fa-spin' : 'fa-plus'"></i>
+                          <div v-if="isCreatingPortfolio" class="spinner-inline"></div>
+                          <i v-else class="fas fa-plus"></i>
                         </button>
                       </div>
                     </div>
@@ -965,5 +966,23 @@ onUnmounted(() => {
 
 .modal-dialog {
   margin: 6rem auto 2rem auto;
+}
+
+/* Custom Spinner Styles */
+.spinner-inline {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 193, 7, 0.2);
+  border-radius: 50%;
+  border-top-color: #ffc107;
+  animation: spin 0.8s linear infinite;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

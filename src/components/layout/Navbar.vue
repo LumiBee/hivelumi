@@ -220,7 +220,7 @@
           
           <!-- 搜索状态 -->
           <div v-if="modalSearchLoading" class="search-modal-status">
-            <i class="fas fa-spinner fa-spin"></i>
+            <div class="spinner-small"></div>
             <span>正在搜索...</span>
           </div>
           <div v-if="!modalSearchLoading && modalSearchQuery && modalSearchResults.length === 0" class="search-modal-status">
@@ -665,6 +665,22 @@ onUnmounted(() => {
 
 .search-button-mobile:active {
   transform: translateY(0) scale(0.95);
+}
+
+/* Custom Spinner Styles */
+.spinner-small {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 193, 7, 0.2);
+  border-radius: 50%;
+  border-top-color: #ffc107;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .search-input-wrapper {

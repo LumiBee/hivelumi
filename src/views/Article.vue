@@ -278,9 +278,26 @@ const renderMarkdown = () => {
 
   const headings = []
   const renderer = new marked.Renderer()
+  const slugCounts = {}
 
   renderer.heading = (text, level, raw) => {
-    const id = raw.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+    // Allow Chinese and other Unicode characters, replace spaces/punctuation with dashes
+    let id = raw.toLowerCase().trim().replace(/[^\w\u4e00-\u9fa5]+/g, '-')
+    
+    // Remove leading/trailing dashes
+    id = id.replace(/^-+|-+$/g, '')
+    
+    // Fallback for empty IDs (e.g. if heading was only punctuation)
+    if (!id) id = `heading-${Math.random().toString(36).substr(2, 9)}`
+
+    // Handle duplicates
+    if (slugCounts[id]) {
+      slugCounts[id]++
+      id = `${id}-${slugCounts[id]}`
+    } else {
+      slugCounts[id] = 1
+    }
+
     headings.push({ id, text, level })
     return `<h${level} id="${id}">${text}</h${level}>`
   }
@@ -309,7 +326,11 @@ const renderMarkdown = () => {
     `
   }
 
-  renderedContent.value = DOMPurify.sanitize(marked(article.value.content, { renderer }))
+  renderedContent.value = DOMPurify.sanitize(marked(article.value.content, { 
+    renderer,
+    gfm: true,
+    breaks: true
+  }))
   tableOfContents.value = headings
 
   nextTick(() => {
@@ -504,7 +525,7 @@ watch(() => route.params.slug, (newSlug) => {
   --shadow-sm: 0 4px 24px -4px var(--glass-shadow);
   --shadow-lg: 0 24px 48px -12px rgba(0, 0, 0, 0.1);
   
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   background-color: var(--apple-bg);
   color: var(--apple-text);
   min-height: 100vh;
@@ -618,10 +639,10 @@ watch(() => route.params.slug, (newSlug) => {
 }
 
 .hero-title {
-  font-size: 3.5rem; /* Huge Title */
+  font-size: 2.5rem; /* Reduced from 3.5rem */
   font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.03em; /* Tight tracking */
+  line-height: 1.2;
+  letter-spacing: -0.02em;
   text-shadow: 0 4px 20px rgba(0,0,0,0.5);
   max-width: 800px;
 }
@@ -712,8 +733,8 @@ watch(() => route.params.slug, (newSlug) => {
 /* === 2. Article Body === */
 /* === 2. Article Body (Rhythm) === */
 .article-body {
-  font-size: 1.2rem; /* Slightly larger for reading */
-  line-height: 1.8;
+  font-size: 1.05rem; /* Reduced from 1.2rem */
+  line-height: 1.75; /* Slightly tighter line height */
   color: #333;
 }
 
@@ -723,15 +744,15 @@ watch(() => route.params.slug, (newSlug) => {
   margin: 0 auto; /* Center content within layout-main if needed */
 }
 :deep(.markdown-content h2) {
-  font-size: 2rem;
+  font-size: 1.75rem; /* Reduced from 2rem */
   font-weight: 700;
-  margin-top: 3rem;
-  margin-bottom: 1.5rem;
-  letter-spacing: -0.02em;
+  margin-top: 2.5rem;
+  margin-bottom: 1.25rem;
+  letter-spacing: -0.01em;
   color: #111;
 }
 :deep(.markdown-content p) { 
-  margin-bottom: 2em; /* Breathable paragraphs */
+  margin-bottom: 1.6em; /* Reduced from 2em */
   opacity: 0.9;
 }
 :deep(.markdown-content img) {
@@ -755,6 +776,36 @@ watch(() => route.params.slug, (newSlug) => {
   cursor: zoom-out;
   object-fit: contain;
   box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+}
+
+/* Markdown Tables */
+:deep(.markdown-content table) {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 2rem 0;
+  font-size: 0.95rem;
+  overflow-x: auto;
+  display: block; /* For responsive scrolling */
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+}
+:deep(.markdown-content th),
+:deep(.markdown-content td) {
+  padding: 12px 16px;
+  border: 1px solid #e1e1e1;
+  text-align: left;
+}
+:deep(.markdown-content th) {
+  background-color: #f5f5f7;
+  font-weight: 600;
+  color: #1d1d1f;
+}
+:deep(.markdown-content tr:nth-child(even)) {
+  background-color: #fafafa;
+}
+:deep(.markdown-content tr:hover) {
+  background-color: #f5f5f7;
+  transition: background-color 0.2s;
 }
 
 /* Mac Window Code Block */

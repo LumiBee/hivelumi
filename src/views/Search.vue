@@ -39,7 +39,7 @@
         <!-- Loading State -->
         <div v-if="loading" class="loading-container">
           <div class="loading-spinner">
-            <i class="fas fa-spinner fa-spin"></i>
+            <div class="spinner-ring"></div>
             <span>正在搜索...</span>
           </div>
         </div>
@@ -927,6 +927,22 @@ onUnmounted(() => {
   
   .compact-stat-item {
     font-size: 0.8rem;
+  }
+}
+
+/* Custom Spinner Styles */
+.spinner-ring {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 193, 7, 0.2);
+  border-radius: 50%;
+  border-top-color: #ffc107;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 </style>
