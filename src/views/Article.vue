@@ -12,7 +12,7 @@
       <!-- 1. 沉浸式磨砂玻璃 Hero 卡片 -->
       <header class="hero-card glass-panel" data-aos="fade-up" data-aos-duration="800">
         <!-- 背景图 (模糊处理) -->
-        <div class="hero-bg" :style="{ backgroundImage: `url(${article.coverImageUrl || defaultCover})` }"></div>
+        <div class="hero-bg" :style="{ backgroundImage: `url(${article.backgroundUrl || article.coverImageUrl || defaultCover})` }"></div>
         <div class="hero-overlay"></div>
         
         <div class="hero-content">
@@ -203,8 +203,17 @@
       </aside>
     </transition>
 
-    <!-- 图片放大遮罩 -->
-    <div class="zoom-overlay" :class="{ active: isZoomed }" @click="closeZoom"></div>
+    <!-- Lightbox Overlay -->
+    <transition name="fade">
+      <div v-if="isZoomed" class="lightbox-overlay" @click="closeZoom">
+        <button class="lightbox-close" @click.stop="closeZoom">
+          <i class="fas fa-times"></i>
+        </button>
+        <div class="lightbox-content" @click.stop>
+          <img :src="zoomedImageSrc" :alt="zoomedImageAlt" class="lightbox-img">
+        </div>
+      </div>
+    </transition>
 
     <!-- 收藏弹窗 -->
     <FavoriteModal
@@ -247,7 +256,8 @@ const showDock = ref(true)
 const showToc = ref(window.innerWidth > 1200)
 const activeHeading = ref('')
 const isZoomed = ref(false)
-const zoomedImage = ref(null)
+const zoomedImageSrc = ref('')
+const zoomedImageAlt = ref('')
 const showFavoriteModal = ref(false)
 const defaultCover = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop'
 
@@ -263,6 +273,19 @@ const loadArticleData = async () => {
     const response = await articleAPI.getArticleBySlug(slug)
     if (response) {
       article.value = response
+      
+      // Fetch author profile to get the latest background URL if missing
+      if (response.userName && !response.backgroundUrl) {
+        try {
+          const userProfile = await userAPI.getProfile(response.userName)
+          if (userProfile?.user?.backgroundImgUrl) {
+            article.value.backgroundUrl = userProfile.user.backgroundImgUrl
+          }
+        } catch (err) {
+          console.warn('Failed to fetch author profile:', err)
+        }
+      }
+
       relatedArticles.value = response.relatedArticles || []
       renderMarkdown()
     }
@@ -444,28 +467,27 @@ const cleanText = (html) => {
   return div.textContent || div.innerText || ''
 }
 
-// === Image Zoom ===
+// === Image Zoom (Lightbox) ===
+const handleImageClick = (e) => {
+  e.stopPropagation()
+  const img = e.currentTarget
+  zoomedImageSrc.value = img.src
+  zoomedImageAlt.value = img.alt || 'Image preview'
+  isZoomed.value = true
+  document.body.style.overflow = 'hidden'
+}
+
 const installImageZoom = () => {
   const imgs = document.querySelectorAll('.markdown-content img')
   imgs.forEach(img => {
-    img.addEventListener('click', (e) => {
-      e.stopPropagation()
-      if (isZoomed.value && zoomedImage.value === img) {
-        closeZoom()
-      } else {
-        zoomedImage.value = img
-        img.classList.add('zoomed')
-        isZoomed.value = true
-        document.body.style.overflow = 'hidden'
-      }
-    })
+    img.removeEventListener('click', handleImageClick)
+    img.addEventListener('click', handleImageClick)
   })
 }
 
 const closeZoom = () => {
-  if (zoomedImage.value) zoomedImage.value.classList.remove('zoomed')
   isZoomed.value = false
-  zoomedImage.value = null
+  zoomedImageSrc.value = ''
   document.body.style.overflow = ''
 }
 
@@ -756,27 +778,81 @@ watch(() => route.params.slug, (newSlug) => {
   opacity: 0.9;
 }
 :deep(.markdown-content img) {
-  width: 100%;
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 3rem auto;
   border-radius: 16px;
-  margin: 3rem 0;
   cursor: zoom-in;
-  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: transform 0.3s ease;
   box-shadow: var(--shadow-lg);
 }
 :deep(.markdown-content img:hover) {
   transform: scale(1.02);
 }
-:deep(.markdown-content img.zoomed) {
-  position: fixed;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%) scale(1);
-  max-height: 95vh;
-  max-width: 95vw;
-  z-index: 10001;
+
+/* Lightbox Styles */
+.lightbox-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: zoom-out;
-  object-fit: contain;
-  box-shadow: 0 40px 80px rgba(0,0,0,0.5);
 }
+
+.lightbox-content {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.lightbox-img {
+  max-width: 100%;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  transform: scale(1);
+  animation: zoomIn 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 30px;
+  right: 30px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: #fff;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  z-index: 10001;
+}
+.lightbox-close:hover {
+  background: rgba(255, 255, 255, 0.4);
+  transform: rotate(90deg);
+}
+
+@keyframes zoomIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Fade Transition */
+.fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
 
 /* Markdown Tables */
 :deep(.markdown-content table) {
@@ -980,26 +1056,7 @@ watch(() => route.params.slug, (newSlug) => {
 .level-3 { padding-left: 36px; }
 
 /* Transitions */
-.slide-fade-enter-active, .slide-fade-leave-active { transition: all 0.3s ease; }
-.slide-fade-enter-from, .slide-fade-leave-to { transform: translateX(50px); opacity: 0; }
 
-/* Reading Progress */
-.reading-progress {
-  position: fixed; top: 0; left: 0; height: 3px;
-  background: var(--hive-gold);
-  z-index: 1000;
-  transition: width 0.1s;
-}
-
-/* Zoom Overlay */
-.zoom-overlay {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(255,255,255,0.95);
-  z-index: 10000;
-  opacity: 0; pointer-events: none;
-  transition: opacity 0.3s;
-}
-.zoom-overlay.active { opacity: 1; pointer-events: auto; }
 
 /* Responsive */
 @media (max-width: 1200px) {
