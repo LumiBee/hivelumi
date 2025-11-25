@@ -1354,32 +1354,84 @@ onBeforeUnmount(() => {
 @media (max-width: 768px) {
   .hero-section {
     padding-top: 0;
+    padding-bottom: 20px;
   }
   
   .cinematic-carousel-container {
-    height: 400px;
+    height: 420px; /* Slightly taller for better content fit */
     padding: 0;
+    margin: 0 -12px; /* Negative margin to go full width on mobile */
+    width: calc(100% + 24px);
+    max-width: none;
   }
   
   .modern-carousel {
     border-radius: 0;
+    box-shadow: none;
   }
   
   .carousel-content {
-    padding: 24px;
-    background: rgba(0, 0, 0, 0.7); /* Darker for better readability on mobile */
+    padding: 20px;
+    background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 60%, transparent 100%);
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    border-radius: 0;
+    backdrop-filter: none;
+    border: none;
   }
   
   .carousel-title {
-    font-size: 1.5rem;
+    font-size: 1.75rem;
+    margin-bottom: 12px;
   }
   
   .carousel-excerpt {
-    display: none; /* Hide excerpt on mobile */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    font-size: 1rem;
+    margin-bottom: 16px;
+    max-width: 100%;
+  }
+  
+  .carousel-actions {
+    display: none; /* Hide button on mobile to save space, whole card is clickable */
+  }
+
+  .carousel-control {
+    display: none; /* Hide arrows on mobile, use swipe (native or bootstrap) */
   }
   
   .apple-container {
     padding: 0 16px;
+  }
+
+  /* Article List Mobile Optimization */
+  .article-card-wrapper {
+    margin-bottom: 16px;
+  }
+
+  .article-card .card-body {
+    padding: 16px;
+  }
+
+  .article-title {
+    font-size: 1.25rem;
+    margin-bottom: 8px;
+  }
+
+  .article-excerpt {
+    font-size: 0.95rem;
+    -webkit-line-clamp: 2;
+    margin-bottom: 12px;
+  }
+
+  .article-thumbnail {
+    height: 160px;
+    margin-bottom: 12px;
+    border-radius: 12px;
   }
 }
 </style>

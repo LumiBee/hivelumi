@@ -1,128 +1,103 @@
 <template>
   <div class="auth-page-wrapper">
-    <div class="auth-container">
-      <div class="auth-form-section">
-        <div class="logo">
+    <div class="auth-card glass-panel">
+      <!-- Logo Badge -->
+      <div class="logo-badge">
+        <div class="hexagon">
           <img src="/img/logo.png" alt="Hive Logo" />
         </div>
+      </div>
+      
+      <div class="auth-header">
+        <h2>欢迎回来</h2>
+        <p class="slogan">探索知识的蜂巢</p>
+      </div>
 
-        <!-- 成功提示 -->
-        <div v-if="showSuccessMessage" class="alert alert-success" role="alert">
-          <i class="fas fa-check-circle me-2"></i>
-          {{ successMessage }}
+      <!-- 成功提示 -->
+      <div v-if="showSuccessMessage" class="alert alert-success fade-in" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        {{ successMessage }}
+      </div>
+
+      <!-- 错误提示 -->
+      <div v-if="errorMessage" class="alert alert-danger fade-in" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        {{ errorMessage }}
+      </div>
+
+      <!-- 登录表单 -->
+      <form @submit.prevent="handleLogin" class="auth-form">
+        <div class="form-group">
+          <div class="input-wrapper">
+            <i class="fas fa-user input-icon"></i>
+            <input
+              type="text"
+              class="custom-input"
+              id="accountInput"
+              v-model="loginForm.account"
+              placeholder="邮箱或用户名"
+              required
+              :class="{ 'is-invalid': errorMessage }"
+            />
+          </div>
         </div>
 
-        <!-- 错误提示 -->
-        <div v-if="errorMessage" class="alert alert-danger" role="alert">
-          <i class="fas fa-exclamation-circle me-2"></i>
-          {{ errorMessage }}
-        </div>
-
-        <!-- 登录表单 -->
-        <form @submit.prevent="handleLogin">
-          <div class="form-group">
-            <label for="accountInput">账号 (邮箱或用户名)</label>
-            <div class="input-group">
-              <div class="input-group-text">
-                <i class="fas fa-user"></i>
-              </div>
-              <input
-                type="text"
-                class="form-control"
-                id="accountInput"
-                v-model="loginForm.account"
-                placeholder="请输入您的邮箱或用户名"
-                required
-                :class="{ 'is-invalid': errorMessage }"
-              />
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="password">密码</label>
-            <div class="input-group">
-              <div class="input-group-text">
-                <i class="fas fa-lock"></i>
-              </div>
-              <input
-                :type="showPassword ? 'text' : 'password'"
-                class="form-control"
-                id="password"
-                v-model="loginForm.password"
-                placeholder="请输入您的密码"
-                required
-                :class="{ 'is-invalid': errorMessage }"
-              />
-              <button
-                class="btn"
-                type="button"
-                @click="showPassword = !showPassword"
-                style="border: 1px solid #ced4da; border-left: none;"
-              >
-                <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
-              </button>
-            </div>
-            <div v-if="errorMessage" class="invalid-feedback d-block">
-              邮箱/用户名或密码不正确。
-            </div>
-          </div>
-
-          <div class="form-check d-flex justify-content-between align-items-start mb-3">
-            <div class="d-flex align-items-center">
-              <input
-                type="checkbox"
-                class="form-check-input me-2"
-                id="remember-me"
-                v-model="loginForm.rememberMe"
-              />
-              <label class="form-check-label" for="remember-me">记住我</label>
-            </div>
-            <div class="remember-me-tip">
-              <i class="fas fa-info-circle text-muted me-1"></i>
-              <small class="text-muted">
-                不勾选刷新后退出登录
-              </small>
-            </div>
-          </div>
-
-          <button type="submit" class="btn btn-warning w-100" :disabled="isLoading">
-            <span v-if="isLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-            <i v-else class="fas fa-sign-in-alt me-1"></i>
-            {{ isLoading ? '登录中...' : '立即登录' }}
-          </button>
-        </form>
-
-        <!-- 跳转注册页面 -->
-        <div class="auth-links">
-          <p>还没有账户？ <router-link to="/signup">立即注册</router-link></p>
-        </div>
-
-        <!-- OAuth2登录 -->
-        <div class="social-login">
-          <p>或通过以下方式登录</p>
-          <div>
-            <a href="http://localhost:8090/api/oauth2/authorization/github" class="btn btn-outline-dark me-2">
-              <i class="fab fa-github me-1"></i> Github
-            </a>
-            <button type="button" class="btn btn-outline-danger" disabled>
-              <i class="fab fa-qq me-1"></i> QQ (即将开放)
+        <div class="form-group">
+          <div class="input-wrapper">
+            <i class="fas fa-lock input-icon"></i>
+            <input
+              :type="showPassword ? 'text' : 'password'"
+              class="custom-input"
+              id="password"
+              v-model="loginForm.password"
+              placeholder="密码"
+              required
+              :class="{ 'is-invalid': errorMessage }"
+            />
+            <button
+              class="password-toggle"
+              type="button"
+              @click="showPassword = !showPassword"
+            >
+              <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
             </button>
           </div>
         </div>
+
+        <div class="form-actions">
+          <label class="custom-checkbox">
+            <input
+              type="checkbox"
+              v-model="loginForm.rememberMe"
+            />
+            <span class="checkmark"></span>
+            <span class="label-text">记住我</span>
+          </label>
+          <a href="#" class="forgot-password">忘记密码?</a>
+        </div>
+
+        <button type="submit" class="btn-liquid-amber" :disabled="isLoading">
+          <span v-if="isLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          <span v-else>立即登录</span>
+        </button>
+      </form>
+
+      <!-- OAuth2登录 -->
+      <div class="social-login">
+        <p>或通过以下方式登录</p>
+        <div class="social-buttons">
+          <a href="http://localhost:8090/api/oauth2/authorization/github" class="social-btn github" title="GitHub 登录">
+            <i class="fab fa-github"></i>
+          </a>
+          <button type="button" class="social-btn qq" disabled title="QQ 登录 (即将开放)">
+            <i class="fab fa-qq"></i>
+          </button>
+        </div>
       </div>
 
-      <!-- 欢迎词 -->
-      <div class="auth-info-section">
-        <h2>欢迎来到 LumiHive!</h2>
-        <p>
-          LumiHive 是一个个人知识学习与交流平台，专注于各种技术分享与学习心得。
-        </p>
-        <p>
-          我们正在构建一个小众社区，大家在这里相互启发、以平等、自由、开放的精神进行分享交流。最终，每位大家庭成员找到与自己志同道合的伙伴，共同成长。
-        </p>
-        <p>
-          最后请大家共同爱护这个交流环境，一个好的交流环境离不开大家的努力😊
-        </p>
+      <!-- 跳转注册页面 -->
+      <div class="auth-footer">
+        <p>还没有账户？ <router-link to="/signup" class="link-highlight">立即注册</router-link></p>
       </div>
     </div>
   </div>
@@ -194,216 +169,460 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* 极光背景与页面容器 */
 .auth-page-wrapper {
-  flex-grow: 1;
+  height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem 0;
-  margin-top: 67px; /* 为导航栏留出空间 */
+  padding: 70px 1rem 2rem; /* 增加顶部内边距以避开导航栏 */
+  margin-top: 0; /* 覆盖默认 margin */
   position: relative;
-  overflow: hidden;
-  background: #ffffff;
+  background-color: #fbfbfd;
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(246, 185, 59, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(66, 153, 225, 0.08) 0%, transparent 40%),
+    var(--noise-pattern, url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E"));
+  overflow: hidden; /* 禁止页面滚动 */
 }
 
-.auth-container {
-  background: white;
-  border-radius: 20px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  display: flex;
-  max-width: 900px;
+/* 针对较小屏幕高度的响应式调整，确保内容完整显示 */
+@media (max-height: 800px) {
+  .auth-card {
+    padding: 2rem 2rem;
+    transform: scale(0.9);
+  }
+  
+  .logo-badge {
+    top: -30px;
+  }
+  
+  .hexagon {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .hexagon img {
+    width: 30px;
+  }
+  
+  .auth-header {
+    margin-top: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .social-login {
+    margin-top: 1.5rem;
+  }
+  
+  .auth-footer {
+    margin-top: 1.5rem;
+  }
+}
+
+@media (max-height: 650px) {
+  .auth-card {
+    transform: scale(0.85);
+    padding: 1.5rem;
+  }
+}
+
+/* 中央悬浮玻璃卡片 */
+.auth-card {
   width: 100%;
-  margin: 0 1rem;
-}
-
-.auth-form-section {
-  flex: 1;
-  padding: 3rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.auth-info-section {
-  flex: 1;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  padding: 3rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  color: #495057;
+  max-width: 440px;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 24px;
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.05),
+    0 1px 3px rgba(0, 0, 0, 0.05),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+  padding: 3rem 2.5rem;
   position: relative;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: cardFloat 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.logo {
+@keyframes cardFloat {
+  from { opacity: 0; transform: translateY(20px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Logo 徽章 */
+.logo-badge {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+}
+
+.hexagon {
+  width: 80px;
+  height: 80px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px);
+  -webkit-clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 30px rgba(246, 185, 59, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.8);
+}
+
+.hexagon img {
+  width: 40px;
+  height: auto;
+}
+
+/* 标题与标语 */
+.auth-header {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-top: 2rem;
+  margin-bottom: 2.5rem;
 }
 
-.logo img {
-  height: 60px;
-  width: auto;
+.auth-header h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1d1d1f;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.5px;
+}
+
+.slogan {
+  font-family: "Songti SC", "Noto Serif SC", serif;
+  color: #86868b;
+  font-size: 1rem;
+  letter-spacing: 1px;
+}
+
+/* 表单样式 */
+.auth-form {
+  width: 100%;
 }
 
 .form-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
-.form-group label {
-  font-weight: 600;
-  color: #495057;
-  margin-bottom: 0.5rem;
-  display: block;
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
 }
 
-.input-group {
-  border-radius: 10px;
-  overflow: hidden;
-  border: 2px solid #e9ecef;
+.input-icon {
+  position: absolute;
+  left: 16px;
+  color: #86868b;
+  font-size: 1rem;
+  pointer-events: none;
+  z-index: 2;
+  transition: color 0.3s ease;
+}
+
+.custom-input {
+  width: 100%;
+  padding: 14px 16px 14px 44px;
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid transparent;
+  border-radius: 16px;
+  font-size: 1rem;
+  color: #1d1d1f;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.custom-input:focus {
+  outline: none;
+  background: #fff;
+  border-color: rgba(246, 185, 59, 0.3);
+  box-shadow: 0 0 0 4px rgba(246, 185, 59, 0.1);
+}
+
+.custom-input:focus + .input-icon,
+.input-wrapper:focus-within .input-icon {
+  color: #F6B93B;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 16px;
+  background: none;
+  border: none;
+  color: #86868b;
+  cursor: pointer;
+  padding: 4px;
+  transition: color 0.2s;
+}
+
+.password-toggle:hover {
+  color: #1d1d1f;
+}
+
+/* 复选框与忘记密码 */
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  font-size: 0.9rem;
+}
+
+.custom-checkbox {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.custom-checkbox input {
+  display: none;
+}
+
+.checkmark {
+  width: 18px;
+  height: 18px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 6px;
+  margin-right: 8px;
+  position: relative;
   transition: all 0.2s ease;
 }
 
-.input-group:focus-within {
-  border-color: #f6d55c;
-  box-shadow: 0 0 0 0.2rem rgba(246, 213, 92, 0.25);
+.custom-checkbox input:checked ~ .checkmark {
+  background: #F6B93B;
 }
 
-.input-group-text {
-  background: #f8f9fa;
-  border: none;
-  color: #6c757d;
+.checkmark::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  opacity: 0;
+  transition: opacity 0.2s;
 }
 
-.form-control {
-  border: none;
-  box-shadow: none;
+.custom-checkbox input:checked ~ .checkmark::after {
+  opacity: 1;
 }
 
-.form-control:focus {
-  border: none;
-  box-shadow: none;
+.label-text {
+  color: #86868b;
 }
 
-.form-control.is-invalid {
-  border: none;
-}
-
-.btn-warning {
-  background: linear-gradient(135deg, #f6d55c 0%, #e8ca0f 100%);
-  border: none;
-  padding: 12px;
-  font-weight: 600;
-  border-radius: 10px;
-  transition: all 0.2s ease;
-}
-
-.btn-warning:hover:not(:disabled) {
-  background: linear-gradient(135deg, #e8ca0f 0%, #d4af37 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(232, 202, 15, 0.3);
-}
-
-.btn-warning:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-.auth-links {
-  text-align: center;
-  margin: 1.5rem 0;
-}
-
-.auth-links a {
-  color: #f6d55c;
+.forgot-password {
+  color: #86868b;
   text-decoration: none;
+  transition: color 0.2s;
+}
+
+.forgot-password:hover {
+  color: #F6B93B;
+}
+
+/* 液态琥珀按钮 */
+.btn-liquid-amber {
+  /* Structure */
+  width: 100%;
+  padding: 16px; /* Slightly taller for presence */
+  border: none;
+  border-radius: 18px; /* Softer corners */
+  
+  /* Typography */
+  color: white;
+  font-size: 1.05rem;
   font-weight: 600;
+  letter-spacing: 0.5px;
+  
+  /* Background & Depth */
+  background: linear-gradient(135deg, #FFC837 0%, #FF8008 100%); /* Richer orange-gold */
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  
+  /* Initial State Effects */
+  box-shadow: 
+    0 10px 20px -5px rgba(255, 128, 8, 0.4), /* Colored glow */
+    0 4px 6px -2px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4), /* Top highlight */
+    inset 0 -2px 0 rgba(0, 0, 0, 0.1); /* Bottom lip */
+    
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  z-index: 1;
 }
 
-.auth-links a:hover {
-  color: #e8ca0f;
-  text-decoration: underline;
+/* Shine effect overlay */
+.btn-liquid-amber::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.2), 
+    transparent
+  );
+  transition: left 0.5s ease;
+  z-index: -1;
 }
 
+/* Hover State */
+.btn-liquid-amber:hover:not(:disabled) {
+  transform: translateY(-3px) scale(1.01);
+  background: linear-gradient(135deg, #FFD560 0%, #FF9020 100%); /* Brighter */
+  box-shadow: 
+    0 15px 30px -5px rgba(255, 128, 8, 0.5),
+    0 8px 12px -4px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+}
+
+.btn-liquid-amber:hover:not(:disabled)::before {
+  left: 100%; /* Swipe shine across */
+}
+
+/* Active State */
+.btn-liquid-amber:active:not(:disabled) {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    inset 0 2px 4px rgba(0, 0, 0, 0.2); /* Inner shadow for depth */
+  background: linear-gradient(135deg, #E0A800 0%, #D06000 100%); /* Darker */
+}
+
+/* Disabled State */
+.btn-liquid-amber:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  filter: grayscale(0.4);
+  transform: none;
+  box-shadow: none;
+}
+
+/* 社交登录 */
 .social-login {
+  margin-top: 2.5rem;
   text-align: center;
-  margin-top: 1rem;
 }
 
 .social-login p {
-  color: #6c757d;
-  margin-bottom: 1rem;
+  color: #86868b;
+  font-size: 0.85rem;
+  margin-bottom: 1.5rem;
   position: relative;
+  display: inline-block;
+  padding: 0 1rem;
 }
 
 .social-login p::before,
 .social-login p::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 50%;
-  width: 35%;
+  width: 40px;
   height: 1px;
-  background: #dee2e6;
+  background: rgba(0, 0, 0, 0.1);
 }
 
-.social-login p::before {
-  left: 0;
+.social-login p::before { right: 100%; }
+.social-login p::after { left: 100%; }
+
+.social-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
 }
 
-.social-login p::after {
-  right: 0;
+.social-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  color: #1d1d1f;
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
 }
 
-.btn-outline-dark,
-.btn-outline-danger {
-  border-radius: 10px;
-  padding: 8px 16px;
-  font-weight: 500;
+.social-btn:hover:not(:disabled) {
+  transform: translateY(-4px) scale(1.1);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  border-color: transparent;
 }
 
-.auth-info-section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: #ffda58;
+.social-btn.github:hover {
+  background: #333;
+  color: white;
 }
 
-.auth-info-section h2 {
-  color: #333;
+.social-btn.qq:hover {
+  background: #12B7F5;
+  color: white;
+}
+
+.social-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #f5f5f7;
+}
+
+/* 底部链接 */
+.auth-footer {
+  margin-top: 2rem;
+  text-align: center;
+  font-size: 0.95rem;
+  color: #86868b;
+}
+
+.link-highlight {
+  color: #F6B93B;
   font-weight: 600;
-  margin-bottom: 1.5rem;
-  position: relative;
-  display: inline-block;
-  font-size: 2rem;
-  font-family: 'Playfair Display', Georgia, serif;
+  text-decoration: none;
+  margin-left: 4px;
+  transition: color 0.2s;
 }
 
-.auth-info-section h2::after {
-  content: '';
-  position: absolute;
-  bottom: -8px;
-  left: 0;
-  width: 60px;
-  height: 4px;
-  background: #ffda58;
-  border-radius: 2px;
+.link-highlight:hover {
+  color: #E0A800;
+  text-decoration: underline;
 }
 
-.auth-info-section p {
-  line-height: 1.7;
-  margin-bottom: 1rem;
-  opacity: 0.95;
+/* 提示框动画 */
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .alert {
-  border-radius: 10px;
-  border: none;
+  border-radius: 12px;
   padding: 12px 16px;
   margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+  border: none;
 }
 
 .alert-success {
@@ -416,62 +635,18 @@ onMounted(() => {
   color: #721c24;
 }
 
-@media (max-width: 768px) {
-  .auth-container {
-    flex-direction: column;
-    margin: 0 1rem;
+/* 响应式调整 */
+@media (max-width: 576px) {
+  .auth-card {
+    padding: 2.5rem 1.5rem;
   }
   
-  .auth-form-section,
-  .auth-info-section {
-    padding: 2rem;
-  }
-  
-  .auth-info-section {
-    order: -1;
-  }
-  
-  .auth-info-section h2 {
+  .auth-header h2 {
     font-size: 1.5rem;
   }
-}
-
-@media (max-width: 576px) {
-  .auth-form-section,
-  .auth-info-section {
-    padding: 1.5rem;
-  }
   
-  .social-login div {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+  .custom-input {
+    font-size: 16px; /* 防止 iOS 缩放 */
   }
-  
-  .btn-outline-dark,
-  .btn-outline-danger {
-    margin: 0;
-  }
-  
-  .remember-me-tip {
-    margin-top: 0.5rem;
-    text-align: center;
-  }
-}
-
-/* 记住我提示样式 */
-.remember-me-tip {
-  max-width: 200px;
-  line-height: 1.4;
-}
-
-.remember-me-tip i {
-  color: #6c757d;
-  font-size: 0.875rem;
-}
-
-.remember-me-tip small {
-  font-size: 0.75rem;
-  line-height: 1.3;
 }
 </style>

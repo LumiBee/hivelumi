@@ -88,8 +88,8 @@
         <div class="user-actions">
           <!-- 未登录状态 -->
           <template v-if="!authStore.isAuthenticated">
-            <router-link to="/login" class="btn btn-outline-primary">登录</router-link>
-            <router-link to="/signup" class="btn btn-warning">注册</router-link>
+            <router-link to="/login" class="btn nav-btn-login">登录</router-link>
+            <router-link to="/signup" class="btn nav-btn-signup">注册</router-link>
           </template>
 
           <!-- 已登录状态 -->
@@ -630,6 +630,59 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 1rem;
+}
+
+/* Navbar Button Container */
+.user-actions .btn {
+  padding: 0.5rem 1.25rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none; /* Reset default borders */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  margin-left: 0.5rem;
+}
+
+/* Login Button - Glass Ghost */
+.nav-btn-login {
+  background: transparent;
+  color: #5a5a5a;
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-btn-login:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: #1d1d1f;
+  transform: translateY(-1px);
+}
+
+.nav-btn-login:active {
+  transform: translateY(0) scale(0.98);
+  background: rgba(0, 0, 0, 0.08);
+}
+
+/* Signup Button - Mini Liquid Amber */
+.nav-btn-signup {
+  background: linear-gradient(135deg, #F6B93B 0%, #E0A800 100%);
+  color: white;
+  box-shadow: 0 4px 10px rgba(246, 185, 59, 0.3);
+}
+
+.nav-btn-signup:hover {
+  background: linear-gradient(135deg, #FFC837 0%, #FF8008 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(246, 185, 59, 0.4);
+  color: white;
+}
+
+.nav-btn-signup:active {
+  transform: translateY(0) scale(0.96);
+  box-shadow: 0 2px 5px rgba(246, 185, 59, 0.2);
 }
 
 /* 搜索容器 - 响应式宽度 */
@@ -1398,12 +1451,32 @@ onUnmounted(() => {
   }
   
   .mobile-menu {
-    padding: 1rem;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   }
   
   .mobile-nav-link {
-    padding: 0.875rem 1rem;
-    font-size: 0.95rem;
+    padding: 1rem 1.25rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    transition: all 0.2s ease;
+  }
+
+  .mobile-nav-link:active {
+    background: rgba(0, 0, 0, 0.05);
+    transform: scale(0.98);
+  }
+
+  .mobile-nav-link.router-link-active {
+    background: var(--hive-gold);
+    color: white;
+    box-shadow: 0 4px 12px rgba(246, 185, 59, 0.3);
   }
 }
 

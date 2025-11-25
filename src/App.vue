@@ -8,8 +8,8 @@
       <router-view />
     </main>
     
-    <!-- 页脚 - 在发布文章页面不显示 -->
-    <Footer v-if="!isPublishPage" />
+    <!-- 页脚 - 在特定页面不显示 -->
+    <Footer v-if="shouldShowFooter" />
     
     <!-- Toast提示框 -->
     <Toast />
@@ -38,14 +38,18 @@ const route = useRoute()
 // Token 监控相关
 let stopTokenMonitoring = null
 
-// 判断当前是否为特殊布局页面（如文章页或发布页）
+// 判断当前是否为特殊布局页面（如文章页、发布页、登录注册页）
 const isSpecialLayout = computed(() => {
-  return route.path.startsWith('/article/') || route.path === '/publish';
+  return route.path.startsWith('/article/') || 
+         route.path === '/publish' || 
+         route.path === '/login' || 
+         route.path === '/signup';
 });
 
-// 为了保持 Footer 的逻辑不变，保留 isPublishPage
-const isPublishPage = computed(() => {
-  return route.path === '/publish';
+// Footer 显示逻辑：发布页、登录页、注册页不显示
+const shouldShowFooter = computed(() => {
+  const noFooterRoutes = ['/publish', '/login', '/signup'];
+  return !noFooterRoutes.includes(route.path);
 });
 
 
@@ -114,8 +118,11 @@ onUnmounted(() => {
   box-sizing: border-box;
 }
 
-body {
+html, body {
   margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* Prevent horizontal scroll globally */
+  width: 100%;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;

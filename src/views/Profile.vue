@@ -1199,12 +1199,59 @@ onMounted(() => {
 
 /* === Responsive === */
 @media (max-width: 992px) {
-  .profile-layout { flex-direction: column-reverse; gap: 40px; }
-  .layout-sidebar { width: 100%; }
-  .sidebar-sticky { position: relative; top: 0; margin-top: -80px; }
-  .cinematic-cover { height: 240px; margin-bottom: -60px; }
-  .profile-card { padding: 32px 20px; }
-  .avatar-container { width: 100px; height: 100px; }
+  .profile-layout { 
+    flex-direction: column-reverse; 
+    gap: 24px; 
+  }
+  
+  .layout-sidebar { 
+    width: 100%; 
+  }
+  
+  .sidebar-sticky { 
+    position: relative; 
+    top: 0; 
+    margin-top: -60px; /* Pull up to overlap cover */
+    z-index: 10;
+  }
+  
+  .cinematic-cover { 
+    height: 200px; 
+    margin-bottom: -40px; 
+  }
+  
+  .profile-card { 
+    padding: 24px 20px; 
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+  }
+  
+  .avatar-container { 
+    width: 90px; 
+    height: 90px; 
+    margin-bottom: 12px;
+  }
+
+  .profile-name {
+    font-size: 1.5rem;
+  }
+
+  .profile-bio {
+    font-size: 0.95rem;
+  }
+
+  .profile-stats-row {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+  }
+
+  .stat-num {
+    font-size: 1.1rem;
+  }
+
+  .stat-lbl {
+    font-size: 0.7rem;
+  }
 }
 
 @keyframes fadeInUp {

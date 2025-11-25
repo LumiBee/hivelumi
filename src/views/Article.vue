@@ -1072,8 +1072,68 @@ watch(() => route.params.slug, (newSlug) => {
 }
 
 @media (max-width: 768px) {
-  .hero-title { font-size: 1.8rem; }
-  /* 移除 display: none，让 v-show 控制 */
+  .hero-card {
+    border-radius: 0;
+    margin: -20px -20px 20px -20px; /* Full width */
+    width: calc(100% + 40px);
+  }
+
+  .hero-content {
+    padding: 24px 20px;
+  }
+
+  .hero-title { 
+    font-size: 1.75rem; 
+    line-height: 1.3;
+  }
+
+  .article-layout {
+    flex-direction: column;
+  }
+
+  .article-body {
+    padding: 20px;
+    font-size: 1.05rem; /* Slightly larger for mobile readability */
+    line-height: 1.7;
+  }
+
+  /* Markdown Content Mobile Optimization */
+  :deep(.markdown-content) h1 { font-size: 1.75rem; margin-top: 32px; }
+  :deep(.markdown-content) h2 { font-size: 1.5rem; margin-top: 28px; }
+  :deep(.markdown-content) h3 { font-size: 1.25rem; margin-top: 24px; }
+  
+  :deep(.markdown-content) pre {
+    margin: 16px -20px; /* Full width code blocks */
+    border-radius: 0;
+    font-size: 0.9rem;
+  }
+
+  :deep(.markdown-content) blockquote {
+    margin: 16px 0;
+    padding: 12px 16px;
+  }
+
+  /* TOC Mobile */
+  .toc-drawer {
+    width: 85vw;
+    max-width: 320px;
+    position: fixed;
+    right: -100%; /* Hidden by default */
+    top: 0;
+    bottom: 0;
+    height: 100vh;
+    max-height: none;
+    border-radius: 0;
+    z-index: 1000;
+    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    visibility: hidden; /* Ensure it doesn't take space or focus when hidden */
+  }
+
+  .toc-drawer.active {
+    right: 0;
+    visibility: visible;
+    box-shadow: -10px 0 30px rgba(0,0,0,0.15);
+  }
 }
 
 /* === Author Section Styles === */
