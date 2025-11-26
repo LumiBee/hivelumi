@@ -2,21 +2,16 @@
   <div class="auth-page-wrapper">
     <div class="auth-card glass-panel">
       <!-- Logo Badge -->
-      <div class="logo-badge">
-        <div class="hexagon">
-          <img src="/img/logo.png" alt="Hive Logo" />
+      <!-- Logo Badge -->
+      <div class="auth-header-icon">
+        <div class="hive-emblem">
+          <i class="fas fa-cubes"></i>
         </div>
       </div>
       
       <div class="auth-header">
         <h2>加入蜂巢</h2>
         <p class="slogan">开启您的知识分享之旅</p>
-      </div>
-
-      <!-- 错误提示 -->
-      <div v-if="errorMessage" class="alert alert-danger fade-in" role="alert">
-        <i class="fas fa-exclamation-circle me-2"></i>
-        {{ errorMessage }}
       </div>
 
       <!-- 注册表单 -->
@@ -28,7 +23,7 @@
               type="text"
               class="custom-input"
               id="username"
-              v-model="signupForm.username"
+              v-model="username"
               placeholder="用户名"
               required
               :class="{ 'is-invalid': fieldErrors.username }"
@@ -46,7 +41,7 @@
               type="email"
               class="custom-input"
               id="email"
-              v-model="signupForm.email"
+              v-model="email"
               placeholder="邮箱地址"
               required
               :class="{ 'is-invalid': fieldErrors.email }"
@@ -64,7 +59,7 @@
               :type="showPassword ? 'text' : 'password'"
               class="custom-input"
               id="password"
-              v-model="signupForm.password"
+              v-model="password"
               placeholder="密码 (至少6位)"
               required
               :class="{ 'is-invalid': fieldErrors.password }"
@@ -89,7 +84,7 @@
               :type="showConfirmPassword ? 'text' : 'password'"
               class="custom-input"
               id="confirmPassword"
-              v-model="signupForm.confirmPassword"
+              v-model="confirmPassword"
               placeholder="确认密码"
               required
               :class="{ 'is-invalid': fieldErrors.confirmPassword }"
@@ -111,7 +106,7 @@
           <label class="custom-checkbox">
             <input
               type="checkbox"
-              v-model="signupForm.agreeTerms"
+              v-model="agreeTerms"
               required
             />
             <span class="checkmark"></span>
@@ -139,34 +134,32 @@
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
+import { toast } from '@/plugins/toast';
 
 const router = useRouter()
 const authStore = useAuthStore()
 
 // 响应式数据
-const signupForm = ref({
-  username: '',
-  email: '',
-  password: '',
-  confirmPassword: '',
-  agreeTerms: false
-})
+const username = ref('');
+const email = ref('');
+const password = ref('');
+const confirmPassword = ref('');
+const agreeTerms = ref(false); // Added this ref based on template usage
 
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
 const isLoading = ref(false)
-const errorMessage = ref('')
 const fieldErrors = ref({})
 
 // 计算属性
 const isFormValid = computed(() => {
-  return signupForm.value.username &&
-         signupForm.value.email &&
-         signupForm.value.password &&
-         signupForm.value.confirmPassword &&
-         signupForm.value.agreeTerms &&
-         signupForm.value.password === signupForm.value.confirmPassword &&
-         signupForm.value.password.length >= 6
+  return username.value &&
+         email.value &&
+         password.value &&
+         confirmPassword.value &&
+         agreeTerms.value &&
+         password.value === confirmPassword.value &&
+         password.value.length >= 6
 })
 
 // 表单验证
@@ -175,43 +168,43 @@ const validateForm = () => {
   let isValid = true
 
   // 验证用户名
-  if (!signupForm.value.username) {
+  if (!username.value) {
     fieldErrors.value.username = '请输入用户名'
     isValid = false
-  } else if (signupForm.value.username.length < 3) {
+  } else if (username.value.length < 3) {
     fieldErrors.value.username = '用户名至少需要3个字符'
     isValid = false
-  } else if (signupForm.value.username.length > 20) {
+  } else if (username.value.length > 20) {
     fieldErrors.value.username = '用户名不能超过20个字符'
     isValid = false
   }
 
   // 验证邮箱
-  if (!signupForm.value.email) {
+  if (!email.value) {
     fieldErrors.value.email = '请输入邮箱地址'
     isValid = false
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(signupForm.value.email)) {
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
     fieldErrors.value.email = '请输入有效的邮箱地址'
     isValid = false
   }
 
   // 验证密码
-  if (!signupForm.value.password) {
+  if (!password.value) {
     fieldErrors.value.password = '请输入密码'
     isValid = false
-  } else if (signupForm.value.password.length < 6) {
+  } else if (password.value.length < 6) {
     fieldErrors.value.password = '密码长度至少需要6位'
     isValid = false
-  } else if (signupForm.value.password.length > 50) {
+  } else if (password.value.length > 50) {
     fieldErrors.value.password = '密码长度不能超过50位'
     isValid = false
   }
 
   // 验证确认密码
-  if (!signupForm.value.confirmPassword) {
+  if (!confirmPassword.value) {
     fieldErrors.value.confirmPassword = '请确认密码'
     isValid = false
-  } else if (signupForm.value.password !== signupForm.value.confirmPassword) {
+  } else if (password.value !== confirmPassword.value) {
     fieldErrors.value.confirmPassword = '两次输入的密码不一致'
     isValid = false
   }
@@ -227,48 +220,42 @@ const handleSignup = async () => {
 
   try {
     isLoading.value = true
-    errorMessage.value = ''
     fieldErrors.value = {}
 
-    console.log('提交注册表单:', {
-      username: signupForm.value.username,
-      email: signupForm.value.email,
-      password: signupForm.value.password.length,
-      confirmPassword: signupForm.value.confirmPassword.length
-    })
-
     const result = await authStore.register({
-      username: signupForm.value.username,
-      email: signupForm.value.email,
-      password: signupForm.value.password,
-      confirmPassword: signupForm.value.confirmPassword
+      username: username.value,
+      email: email.value,
+      password: password.value,
+      confirmPassword: confirmPassword.value
     })
 
     // 检查结果类型
     if (result === true) {
+      toast.success('注册成功！正在为您登录...')
       // 注册成功，跳转到登录页面
       router.push({ name: 'Login', query: { registered: 'true' } })
     } else if (result && typeof result === 'object' && result.fieldErrors) {
       // 处理字段级别的错误
-      console.log('注册表单字段错误:', result.fieldErrors)
       fieldErrors.value = result.fieldErrors
+      toast.error('请检查表单填写是否正确')
     } else {
       // 处理一般错误
       const error = authStore.error
-      console.error('注册失败，错误信息:', error)
       
       // 尝试从错误消息中识别特定字段错误
       if (error && error.toLowerCase().includes('用户名')) {
         fieldErrors.value.username = '该用户名已被注册'
+        toast.error('该用户名已被注册')
       } else if (error && error.toLowerCase().includes('邮箱')) {
         fieldErrors.value.email = '该邮箱已被注册'
+        toast.error('该邮箱已被注册')
       } else {
-        errorMessage.value = error || '注册失败，请稍后重试'
+        toast.error(error || '注册失败，请稍后重试')
       }
     }
   } catch (error) {
-    console.error('注册过程发生异常:', error)
-    errorMessage.value = '注册失败，请稍后重试'
+    console.error('注册失败:', error)
+    toast.error('注册失败，请稍后重试')
   } finally {
     isLoading.value = false
   }
@@ -382,32 +369,46 @@ watch(() => signupForm.value.confirmPassword, () => {
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* Logo 徽章 */
-.logo-badge {
-  position: absolute;
-  top: -40px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10;
+/* Logo 徽章 - Hive Emblem */
+.auth-header-icon {
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: center;
+  margin-top: -1rem; /* Slight negative margin to pull it up */
 }
 
-.hexagon {
+.hive-emblem {
   width: 80px;
   height: 80px;
-  background: rgba(255, 255, 255, 0.9);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.6));
   backdrop-filter: blur(20px);
   -webkit-clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
   clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 10px 30px rgba(246, 185, 59, 0.3);
-  border: 2px solid rgba(255, 255, 255, 0.8);
+  /* Use filter for outer shadow that respects clip-path */
+  filter: drop-shadow(0 10px 20px rgba(246, 185, 59, 0.3));
+  /* Use inset box-shadow for the border effect (clipped inside) */
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.8), inset 0 0 20px rgba(255, 255, 255, 0.5);
+  transform: rotate(0deg);
+  transition: all 0.5s ease;
 }
 
-.hexagon img {
-  width: 40px;
-  height: auto;
+/* Pseudo-element removed as border is now handled by inset shadow */
+
+.hive-emblem i {
+  font-size: 2.5rem;
+  background: linear-gradient(135deg, #F6B93B, #E0A800);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 4px 8px rgba(246, 185, 59, 0.3));
+}
+
+.auth-card:hover .hive-emblem {
+  transform: rotate(0deg) scale(1.05);
+  filter: drop-shadow(0 15px 30px rgba(246, 185, 59, 0.4));
 }
 
 /* 标题与标语 */

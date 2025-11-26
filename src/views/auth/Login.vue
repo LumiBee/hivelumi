@@ -2,27 +2,16 @@
   <div class="auth-page-wrapper">
     <div class="auth-card glass-panel">
       <!-- Logo Badge -->
-      <div class="logo-badge">
-        <div class="hexagon">
-          <img src="/img/logo.png" alt="Hive Logo" />
+      <!-- Logo Badge -->
+      <div class="auth-header-icon">
+        <div class="hive-emblem">
+          <i class="fas fa-cubes"></i>
         </div>
       </div>
-      
+      <!-- 标题与标语 -->
       <div class="auth-header">
         <h2>欢迎回来</h2>
-        <p class="slogan">探索知识的蜂巢</p>
-      </div>
-
-      <!-- 成功提示 -->
-      <div v-if="showSuccessMessage" class="alert alert-success fade-in" role="alert">
-        <i class="fas fa-check-circle me-2"></i>
-        {{ successMessage }}
-      </div>
-
-      <!-- 错误提示 -->
-      <div v-if="errorMessage" class="alert alert-danger fade-in" role="alert">
-        <i class="fas fa-exclamation-circle me-2"></i>
-        {{ errorMessage }}
+        <p class="subtitle">登录您的 Hive 账户</p>
       </div>
 
       <!-- 登录表单 -->
@@ -107,6 +96,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
+import { toast } from '@/plugins/toast'
 
 const router = useRouter()
 const route = useRoute()
@@ -121,33 +111,30 @@ const loginForm = ref({
 
 const showPassword = ref(false)
 const isLoading = ref(false)
-const errorMessage = ref('')
-const showSuccessMessage = ref(false)
-const successMessage = ref('')
 
 // 处理登录
 const handleLogin = async () => {
   if (!loginForm.value.account || !loginForm.value.password) {
-    errorMessage.value = '请填写账号和密码'
+    toast.error('请填写账号和密码')
     return
   }
 
   try {
     isLoading.value = true
-    errorMessage.value = ''
 
     const success = await authStore.login(loginForm.value)
 
     if (success) {
+      toast.success('登录成功！')
       // 登录成功，跳转到目标页面或首页
       const redirectTo = route.query.redirect || '/'
       router.push(redirectTo)
     } else {
-      errorMessage.value = authStore.error || '登录失败，请检查用户名和密码'
+      toast.error(authStore.error || '登录失败，请检查用户名和密码')
     }
   } catch (error) {
     console.error('登录失败:', error)
-    errorMessage.value = '登录失败，请稍后重试'
+    toast.error('登录失败，请稍后重试')
   } finally {
     isLoading.value = false
   }
@@ -253,32 +240,46 @@ onMounted(() => {
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* Logo 徽章 */
-.logo-badge {
-  position: absolute;
-  top: -40px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10;
+/* Logo 徽章 - Hive Emblem */
+.auth-header-icon {
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: center;
+  margin-top: -1rem; /* Slight negative margin to pull it up */
 }
 
-.hexagon {
+.hive-emblem {
   width: 80px;
   height: 80px;
-  background: rgba(255, 255, 255, 0.9);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.6));
   backdrop-filter: blur(20px);
   -webkit-clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
   clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 10px 30px rgba(246, 185, 59, 0.3);
-  border: 2px solid rgba(255, 255, 255, 0.8);
+  /* Use filter for outer shadow that respects clip-path */
+  filter: drop-shadow(0 10px 20px rgba(246, 185, 59, 0.3));
+  /* Use inset box-shadow for the border effect (clipped inside) */
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.8), inset 0 0 20px rgba(255, 255, 255, 0.5);
+  transform: rotate(0deg);
+  transition: all 0.5s ease;
 }
 
-.hexagon img {
-  width: 40px;
-  height: auto;
+/* Pseudo-element removed as border is now handled by inset shadow */
+
+.hive-emblem i {
+  font-size: 2.5rem;
+  background: linear-gradient(135deg, #F6B93B, #E0A800);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 4px 8px rgba(246, 185, 59, 0.3));
+}
+
+.auth-card:hover .hive-emblem {
+  transform: rotate(0deg) scale(1.05);
+  filter: drop-shadow(0 15px 30px rgba(246, 185, 59, 0.4));
 }
 
 /* 标题与标语 */

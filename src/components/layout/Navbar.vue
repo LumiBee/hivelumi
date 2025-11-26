@@ -33,9 +33,7 @@
               placeholder="搜索..."
               autocomplete="off"
             />
-            <button class="search-btn" @click="performSearch" aria-label="搜索">
-              <i class="fas fa-search"></i>
-            </button>
+            <i class="fas fa-search search-icon"></i>
           </div>
           
           <!-- 搜索结果下拉框 -->
@@ -740,41 +738,59 @@ onUnmounted(() => {
   position: relative;
   display: flex;
   align-items: center;
+  width: 100%;
 }
 
 .search-input {
   width: 100%;
-  padding: 0.75rem 1rem 0.75rem 2.5rem;
-  border: 2px solid transparent;
-  border-radius: 25px;
-  background: rgba(248, 249, 250, 0.8);
-  font-size: 1rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(10px);
-  min-width: 0; /* 允许输入框缩小 */
+  height: 36px; /* Apple standard height */
+  padding: 0 12px 0 36px; /* Precise padding */
+  border: none; /* No border by default */
+  border-radius: 99px; /* Pill shape */
+  
+  background: rgba(118, 118, 128, 0.12); /* Apple System Grey 6 equivalent */
+  backdrop-filter: none;
+  
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 13px; /* Smaller, precise text */
+  color: #1d1d1f;
+  
+  transition: all 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+  box-shadow: none;
+}
+
+.search-input:hover {
+  background: rgba(118, 118, 128, 0.15);
 }
 
 .search-input:focus {
+  background: #ffffff;
   outline: none;
-  border-color: #ffc107;
-  background: white;
-  box-shadow: 0 4px 20px rgba(255, 193, 7, 0.2);
-  transform: translateY(-1px);
+  /* Apple style focus ring is usually a blue glow, we use Amber */
+  box-shadow: 
+    0 0 0 4px rgba(246, 185, 59, 0.25), /* Soft Amber Ring */
+    0 4px 12px rgba(0, 0, 0, 0.1); /* Depth */
 }
 
-.search-btn {
+.search-input::placeholder {
+  color: #8e8e93; /* Apple System Grey */
+  font-weight: 400;
+}
+
+.search-icon {
   position: absolute;
-  left: 0.75rem;
-  background: none;
-  border: none;
-  color: #6c757d;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  left: 12px;
+  color: #8e8e93;
+  font-size: 14px;
+  pointer-events: none;
+  transition: color 0.2s ease;
+  z-index: 2;
 }
 
-.search-btn:hover {
-  color: #ffc107;
-  transform: scale(1.1);
+/* Icon Color Change on Focus */
+.search-input:focus + .search-icon,
+.search-input:focus ~ .search-icon {
+  color: #F6B93B; /* Amber on focus */
 }
 
 /* 搜索结果 */
