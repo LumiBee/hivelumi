@@ -299,7 +299,8 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { articleAPI, tagAPI } from '@/api'
+import { articleAPI } from '@/api/article'
+import { tagAPI } from '@/api/tag'
 import { getAuthorAvatarUrl } from '@/utils/avatar-helper'
 import LazyImage from '@/components/LazyImage.vue'
 import { useAuthStore } from '@/store/auth'

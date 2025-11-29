@@ -31,6 +31,13 @@ export default defineConfig(({ mode }) => {
     plugins: [
       vue(),
     ],
+    css: {
+      preprocessorOptions: {
+        scss: {
+          silenceDeprecations: ['legacy-js-api', 'import', 'color-functions', 'global-builtin', 'mixed-decls'],
+        },
+      },
+    },
     appType: 'spa', // 指定为SPA应用，自动处理路由
     resolve: {
       alias: {

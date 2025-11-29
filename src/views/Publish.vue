@@ -393,7 +393,9 @@
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
-import { articleAPI, portfolioAPI, aiAPI } from '@/api'
+import { articleAPI } from '@/api/article'
+import { portfolioAPI } from '@/api/portfolio'
+import { aiAPI } from '@/api/ai'
 import Vditor from 'vditor'
 import 'vditor/dist/index.css'
 
@@ -685,13 +687,7 @@ const handleClickOutside = (event) => {
   }
 };
 
-watch(() => route.query, (query) => {
-    if (query.edit) {
-        loadArticleForEdit(query.edit);
-    } else if (query.draft) {
-        loadDraftForEdit(query.draft);
-    }
-}, { immediate: true });
+
 
 onMounted(async () => {
   if (!authStore.isAuthenticated) {
@@ -771,6 +767,14 @@ onUnmounted(() => {
   }
   autoSaveStatus.value = ''; // 清除自动保存状态
 })
+watch(() => route.query, (query) => {
+    if (query.edit) {
+        loadArticleForEdit(query.edit);
+    } else if (query.draft) {
+        loadDraftForEdit(query.draft);
+    }
+}, { immediate: true });
+
 </script>
 
 <style scoped>

@@ -152,7 +152,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { articleAPI } from '@/api'
+import { articleAPI } from '@/api/article'
 import LazyImage from '@/components/LazyImage.vue'
 import { getAvatarUrl } from '@/utils/avatar-helper'
 

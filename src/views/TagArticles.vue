@@ -183,7 +183,8 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { tagAPI, articleAPI } from '@/api'
+import { tagAPI } from '@/api/tag'
+import { articleAPI } from '@/api/article'
 import { getAuthorAvatarUrl } from '@/utils/avatar-helper'
 
 const route = useRoute()

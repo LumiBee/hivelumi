@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spinner Test</title>
+    <style>
+        /* Copied from spinner.css */
+        .spinner-inline {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 193, 7, 0.2);
+            border-radius: 50%;
+            border-top-color: #ffc107;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Copied from Profile.vue style (simulated) */
+        .apple-glass-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 100px;
+            color: #fff;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Spinner Test</h1>
+    
+    <!-- Profile.vue structure -->
+    <button class="apple-glass-btn">
+        <div class="spinner-inline"></div>
+        <span class="btn-text">上传中...</span>
+    </button>
+
+    <br><br>
+
+    <!-- JavaGuide.vue structure -->
+    <span class="text-warning">
+        <div class="spinner-inline"></div>
+        AI正在思考中...
+    </span>
+
+</body>
+</html>

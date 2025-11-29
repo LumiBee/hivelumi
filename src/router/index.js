@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
-import  tokenManager from '@/utils/token-manager'
+import tokenManager from '@/utils/token-manager'
 
 // 页面组件懒加载导入 - 优化首屏加载性能
 const Home = () => import('@/views/Home.vue')
@@ -43,7 +43,7 @@ const routes = [
     meta: { title: 'OAuth2回调' }
   },
   {
-    path: '/signup', 
+    path: '/signup',
     name: 'Signup',
     component: Signup,
     meta: { title: '注册', requiresGuest: true }
@@ -164,7 +164,7 @@ router.beforeEach(async (to, from, next) => {
 
   // 尝试从本地 Token 恢复用户状态（避免刷新页面后状态丢失导致的 API 等待）
   const token = tokenManager.getToken()
-  
+
   // 如果本地有 Token 但 Store 中没有用户信息
   if (token && !authStore.user) {
     try {
@@ -172,12 +172,12 @@ router.beforeEach(async (to, from, next) => {
       if (parts.length === 3) {
         // 解析 JWT Payload (处理 Base64Url 编码和中文乱码)
         const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/')
-        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
         }).join(''))
-        
+
         const payload = JSON.parse(jsonPayload)
-        
+
         // 构造并恢复用户状态
         authStore.setUser({
           id: payload.userId || payload.sub,
@@ -193,27 +193,27 @@ router.beforeEach(async (to, from, next) => {
       authStore.setUser(null)
     }
   }
-  
+
   // 设置页面标题
   document.title = to.meta.title ? `${to.meta.title} - Lumi Hive` : 'Lumi Hive'
-  
+
   // 检查当前路由是否是登录或注册页面
   const isAuthPage = to.name === 'Login' || to.name === 'Signup'
-  
+
   // 检查用户是否已认证
   const isAuthenticated = authStore.isAuthenticated
-  
+
   // 如果用户未认证且需要认证的页面，先尝试检查认证状态
   if (!isAuthenticated && to.meta.requiresAuth) {
     // 避免重复检查，如果已经在检查中，直接重定向
     if (authStore.isLoading) {
-      next({ 
-        name: 'Login', 
-        query: { redirect: to.fullPath } 
+      next({
+        name: 'Login',
+        query: { redirect: to.fullPath }
       })
       return
     }
-    
+
     try {
       // 尝试从后端检查认证状态
       const authStatus = await authStore.checkAuthStatus()
@@ -225,21 +225,21 @@ router.beforeEach(async (to, from, next) => {
     } catch (error) {
       console.error('检查认证状态失败:', error)
     }
-    
+
     // 认证失败，重定向到登录页
-    next({ 
-      name: 'Login', 
-      query: { redirect: to.fullPath } 
+    next({
+      name: 'Login',
+      query: { redirect: to.fullPath }
     })
     return
   }
-  
+
   // 如果是游客页面(登录/注册)，但用户已认证，则重定向到首页
   if (to.meta.requiresGuest && isAuthenticated) {
     next({ name: 'Home' })
     return
   }
-  
+
   next()
 })
 
