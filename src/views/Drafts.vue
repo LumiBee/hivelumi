@@ -41,7 +41,7 @@
         >
           <div class="note-content">
             <h3 class="note-title">
-              {{ draft.title || '无标题灵感' }}
+              {{ draft.title || '无标题草稿' }}
             </h3>
             <p class="note-excerpt">
               {{ draft.content ? (draft.content.length > 150 ? draft.content.substring(0, 150) + '...' : draft.content) : '暂无内容...' }}
@@ -114,7 +114,9 @@ const loadDrafts = async () => {
     loading.value = true
     const response = await articleAPI.getDrafts()
     
-    if (response && response.records) {
+    if (Array.isArray(response)) {
+      drafts.value = response
+    } else if (response && response.records) {
       drafts.value = response.records
     } else if (response && response.data && response.data.records) {
       drafts.value = response.data.records
