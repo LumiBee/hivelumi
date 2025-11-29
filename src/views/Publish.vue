@@ -722,6 +722,13 @@ const loadArticleForEdit = async (articleSlug) => {
       }
       editingArticleId.value = articleData.articleId
       isEditMode.value = true
+      
+      // 如果编辑器已初始化，手动设置内容
+      if (editorInstance) {
+        editorInstance.setValue(articleForm.value.content);
+        updateWordCount();
+      }
+
       showNotification('文章加载成功，可以开始编辑', 'success')
     } else {
       showNotification('文章数据为空', 'danger')
@@ -746,6 +753,13 @@ const loadDraftForEdit = async (draftId) => {
         allowComments: true
       }
       editingArticleId.value = draftData.articleId;
+      
+      // 如果编辑器已初始化，手动设置内容
+      if (editorInstance) {
+        editorInstance.setValue(articleForm.value.content);
+        updateWordCount();
+      }
+
       showNotification('草稿加载成功，可以继续编辑', 'success')
     } else {
       showNotification('草稿数据为空', 'danger')
