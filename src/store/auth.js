@@ -3,6 +3,7 @@ import { ref, computed, watch } from 'vue'
 import { authAPI } from '@/api/auth'
 import { userAPI } from '@/api/user'
 import { getSafeUserFromStorage, setSafeUserToStorage, debugId } from '@/utils/bigint-helper'
+import tokenManager from '@/utils/token-manager'
 
 // 本地存储键名
 const AUTH_USER_KEY = 'hive_auth_user'
@@ -125,6 +126,12 @@ export const useAuthStore = defineStore('auth', () => {
             const userWithToken = {
               ...response.user,
               token: response.token
+            }
+
+            // 【全 JWT 模式】显式保存 Token
+            // 根据 rememberMe 决定存储位置 (localStorage vs sessionStorage)
+            if (response.token) {
+              tokenManager.setToken(response.token, credentials.rememberMe)
             }
 
             // 保存用户信息到store和localStorage
@@ -260,6 +267,7 @@ export const useAuthStore = defineStore('auth', () => {
       console.error('登出失败:', err)
     } finally {
       setUser(null);
+      // 【全 JWT 模式】显式移除 Token
       tokenManager.removeToken();
       sessionStorage.removeItem('authChecked');
       setLoading(false);

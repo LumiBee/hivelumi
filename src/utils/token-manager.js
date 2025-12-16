@@ -4,22 +4,39 @@
  */
 const TOKEN_KEY = 'jwt_token';
 
-// --- 1. 核心存储方法 (你目前缺少的) ---
+// ---  核心存储方法 ---
 export function getToken() {
-  return localStorage.getItem(TOKEN_KEY);
+  // 优先从 localStorage 获取 (记住我)
+  let token = localStorage.getItem(TOKEN_KEY);
+  if (!token) {
+    // 如果没有，尝试从 sessionStorage 获取 (临时会话)
+    token = sessionStorage.getItem(TOKEN_KEY);
+  }
+  return token;
 }
 
-export function setToken(token) {
-  if (token) {
+export function setToken(token, remember = true) {
+  if (!token) return;
+
+  if (remember) {
+    // 记住我：存入 localStorage
     localStorage.setItem(TOKEN_KEY, token);
+    // 清除 sessionStorage 中的副本，避免混淆
+    sessionStorage.removeItem(TOKEN_KEY);
+  } else {
+    // 不记住：存入 sessionStorage
+    sessionStorage.setItem(TOKEN_KEY, token);
+    // 清除 localStorage 中的副本
+    localStorage.removeItem(TOKEN_KEY);
   }
 }
 
 export function removeToken() {
   localStorage.removeItem(TOKEN_KEY);
+  sessionStorage.removeItem(TOKEN_KEY);
 }
 
-// --- 2. 你原有的过期检查方法 (保留) ---
+// --- 原有的过期检查方法 ---
 export function getTokenExpiry(token) {
   if (!token) return null
   try {
@@ -36,7 +53,7 @@ export function getTokenExpiry(token) {
   }
 }
 
-// --- 3. 关键：默认导出对象 ---
+// --- 关键：默认导出对象 ---
 export default {
   getToken,
   setToken,
