@@ -12,7 +12,7 @@
       <!-- 1. 沉浸式磨砂玻璃 Hero 卡片 -->
       <header class="hero-card glass-panel" data-aos="fade-up" data-aos-duration="800">
         <!-- 背景图 (模糊处理) -->
-        <div class="hero-bg" :style="{ backgroundImage: `url(${article.backgroundUrl || article.coverImageUrl || defaultCover})` }"></div>
+        <div class="hero-bg" :style="{ backgroundImage: `url(${getBackgroundUrl(article.backgroundUrl) || article.coverImageUrl || defaultCover})` }"></div>
         <div class="hero-overlay"></div>
         
         <div class="hero-content">
@@ -94,46 +94,97 @@
         <!-- 右侧：作者侧边栏 -->
         <aside class="layout-sidebar">
           <div class="sidebar-sticky-wrapper">
-            <!-- 3.5 关于作者 -->
-            <section class="author-section glass-panel" data-aos="fade-left" data-aos-delay="300">
-              <div class="author-card-content">
-                <div class="author-header">
-                  <router-link :to="`/profile/${article.userName}`" class="author-avatar-lg-link">
-                    <div class="hexagon-avatar-wrapper lg">
-                      <img :src="getAuthorAvatarUrl(article.avatarUrl)" alt="Author" class="hexagon-avatar">
-                    </div>
-                  </router-link>
-                  <div class="author-info-lg">
-                    <h3 class="author-name-lg">{{ article.userName }}</h3>
-                    <p class="author-bio">{{ article.userBio || '这位作者很神秘，什么都没写...' }}</p>
-                  </div>
-                </div>
+            <!-- 3.5 关于作者 (Interactive 3D Flip Card) -->
+            <section 
+              class="author-section-container"
+              data-aos="fade-left" 
+              data-aos-delay="300"
+              @click="toggleCardFlip"
+            >
+              <div class="flip-card-inner" :class="{ 'flipped': isCardFlipped }">
                 
-                <div class="author-actions">
-                  <button 
-                    v-if="authStore.isAuthenticated && article.userId !== authStore.user?.id"
-                    @click="toggleFollow"
-                    class="apple-btn-outline full-width"
-                    :class="{ 'active': article.isFollowed }"
-                  >
-                    {{ article.isFollowed ? '已关注' : '关注作者' }}
-                  </button>
+                <!-- Front Face -->
+                <div class="flip-card-front glass-panel interactive-card-face">
+                  <div class="author-card-content">
+                    <div class="author-header">
+                      <div class="hexagon-avatar-wrapper lg">
+                        <img :src="getAuthorAvatarUrl(article.avatarUrl)" alt="Author" class="hexagon-avatar">
+                      </div>
+                      <div class="author-info-lg">
+                        <h3 class="author-name-lg">{{ article.userName }}</h3>
+                        <p class="author-bio">{{ article.userBio || '这位作者很神秘，什么都没写...' }}</p>
+                      </div>
+                    </div>
+                    
+                    <div class="author-actions">
+                      <button 
+                        v-if="authStore.isAuthenticated && article.userId !== authStore.user?.id"
+                        @click.stop="toggleFollow"
+                        class="apple-btn-outline full-width"
+                        :class="{ 'active': article.isFollowed }"
+                      >
+                        {{ article.isFollowed ? '已关注' : '关注作者' }}
+                      </button>
+                    </div>
+
+                    <div class="author-stats">
+                      <div class="stat-box">
+                        <span class="stat-val">{{ article.userArticleCount || 0 }}</span>
+                        <span class="stat-label">文章</span>
+                      </div>
+                      <div class="stat-box">
+                        <span class="stat-val">{{ article.userFollowersCount || 0 }}</span>
+                        <span class="stat-label">粉丝</span>
+                      </div>
+                      <div class="stat-box">
+                        <span class="stat-val">{{ article.userFollowingCount || 0 }}</span>
+                        <span class="stat-label">关注</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                <div class="author-stats">
-                  <div class="stat-box">
-                    <span class="stat-val">{{ article.userArticleCount || 0 }}</span>
-                    <span class="stat-label">文章</span>
-                  </div>
-                  <div class="stat-box">
-                    <span class="stat-val">{{ article.userFollowersCount || 0 }}</span>
-                    <span class="stat-label">粉丝</span>
-                  </div>
-                  <div class="stat-box">
-                    <span class="stat-val">{{ article.userFollowingCount || 0 }}</span>
-                    <span class="stat-label">关注</span>
+                <!-- Back Face (Same Content for now) -->
+                <div class="flip-card-back glass-panel interactive-card-face">
+                  <div class="author-card-content">
+                    <div class="author-header">
+                      <div class="hexagon-avatar-wrapper lg">
+                        <img :src="getAuthorAvatarUrl(article.avatarUrl)" alt="Author" class="hexagon-avatar">
+                      </div>
+                      <div class="author-info-lg">
+                        <h3 class="author-name-lg">{{ article.userName }}</h3>
+                        <p class="author-bio">{{ article.userBio || '这位作者很神秘，什么都没写...' }}</p>
+                      </div>
+                    </div>
+                    
+                    <div class="author-actions">
+                      <button 
+                        v-if="authStore.isAuthenticated && article.userId !== authStore.user?.id"
+                        @click.stop="toggleFollow"
+                        class="apple-btn-outline full-width"
+                        :class="{ 'active': article.isFollowed }"
+                      >
+                        {{ article.isFollowed ? '已关注' : '关注作者' }}
+                      </button>
+                    </div>
+
+                    <div class="author-stats">
+                      <div class="stat-box">
+                        <span class="stat-val">{{ article.userArticleCount || 0 }}</span>
+                        <span class="stat-label">文章</span>
+                      </div>
+                      <div class="stat-box">
+                        <span class="stat-val">{{ article.userFollowersCount || 0 }}</span>
+                        <span class="stat-label">粉丝</span>
+                      </div>
+                      <div class="stat-box">
+                        <span class="stat-val">{{ article.userFollowingCount || 0 }}</span>
+                        <span class="stat-label">关注</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
+
               </div>
             </section>
           </div>
@@ -237,7 +288,7 @@ import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import FavoriteModal from '@/components/FavoriteModal.vue'
 import CommentSection from '@/components/CommentSection.vue'
-import { getAuthorAvatarUrl } from '@/utils/avatar-helper'
+import { getAuthorAvatarUrl, getBackgroundUrl } from '@/utils/avatar-helper'
 import { ensureBigIntAsString } from '@/utils/bigint-helper'
 import hljs from 'highlight.js'
 import 'highlight.js/styles/atom-one-dark.css'
@@ -262,6 +313,8 @@ const zoomedImageSrc = ref('')
 const zoomedImageAlt = ref('')
 const showFavoriteModal = ref(false)
 const defaultCover = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop'
+const isCardFlipped = ref(false)
+const isLiking = ref(false) // 防止重复点击
 
 let lastScrollTop = 0
 
@@ -276,11 +329,12 @@ const loadArticleData = async () => {
     if (response) {
       article.value = response
       
-      // Fetch author profile to get the latest background URL if missing
-      if (response.userName && !response.backgroundUrl) {
+      // Always fetch author profile to get the background URL
+      if (response.userName) {
         try {
           const userProfile = await userAPI.getProfile(response.userName)
           if (userProfile?.user?.backgroundImgUrl) {
+            // Use getBackgroundUrl to process the URL
             article.value.backgroundUrl = userProfile.user.backgroundImgUrl
           }
         } catch (err) {
@@ -366,16 +420,21 @@ const renderMarkdown = () => {
 
 // === Actions ===
 const toggleLike = async () => {
-  if (!checkAuth()) return
+  if (!checkAuth() || isLiking.value) return
+  
+  isLiking.value = true
   try {
     const res = await articleAPI.toggleLike(article.value.articleId)
     if (res) {
       article.value.liked = res.liked
       article.value.likes = res.likeCount
-      if (res.liked) window.$toast?.success('Liked!')
+      if (res.liked) window.$toast?.success('点赞成功')
     }
   } catch (e) {
     console.error(e)
+    window.$toast?.error('操作失败，请重试')
+  } finally {
+    isLiking.value = false
   }
 }
 
@@ -385,7 +444,7 @@ const toggleFavorite = () => {
     // Simple unfavorite for demo, ideally show modal
     favoriteAPI.removeFromAllFolders(article.value.articleId).then(() => {
       article.value.isFavorited = false
-      window.$toast?.info('Removed from favorites')
+      window.$toast?.info('从收藏夹中移除')
     })
   } else {
     showFavoriteModal.value = true
@@ -395,7 +454,7 @@ const toggleFavorite = () => {
 const handleFavoriteSuccess = () => {
   article.value.isFavorited = true
   showFavoriteModal.value = false
-  window.$toast?.success('Saved to favorites')
+  window.$toast?.success('已保存到收藏夹')
 }
 
 const toggleFollow = async () => {
@@ -411,12 +470,12 @@ const toggleFollow = async () => {
 
 const shareArticle = () => {
   navigator.clipboard.writeText(window.location.href)
-  window.$toast?.success('Link copied to clipboard')
+  window.$toast?.success('已复制链接')
 }
 
 const checkAuth = () => {
   if (!authStore.isAuthenticated) {
-    window.$toast?.warning('Please login first')
+    window.$toast?.warning('请先登录')
     return false
   }
   return true
@@ -467,6 +526,10 @@ const cleanText = (html) => {
   const div = document.createElement('div')
   div.innerHTML = html
   return div.textContent || div.innerText || ''
+}
+
+const toggleCardFlip = () => {
+  isCardFlipped.value = !isCardFlipped.value
 }
 
 // === Image Zoom (Lightbox) ===
@@ -1139,9 +1202,83 @@ watch(() => route.params.slug, (newSlug) => {
 }
 
 /* === Author Section Styles === */
-.author-section {
-  padding: 24px;
+/* === Author Section Styles (3D Flip) === */
+.author-section-container {
+  perspective: 1000px;
+  width: 100%;
+  cursor: pointer;
+}
+
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  /* We need a set height or aspect ratio usually, but here content defines it. 
+     Since front/back are absolute, we might need a trick or fixed height. 
+     Better approach: Let front be relative to define height, back absolute. */
+  transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+  transform-style: preserve-3d;
+}
+
+.flip-card-inner.flipped {
+  transform: rotateY(180deg);
+}
+
+.interactive-card-face {
+  width: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
   border-radius: 20px;
+  padding: 24px;
+}
+
+/* Front Face */
+.flip-card-front {
+  position: relative;
+  z-index: 2;
+  /* Re-add hover effects from previous interactive-card */
+  transition: box-shadow 0.3s, transform 0.3s;
+}
+
+/* Back Face */
+.flip-card-back {
+  position: absolute;
+  top: 0; left: 0;
+  height: 100%; /* Match front height */
+  transform: rotateY(180deg);
+  z-index: 1;
+}
+
+/* Hover Effects (Only on container hover to lift the whole thing) */
+.author-section-container:hover .flip-card-inner {
+  /* Simple lift effect might conflict with rotation, so apply to face or container */
+  transform: translateY(-5px) rotateY(0deg); 
+}
+.author-section-container:hover .flip-card-inner.flipped {
+  transform: translateY(-5px) rotateY(180deg);
+}
+
+.author-section-container:hover .flip-card-front,
+.author-section-container:hover .flip-card-back {
+  box-shadow: 
+    0 20px 40px -12px rgba(0, 0, 0, 0.12),
+    0 0 0 1px rgba(246, 185, 59, 0.4);
+  border-color: rgba(246, 185, 59, 0.6);
+}
+
+.author-section-container:active .flip-card-inner {
+   /* scale effect handled carefully */
+}
+
+/* Avatar scale on hover */
+.author-section-container:hover .hexagon-avatar-wrapper.lg {
+  transform: scale(1.1);
+  box-shadow: 0 0 20px rgba(246, 185, 59, 0.3);
+}
+
+/* Ensure inner interactive elements don't trigger flip wildly */
+.author-actions button {
+  position: relative;
+  z-index: 10;
 }
 .author-header {
   display: flex;

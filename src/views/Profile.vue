@@ -5,7 +5,7 @@
       <div class="cover-bg-wrapper">
         <LazyImage 
           v-if="profileData.user?.backgroundImgUrl"
-          :src="getProcessedImageUrl(profileData.user.backgroundImgUrl)"
+          :src="getBackgroundUrl(profileData.user.backgroundImgUrl)"
           :alt="`${profileData.user?.name || '用户'}的封面`"
           class="cover-image"
           fetchpriority="high"
@@ -79,15 +79,44 @@
           <div class="tab-content-wrapper">
             <!-- Articles Tab -->
             <div v-if="activeTab === 'articles'" class="articles-section fade-in">
+              <!-- Search Box -->
+              <div class="search-box-wrapper glass-panel mb-4">
+                <div class="search-input-container">
+                  <i class="fas fa-search search-icon"></i>
+                  <input 
+                    v-model="searchKeyword" 
+                    type="text" 
+                    class="search-input" 
+                    placeholder="搜索文章(仅支持搜索文章标题)..."
+                    @input="handleSearchInput"
+                  >
+                  <button 
+                    v-if="searchKeyword" 
+                    class="clear-btn" 
+                    @click="clearSearch"
+                    title="清空搜索"
+                  >
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+                <div v-if="searchKeyword && !isLoading" class="search-result-hint">
+                  找到 {{ profileData.articles?.total || 0 }} 篇相关文章
+                </div>
+              </div>
+
               <div v-if="isLoading" class="loading-state">
                 <div class="spinner-border text-gold" role="status"></div>
               </div>
               
               <div v-else-if="articles.length === 0" class="empty-state glass-panel">
                 <div class="empty-icon"><i class="far fa-folder-open"></i></div>
-                <h4>暂无文章</h4>
-                <p>{{ isOwner ? '开始创作您的第一篇文章吧！' : '该用户还没有发布任何文章' }}</p>
-                <router-link v-if="isOwner" to="/publish" class="apple-btn-primary mt-3">
+                <h4>{{ searchKeyword ? '未找到相关文章' : '暂无文章' }}</h4>
+                <p v-if="searchKeyword">尝试使用其他关键词搜索</p>
+                <p v-else>{{ isOwner ? '开始创作您的第一篇文章吧！' : '该用户还没有发布任何文章' }}</p>
+                <button v-if="searchKeyword" @click="clearSearch" class="apple-btn-primary mt-3">
+                  <i class="fas fa-redo me-2"></i> 清空搜索
+                </button>
+                <router-link v-else-if="isOwner" to="/publish" class="apple-btn-primary mt-3">
                   <i class="fas fa-pen me-2"></i> 写文章
                 </router-link>
               </div>
@@ -264,7 +293,7 @@ import { ensureBigIntAsString, debugId } from '@/utils/bigint-helper'
 import { toasts } from '@/plugins/toast'
 import SimpleImageCropper from '@/components/SimpleImageCropper.vue'
 import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue'
-import { getAvatarUrl } from '@/utils/avatar-helper'
+import { getAvatarUrl, getBackgroundUrl } from '@/utils/avatar-helper'
 import { userAPI } from '@/api/user'
 import { preloadCriticalImages, preloadLCPImage, getOptimizedImageUrl, ImageLoader } from '@/utils/imageOptimizer'
 import UserFollowers from '../components/UserFollowers.vue'
@@ -284,6 +313,8 @@ const currentPage = ref(1)
 const pageSize = ref(12)
 const username = ref('')
 const errorMessage = ref('') // 添加错误信息
+const searchKeyword = ref('') // 搜索关键词
+let searchDebounceTimer = null // 防抖定时器
 
 // 图片裁剪相关
 const showCropper = ref(false)
@@ -373,24 +404,7 @@ const visiblePages = computed(() => {
   return pages
 })
 
-// 处理图片URL的函数
 
-// 处理图片URL的函数
-const getProcessedImageUrl = (url) => {
-  if (!url) return url
-  
-  // 如果是完整的后端URL，转换为相对路径
-  if (url.startsWith('http://localhost:8090/')) {
-    url = url.replace('http://localhost:8090', '')
-  }
-  
-  // 如果是相对路径的uploads，需要添加/api前缀（因为后端设置了全局API前缀）
-  if (url.startsWith('/uploads/')) {
-    url = '/api' + url
-  }
-  
-  return url
-}
 
 // 监听路由参数变化
 watch(() => route.params.name, (newName, oldName) => {
@@ -463,6 +477,11 @@ const fetchProfileData = async (forceRefresh = false) => {
       size: pageSize.value 
     }
     
+    // 添加搜索关键词参数
+    if (searchKeyword.value && searchKeyword.value.trim()) {
+      params.keyword = searchKeyword.value.trim()
+    }
+    
     // 如果需要强制刷新，添加时间戳参数破坏缓存
     if (forceRefresh) {
       params._t = Date.now()
@@ -482,7 +501,8 @@ const fetchProfileData = async (forceRefresh = false) => {
       isOwner: response.isOwner,
       user: response.user,
       username: username.value,
-      authStoreUserName: authStore.userName
+      authStoreUserName: authStore.userName,
+      searchKeyword: searchKeyword.value
     })
   } catch (error) {
     console.error('获取个人资料失败:', error)
@@ -501,6 +521,28 @@ const fetchProfileData = async (forceRefresh = false) => {
   } finally {
     isLoading.value = false
   }
+}
+
+// 处理搜索输入（带防抖）
+const handleSearchInput = () => {
+  // 清除之前的定时器
+  if (searchDebounceTimer) {
+    clearTimeout(searchDebounceTimer)
+  }
+  
+  // 设置新的定时器
+  searchDebounceTimer = setTimeout(() => {
+    // 搜索时重置到第一页
+    currentPage.value = 1
+    fetchProfileData(true)
+  }, 500) // 500ms 防抖延迟
+}
+
+// 清空搜索
+const clearSearch = () => {
+  searchKeyword.value = ''
+  currentPage.value = 1
+  fetchProfileData(true)
 }
 
 // 关注/取消关注
@@ -1147,6 +1189,99 @@ onMounted(() => {
   color: var(--apple-gray);
   font-size: 0.85rem;
 }
+
+/* === Search Box === */
+.search-box-wrapper {
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.search-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 16px;
+  color: var(--apple-gray);
+  font-size: 1rem;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.search-input {
+  flex: 1;
+  padding: 12px 48px 12px 48px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 100px;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  font-size: 0.95rem;
+  color: var(--apple-text);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+}
+
+.search-input::placeholder {
+  color: var(--apple-gray);
+  opacity: 0.6;
+}
+
+.search-input:focus {
+  border-color: var(--hive-gold);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(246, 185, 59, 0.1);
+  transform: translateY(-1px);
+}
+
+.clear-btn {
+  position: absolute;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--apple-gray);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  font-size: 0.85rem;
+}
+
+.clear-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: var(--apple-text);
+  transform: scale(1.1);
+}
+
+.search-result-hint {
+  margin-top: 12px;
+  font-size: 0.85rem;
+  color: var(--apple-gray);
+  text-align: center;
+  padding: 8px;
+  background: rgba(246, 185, 59, 0.05);
+  border-radius: 12px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 
 /* === Pagination === */
 .pagination-wrapper {

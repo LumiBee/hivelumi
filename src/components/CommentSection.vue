@@ -7,43 +7,92 @@
       </h3>
     </div>
 
-    <!-- 评论输入框 -->
-    <div v-if="authStore.isAuthenticated" class="comment-form-wrapper">
-      <div class="comment-form">
-        <div class="comment-form-header">
+    <!-- 评论输入框 (Creation Stage) -->
+    <div v-if="authStore.isAuthenticated" class="comment-creation-wrapper">
+      <div 
+        class="comment-creation-stage glass-panel"
+        :class="{ 'is-active': isFocused || newComment }"
+      >
+        <div class="stage-params">
           <img 
             :src="getAuthorAvatarUrl(authStore.user?.avatarUrl)" 
-            alt="我的头像" 
-            class="comment-form-avatar"
+            alt="My Avatar" 
+            class="stage-avatar"
           />
-          <span class="comment-form-username">{{ authStore.user?.name || '我' }}</span>
-        </div>
-        <div class="comment-form-body">
-          <textarea
-            v-model="newComment"
-            class="comment-input"
-            placeholder="写下你的评论..."
-            rows="4"
-            :disabled="submitting"
-            @keydown.ctrl.enter="submitComment"
-            @keydown.meta.enter="submitComment"
-          ></textarea>
-          <div class="comment-form-footer">
-            <div class="comment-tips">
-              <small class="text-muted">
-                <i class="fas fa-lightbulb me-1"></i>
-                支持 Markdown 语法，Ctrl/Cmd + Enter 快速提交
-              </small>
+          
+          <div class="stage-content">
+            <textarea
+              v-model="newComment"
+              class="stage-input"
+              :class="{ 'expanded': isFocused || newComment }"
+              :placeholder="isFocused ? '' : '分享你的见解...'"
+              :rows="isFocused || newComment ? 4 : 1"
+              :disabled="submitting"
+              @focus="handleFocus"
+              @keydown.ctrl.enter="submitComment"
+              @keydown.meta.enter="submitComment"
+            ></textarea>
+
+            <div v-if="!isFocused && !newComment" class="stage-placeholder" @click="handleFocus">
+              分享你的见解...
             </div>
-            <button
-              @click="submitComment"
-              class="btn btn-warning comment-submit-btn"
-              :disabled="!newComment.trim() || submitting"
-            >
-              <div v-if="submitting" class="spinner-inline me-1"></div>
-              <i v-else class="fas fa-paper-plane me-1"></i>
-              {{ submitting ? '提交中...' : '发表评论' }}
-            </button>
+            
+            <!-- Tool Bar (Slides out) -->
+            <div class="stage-toolbar" v-show="isFocused || newComment">
+              <div class="stage-tools-left">
+                <div class="emoji-wrapper">
+                  <button 
+                    class="tool-btn" 
+                    title="Add Emoji" 
+                    @click.stop="toggleEmojiPicker"
+                    :class="{ 'active': showEmojiPicker }"
+                  >
+                    <i class="far fa-smile"></i>
+                  </button>
+                  
+                  <transition name="pop-up">
+                    <div v-if="showEmojiPicker" class="emoji-popover glass-panel">
+                       <EmojiPicker 
+                         :native="true" 
+                         @select="onSelectEmoji" 
+                         theme="light"
+                         :hide-search="false"
+                         :hide-group-icons="false"
+                         :hide-group-names="true"
+                         class="custom-emoji-picker"
+                       />
+                    </div>
+                  </transition>
+                </div>
+
+                <button class="tool-btn" title="Add Image (Coming Soon)">
+                  <i class="far fa-image"></i>
+                </button>
+                <span class="tool-divider"></span>
+                <span class="markdown-hint">
+                  <i class="fab fa-markdown"></i> 支持 Markdown
+                </span>
+              </div>
+              
+              <div class="stage-actions">
+                <button 
+                  v-if="!newComment.trim()"
+                  @click="isFocused = false" 
+                  class="btn-text-cancel"
+                >
+                  收起
+                </button>
+                <button
+                  @click="submitComment"
+                  class="apple-btn-primary"
+                  :disabled="!newComment.trim() || submitting"
+                >
+                  <div v-if="submitting" class="spinner-inline me-1"></div>
+                  <i v-else class="fas fa-paper-plane me-1"></i>
+                  {{ submitting ? '发送中' : '发布' }}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -98,6 +147,8 @@ import { useAuthStore } from '@/store/auth'
 import { commentAPI } from '@/api/comment'
 import { getAuthorAvatarUrl } from '@/utils/avatar-helper'
 import CommentItem from './CommentItem.vue'
+import EmojiPicker from 'vue3-emoji-picker'
+import 'vue3-emoji-picker/css'
 
 const props = defineProps({
   articleId: {
@@ -112,6 +163,37 @@ const newComment = ref('')
 const submitting = ref(false)
 const loading = ref(true)
 const replyingTo = ref(null)
+const isFocused = ref(false)
+const showEmojiPicker = ref(false)
+
+const onSelectEmoji = (emoji) => {
+  newComment.value += emoji.i
+  showEmojiPicker.value = false // Auto-close
+}
+
+const toggleEmojiPicker = () => {
+  showEmojiPicker.value = !showEmojiPicker.value
+}
+
+// Focus handlers
+const handleFocus = () => {
+  isFocused.value = true
+}
+
+const handleCancel = () => {
+  if (!newComment.value.trim()) {
+    isFocused.value = false
+  }
+}
+
+// Click outside to collapse if empty
+const handleBlur = (e) => {
+  // We'll handle this via a click-outside directive or just relying on the "Cancel" button for now to keep it simple and explicit as per "Creative Stage" metaphor (you don't just accidentally leave a stage).
+  // But strictly, if user clicks away and it's empty, it's nice to collapse.
+  // For now, let's keep it expanded until they hit cancel or submit if they typed something, 
+  // or if they didn't type anything, maybe we can auto-collapse on blur? 
+  // Let's stick to explicit interactions for "Ceremony".
+}
 
 // 计算总评论数（包括回复）
 const totalComments = computed(() => {
@@ -239,107 +321,208 @@ onMounted(() => {
   margin-left: 0.5rem;
 }
 
-/* 评论表单 */
-.comment-form-wrapper {
-  margin-bottom: 2rem;
+/* === Creation Stage (Input Box) === */
+.comment-creation-wrapper {
+  margin-bottom: 3rem;
+  position: relative;
+  z-index: 100; /* Increased to ensure popovers overlay the comment list */
 }
 
-.comment-form {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
-  padding: 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.comment-form-header {
+.comment-creation-stage {
+  padding: 10px 16px; /* Compact initially */
+  border-radius: 100px; /* Pill shape initially */
+  background: rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
+  /* overflow: hidden; Removed to allow popover to spill out if needed, but we check if we need visible */
+  overflow: visible; 
 }
 
-.comm.reply-form-avatar {
-  width: 32px;
-  height: 32px;
-  object-fit: cover;
-  border: 1px solid var(--hive-gold);
+.comment-creation-stage.is-active {
+  border-radius: 24px; /* Card shape when active */
+  background: rgba(255, 255, 255, 0.85); /* More opaque */
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+  padding: 20px;
+  align-items: flex-start;
+}
+
+.stage-params {
+  display: flex;
+  width: 100%;
+  gap: 16px;
+}
+
+.stage-avatar {
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 193, 7, 0.3);
+  box-shadow: 0 2px 8px rgba(246, 185, 59, 0.2);
+  flex-shrink: 0;
+  transition: all 0.3s ease;
 }
 
-.comment-form-avatar {
+.is-active .stage-avatar {
   width: 48px;
   height: 48px;
-  object-fit: cover;
-  border: 2px solid var(--hive-gold);
-  border-radius: 50%;
+  border-color: var(--hive-gold);
 }
 
-.comment-form-username {
-  font-weight: 600;
-  color: var(--apple-text);
-}
-
-.comment-form-body {
+.stage-content {
+  flex: 1;
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
 }
 
-.comment-input {
+.stage-input {
   width: 100%;
-  padding: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(0, 0, 0, 0.02);
-  border-radius: 12px;
+  border: none;
+  background: transparent;
+  padding: 8px 0;
   font-size: 1rem;
-  line-height: 1.6;
-  resize: vertical;
-  transition: all 0.3s ease;
+  color: var(--apple-text);
+  resize: none;
   font-family: inherit;
-}
-
-.comment-input:focus {
+  line-height: 1.5;
+  transition: height 0.4s ease;
   outline: none;
-  border-color: var(--hive-gold);
-  background: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 0 0 3px var(--hive-gold-glow);
 }
 
-.comment-input:disabled {
-  background-color: #f1f5f9;
-  cursor: not-allowed;
+/* Hide placeholder in active mode if we want custom interactions, 
+   but native placeholder is fine usually. 
+   Here we use a overlay placeholder for the initial 'Pill' look if needed, 
+   but changing rows + height is enough.
+*/
+.stage-input::placeholder {
+  color: transparent; /* We use the div placeholder for the pill state */
 }
 
-.comment-form-footer {
+.stage-placeholder {
+  position: absolute;
+  top: 9px;
+  left: 0;
+  color: #888;
+  pointer-events: none; /* Let clicks pass through to textarea if overlapped, or handle click explicitly */
+  font-size: 1rem;
+  opacity: 1;
+  transition: opacity 0.2s;
+  font-weight: 500;
+  cursor: text;
+}
+
+.stage-input:focus + .stage-placeholder,
+.is-active .stage-placeholder {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Toolbar */
+.stage-toolbar {
+  margin-top: 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  animation: slideDown 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+  border-top: 1px solid rgba(0,0,0,0.05);
+  padding-top: 12px;
 }
 
-.comment-tips {
-  flex: 1;
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.comment-submit-btn {
-  padding: 0.6rem 1.5rem;
-  font-weight: 600;
-  border-radius: 12px;
-  background: var(--hive-gold);
+.stage-tools-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tool-btn {
+  background: none;
   border: none;
+  color: #999;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.tool-btn:hover {
+  color: var(--hive-gold);
+  background: rgba(246, 185, 59, 0.1);
+}
+
+.tool-divider {
+  width: 1px;
+  height: 16px;
+  background: #eee;
+  margin: 0 4px;
+}
+
+.markdown-hint {
+  font-size: 0.8rem;
+  color: #bbb;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.stage-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-text-cancel {
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 0.95rem;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.btn-text-cancel:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+.apple-btn-primary {
+  background: linear-gradient(135deg, var(--hive-gold) 0%, #e5a52a 100%);
   color: white;
-  transition: all 0.3s ease;
+  border: none;
+  padding: 8px 24px;
+  border-radius: 100px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(246, 185, 59, 0.3);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: flex;
+  align-items: center;
 }
 
-.comment-submit-btn:hover:not(:disabled) {
+.apple-btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px var(--hive-gold-glow);
-  filter: brightness(1.1);
+  box-shadow: 0 8px 20px rgba(246, 185, 59, 0.4);
+  filter: brightness(1.05);
 }
 
-.comment-submit-btn:disabled {
-  opacity: 0.6;
+.apple-btn-primary:disabled {
+  opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
+
 
 /* 未登录提示 */
 .comment-login-prompt {
@@ -374,6 +557,8 @@ onMounted(() => {
 /* 评论列表 */
 .comments-list {
   margin-top: 2rem;
+  position: relative;
+  z-index: 1; /* Explicitly lower than creation-wrapper (100) */
 }
 
 .comments-loading {
@@ -401,7 +586,8 @@ onMounted(() => {
 .comments-container {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  /* Phase 2: No Lines, Just Space (32px gap) */
+  gap: 2rem;
 }
 
 /* 响应式设计 */
@@ -446,6 +632,56 @@ onMounted(() => {
   to {
     transform: rotate(360deg);
   }
+}
+
+/* === Emoji Picker (Glass Popover) === */
+.emoji-wrapper {
+  position: relative;
+}
+
+.tool-btn.active {
+  color: var(--hive-gold);
+  background: rgba(246, 185, 59, 0.1);
+}
+
+.emoji-popover {
+  position: absolute;
+  top: 120%; /* Show below instead of above to avoid clipping */
+  left: 0;
+  margin-top: 8px; /* replaced margin-bottom */
+  z-index: 100;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  /* Glassmorphism already provided by glass-panel class but we ensure overrides */
+  background: rgba(255, 255, 255, 0.95) !important; /* Slightly more opaque to insure visibility */
+  border: 1px solid rgba(0,0,0,0.05); /* Ensure border for visibility */
+}
+
+/* Customizing the internal CSS vars of vue3-emoji-picker */
+.custom-emoji-picker {
+  --ep-color-bg: transparent !important; /* Transparent for glass effect */
+  --ep-color-sbg: rgba(0,0,0,0.03) !important; /* Search bg */
+  --ep-color-active: var(--hive-gold-light, #fef3c7) !important;
+  --ep-color-hover: rgba(246, 185, 59, 0.1) !important;
+  --ep-color-border: transparent !important;
+  
+  height: 320px !important;
+  width: 300px !important;
+  border-radius: 16px !important;
+  font-family: inherit !important;
+  box-shadow: none !important;
+}
+
+/* Transition for Popover */
+.pop-up-enter-active,
+.pop-up-leave-active {
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.pop-up-enter-from,
+.pop-up-leave-to {
+  opacity: 0;
+  transform: translateY(10px) scale(0.95);
 }
 </style>
 

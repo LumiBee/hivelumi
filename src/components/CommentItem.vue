@@ -26,15 +26,33 @@
         </div>
         
         <div class="comment-actions">
+           <!-- Mock Like Button (Interactive Micro-feedback) -->
+          <button 
+            class="comment-action-btn comment-like-btn" 
+            :class="{ 'liked': isLiked }"
+            @click="toggleLike"
+            title="Like"
+          >
+            <i :class="isLiked ? 'fas fa-heart' : 'far fa-heart'"></i>
+          </button>
+          
           <button
             v-if="authStore.isAuthenticated"
             @click="handleReplyClick"
             class="comment-action-btn"
             :class="{ 'replying': isReplying }"
           >
-            <i class="fas fa-reply me-1"></i>
-            {{ isReplying ? '取消回复' : '回复' }}
+            <i class="fas fa-reply"></i>
+            {{ isReplying ? '取消' : '回复' }}
           </button>
+          
+          <button
+            class="comment-action-btn"
+            title="Report"
+          >
+             <i class="fas fa-flag"></i>
+          </button>
+
           <button
             v-if="authStore.isAuthenticated && isMyComment"
             @click="handleDeleteClick"
@@ -42,8 +60,7 @@
             :disabled="deleting"
           >
             <div v-if="deleting" class="spinner-inline me-1"></div>
-            <i v-else class="fas fa-trash me-1"></i>
-            {{ deleting ? '删除中...' : '删除' }}
+            <i v-else class="fas fa-trash"></i>
           </button>
         </div>
       </div>
@@ -71,28 +88,28 @@
           <div class="reply-form-footer">
             <button
               @click="cancelReply"
-              class="btn btn-sm btn-outline-secondary"
+              class="apple-btn-secondary apple-btn-sm"
               :disabled="submitting"
             >
               取消
             </button>
             <button
               @click="submitReply"
-              class="btn btn-sm btn-warning"
+              class="apple-btn-primary apple-btn-sm"
               :disabled="!replyContent.trim() || submitting"
             >
               <div v-if="submitting" class="spinner-inline me-1"></div>
               <i v-else class="fas fa-paper-plane me-1"></i>
-              {{ submitting ? '提交中...' : '发表回复' }}
+              {{ submitting ? '发送中' : '发布回复' }}
             </button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 回复列表 -->
+    <!-- 回复列表 (With Luminescent Thread) -->
     <div v-if="comment.replies && comment.replies.length > 0" class="replies-container">
-      <div class="replies-divider"></div>
+      <div class="replies-thread-line"></div>
       <CommentItem
         v-for="reply in comment.replies"
         :key="reply.id"
@@ -148,6 +165,13 @@ const replyContent = ref('')
 const submitting = ref(false)
 const deleting = ref(false)
 const showDeleteModal = ref(false)
+const isLiked = ref(false)
+
+// Toggle Like (Visual Only)
+const toggleLike = () => {
+  isLiked.value = !isLiked.value
+  // Optional: Trigger haptic feedback if possible, or just rely on animation
+}
 
 // 判断是否是当前用户的评论
 const isMyComment = computed(() => {
@@ -294,34 +318,42 @@ const handleDeleteConfirm = async () => {
 </script>
 
 <style scoped>
+/* === Phase 2: Card Design (No Lines, Just Space) === */
 .comment-item {
   position: relative;
   padding: 1.5rem;
-  /* background: #ffffff; removed for glass-panel */
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  /* Glass Card Style */
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 20px; /* Reduced from circle to super-ellipse feel */
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.01), 0 2px 4px -1px rgba(0, 0, 0, 0.01);
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  background: rgba(255, 255, 255, 0.03);
 }
 
+/* Hover Effect: Lift & Brighten */
 .comment-item:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 30px -10px rgba(246, 185, 59, 0.15);
-  border-color: var(--hive-gold);
-  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-4px) scale(1.01);
+  background: rgba(255, 255, 255, 0.65);
+  box-shadow: 0 20px 40px -12px rgba(246, 185, 59, 0.15); /* Golden glow shadow */
+  border-color: rgba(255, 255, 255, 0.8);
+  z-index: 2;
 }
 
 .comment-item.has-replies {
-  padding-bottom: 0.5rem;
+  padding-bottom: 2rem; /* Extra space for threading */
 }
 
 .comment-main {
   display: flex;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .comment-avatar-wrapper {
   flex-shrink: 0;
+  position: relative;
+  z-index: 1; /* Above thread line */
 }
 
 .comment-avatar-link {
@@ -330,21 +362,22 @@ const handleDeleteConfirm = async () => {
 }
 
 .comment-avatar-link:hover {
-  transform: scale(1.05);
+  transform: scale(1.1) rotate(5deg);
 }
 
 .comment-avatar {
   width: 48px;
   height: 48px;
   object-fit: cover;
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
   transition: all 0.3s ease;
   border-radius: 50%;
 }
 
 .comment-avatar-link:hover .comment-avatar {
   border-color: var(--hive-gold);
-  filter: drop-shadow(0 0 8px var(--hive-gold-glow));
+  box-shadow: 0 0 15px var(--hive-gold-glow);
 }
 
 .comment-content-wrapper {
@@ -353,7 +386,10 @@ const handleDeleteConfirm = async () => {
 }
 
 .comment-header {
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .comment-author-info {
@@ -364,21 +400,23 @@ const handleDeleteConfirm = async () => {
 }
 
 .comment-author-name {
-  font-weight: 600;
+  font-weight: 700;
   color: var(--apple-text);
   text-decoration: none;
-  font-size: 1rem;
+  font-size: 1.05rem;
   transition: color 0.3s ease;
 }
 
 .comment-author-name:hover {
   color: var(--hive-gold);
-  text-decoration: none;
 }
 
 .comment-time {
-  font-size: 0.85rem;
-  color: #718096;
+  font-size: 0.8rem;
+  color: #999;
+  background: rgba(0,0,0,0.03);
+  padding: 2px 8px;
+  border-radius: 100px;
 }
 
 .comment-body {
@@ -387,39 +425,84 @@ const handleDeleteConfirm = async () => {
 
 .comment-text {
   margin: 0;
-  color: var(--gray-700);
+  color: #4a5568; /* Slightly darker than gray-700 for readability */
   line-height: 1.7;
-  font-size: 1rem;
+  font-size: 1.05rem;
   white-space: pre-wrap;
   word-wrap: break-word;
 }
 
+/* === Phase 4: Micro-interactions (Actions) === */
 .comment-actions {
   display: flex;
   gap: 1rem;
+  opacity: 0.4; /* Dimmed by default */
+  transform: translateY(5px);
+  transition: all 0.3s ease;
+}
+
+/* Show actions on hover */
+.comment-item:hover .comment-actions {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .comment-action-btn {
   background: none;
   border: none;
-  color: #718096;
+  color: #a0aec0;
   font-size: 0.9rem;
   cursor: pointer;
-  padding: 0.4rem 0.8rem;
-  border-radius: 6px;
-  transition: all 0.3s ease;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Bouncy */
   display: flex;
   align-items: center;
+  gap: 6px;
 }
 
+/* Liquid Bounce on Hover */
 .comment-action-btn:hover {
   background: rgba(246, 185, 59, 0.1);
   color: var(--hive-gold);
+  transform: scale(1.1);
+}
+
+.comment-action-btn:active {
+  transform: scale(0.95);
 }
 
 .comment-action-btn.replying {
-  color: #f6d55c;
-  background: rgba(246, 213, 92, 0.1);
+  color: var(--hive-gold);
+  background: rgba(246, 185, 59, 0.15);
+  opacity: 1; /* Always visible if active */
+}
+
+/* Like Button Specifics (Mockup) */
+.comment-like-btn {
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.comment-like-btn:hover {
+  transform: scale(1.1);
+  background: rgba(224, 36, 94, 0.1);
+  color: #e0245e;
+}
+
+.comment-like-btn.liked {
+  color: #e0245e;
+}
+
+.comment-like-btn.liked .fa-heart {
+  animation: heartBounce 0.6s cubic-bezier(0.280, 0.840, 0.420, 1);
+}
+
+@keyframes heartBounce {
+  0% { transform: scale(1); }
+  25% { transform: scale(1.3); }
+  50% { transform: scale(0.9); }
+  75% { transform: scale(1.1); }
+  100% { transform: scale(1); }
 }
 
 .comment-delete-btn {
@@ -431,30 +514,25 @@ const handleDeleteConfirm = async () => {
   color: #c53030;
 }
 
-.comment-delete-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* 回复表单 */
+/* 回复表单 (Restored) */
 .reply-form-wrapper {
   margin-top: 1rem;
-  margin-left: 3.5rem;
+  margin-left: 1.5rem;
   padding-top: 1rem;
-  border-top: 1px solid #e2e8f0;
+  /* border-top: 1px solid rgba(0,0,0,0.05); Reduced divider */
 }
 
 .reply-form {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
   padding: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .reply-form-header {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
   margin-bottom: 0.75rem;
 }
 
@@ -464,12 +542,14 @@ const handleDeleteConfirm = async () => {
   object-fit: cover;
   border: 1px solid var(--hive-gold);
   border-radius: 50%;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
 
 .reply-form-username {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #2d3748;
+  color: var(--apple-text);
+  opacity: 0.8;
 }
 
 .reply-form-body {
@@ -481,8 +561,9 @@ const handleDeleteConfirm = async () => {
 .reply-input {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
   font-size: 0.95rem;
   line-height: 1.5;
   resize: vertical;
@@ -493,12 +574,12 @@ const handleDeleteConfirm = async () => {
 .reply-input:focus {
   outline: none;
   border-color: var(--hive-gold);
-  background: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 0 0 3px var(--hive-gold-glow);
+  background: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 0 3px rgba(246, 185, 59, 0.15);
 }
 
 .reply-input:disabled {
-  background-color: #f1f5f9;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
@@ -508,63 +589,119 @@ const handleDeleteConfirm = async () => {
   gap: 0.5rem;
 }
 
-/* 回复列表 */
+/* === Phase 3: Nested Replies ("Luminescent Threads") === */
 .replies-container {
-  margin-top: 1rem;
-  margin-left: 3.5rem;
-  padding-left: 1.5rem;
-  border-left: 2px solid #e2e8f0;
+  margin-top: 1.5rem;
+  margin-left: 1.5rem; /* Align relative to avatar center simplified */
+  padding-left: 2rem;
+  position: relative;
+  /* Removed border-left */
+}
+/* === Button Styles (Apple x Hive) === */
+.apple-btn-primary {
+  background: linear-gradient(135deg, var(--hive-gold) 0%, #e5a52a 100%);
+  color: white;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 100px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(246, 185, 59, 0.3);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.replies-divider {
-  height: 1px;
-  background: #e2e8f0;
+.apple-btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(246, 185, 59, 0.4);
+  filter: brightness(1.05);
+}
+
+.apple-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.apple-btn-sm {
+  padding: 6px 16px;
+  font-size: 0.85rem;
+}
+
+.apple-btn-secondary {
+  background: rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: #555;
+  padding: 8px 20px;
+  border-radius: 100px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  backdrop-filter: blur(4px);
+}
+
+.apple-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.6);
+  border-color: rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+  color: #333;
+}
+
+.btn-text-cancel {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.btn-text-cancel:hover {
+  background: rgba(0,0,0,0.05);
+  color: #333;
+}
+
+/* Luminescent Thread (The connecting line) */
+.replies-thread-line {
+  position: absolute;
+  left: 0;
+  top: -20px; /* Start from above to connect to parent */
+  bottom: 20px;
+  width: 2px;
+  background: linear-gradient(
+    to bottom, 
+    rgba(246, 185, 59, 0) 0%, 
+    rgba(246, 185, 59, 0.6) 30%, 
+    rgba(246, 185, 59, 0.6) 70%, 
+    rgba(246, 185, 59, 0) 100%
+  );
+  border-radius: 2px;
+  box-shadow: 0 0 8px rgba(246, 185, 59, 0.4);
+  opacity: 0.7;
+}
+
+/* Ensure thread doesn't look weird on first item */
+.replies-container .comment-item {
+  background: rgba(255, 255, 255, 0.25); /* Slightly more transparent for nested */
+  border: 1px solid rgba(255, 255, 255, 0.3);
   margin-bottom: 1rem;
 }
 
-/* 回复项样式调整 */
-.replies-container .comment-item {
-  background: rgba(255, 255, 255, 0.02);
-  border-color: rgba(255, 255, 255, 0.05);
-  padding: 1rem;
-}
-
-.replies-container .comment-avatar {
-  width: 40px;
-  height: 40px;
-}
-
-.replies-container .comment-author-name {
-  font-size: 0.95rem;
-}
-
-.replies-container .comment-text {
-  font-size: 0.95rem;
-}
-
-/* 响应式设计 */
+/* Override padding for nested items */
 @media (max-width: 768px) {
-  .comment-item {
-    padding: 1rem;
-  }
-
-  .comment-main {
-    gap: 0.75rem;
-  }
-
-  .comment-avatar {
-    width: 40px;
-    height: 40px;
-  }
-
   .replies-container {
-    margin-left: 2.5rem;
+    margin-left: 0;
     padding-left: 1rem;
+    border-left: 2px solid rgba(246, 185, 59, 0.2); /* Fallback for mobile */
   }
-
-  .reply-form-wrapper {
-    margin-left: 2.5rem;
-  }
+  .replies-thread-line { display: none; } /* Hide complex line on mobile */
 }
 
 /* Custom Spinner Styles */
@@ -572,17 +709,15 @@ const handleDeleteConfirm = async () => {
   display: inline-block;
   width: 14px;
   height: 14px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  border: 2px solid rgba(0, 0, 0, 0.2);
   border-radius: 50%;
-  border-top-color: #ffffff;
+  border-top-color: var(--hive-gold);
   animation: spin 0.8s linear infinite;
-  vertical-align: middle;
 }
 
 @keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }
+
 </style>
 
