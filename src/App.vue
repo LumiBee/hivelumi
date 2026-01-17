@@ -62,7 +62,7 @@ onMounted(async () => {
     const isTempSession = sessionStorage.getItem('temp_session') === 'true'
     
     // 如果是临时会话，则在页面刷新时清除登录状态
-    if (isTempSession) {ß
+    if (isTempSession) {
       console.log('检测到临时会话，在页面刷新时将清除登录状态')
       
       // 页面加载时清除登录状态

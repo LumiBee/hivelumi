@@ -699,6 +699,8 @@ const closeCropper = () => {
 const loadPreviousPage = () => {
   if (currentPage.value > 1) {
     currentPage.value--
+    // 滚动到页面顶部
+    window.scrollTo({ top: 0, behavior: 'smooth' })
     // 使用 nextTick 优化DOM更新
     nextTick(() => {
       fetchProfileData()
@@ -710,6 +712,8 @@ const loadPreviousPage = () => {
 const loadNextPage = () => {
   if (hasNextPage.value) {
     currentPage.value++
+    // 滚动到页面顶部
+    window.scrollTo({ top: 0, behavior: 'smooth' })
     // 使用 nextTick 优化DOM更新
     nextTick(() => {
       fetchProfileData()
@@ -724,6 +728,8 @@ const goToPage = (page) => {
   const totalPages = Number(profileData.value.articles?.pages) || 1
   if (page >= 1 && page <= totalPages) {
     currentPage.value = page
+    // 滚动到页面顶部
+    window.scrollTo({ top: 0, behavior: 'smooth' })
     // 使用 nextTick 优化DOM更新
     nextTick(() => {
       fetchProfileData()

@@ -580,7 +580,7 @@ const processManusResponse = (data) => {
     if (data.includes('步骤') && data.includes('结果')) {
       // 提取工具执行结果中的有用内容 - 修复正则表达式匹配完整JSON
       const toolResultMatch = data.match(/步骤\s+\d+\s+结果:\s*工具\s+(\w+)\s+执行结果:\s*"(.+)"/)
-      if (toolResultMatch) {
+      if (toolResultMatch && toolResultMatch.length >= 3) {
         const toolName = toolResultMatch[1]
         const result = toolResultMatch[2]
         
@@ -815,8 +815,11 @@ const formatSearchResult = (searchData) => {
           
           if (titleMatches && titleMatches.length > 0) {
             titleMatches.forEach((match, index) => {
-              const title = match.match(/"title":"([^"]+)"/)[1]
-              formatted += `**${index + 1}. ${title}**\n\n`
+              const titleMatch = match.match(/"title":"([^"]+)"/)
+              if (titleMatch && titleMatch[1]) {
+                const title = titleMatch[1]
+                formatted += `**${index + 1}. ${title}**\n\n`
+              }
             })
           } else {
             // 最后的备用方案：直接显示原始数据
