@@ -28,6 +28,7 @@
               :placeholder="isFocused ? '' : '分享你的见解...'"
               :rows="isFocused || newComment ? 4 : 1"
               :disabled="submitting"
+              ref="commentTextarea"
               @focus="handleFocus"
               @keydown.ctrl.enter="submitComment"
               @keydown.meta.enter="submitComment"
@@ -44,25 +45,29 @@
                   <button 
                     class="tool-btn" 
                     title="Add Emoji" 
-                    @click.stop="toggleEmojiPicker"
+                    @click.stop="toggleEmojiPicker($event)"
                     :class="{ 'active': showEmojiPicker }"
                   >
                     <i class="far fa-smile"></i>
                   </button>
                   
-                  <transition name="pop-up">
-                    <div v-if="showEmojiPicker" class="emoji-popover glass-panel">
-                       <EmojiPicker 
-                         :native="true" 
-                         @select="onSelectEmoji" 
-                         theme="light"
-                         :hide-search="false"
-                         :hide-group-icons="false"
-                         :hide-group-names="true"
-                         class="custom-emoji-picker"
-                       />
-                    </div>
-                  </transition>
+                  <!-- Use Teleport to move the picker to body to avoid ANY stacking context / overflow issues -->
+                  <teleport to="body">
+                    <transition name="pop-up">
+                      <div v-if="showEmojiPicker" class="emoji-popover fixed-picker" :style="pickerStyle">
+                         <EmojiPicker 
+                           :native="true" 
+                           @select="onSelectEmoji"
+                           @emoji-click="onSelectEmoji"
+                           theme="light"
+                           :hide-search="false"
+                           :hide-group-icons="false"
+                           :hide-group-names="true"
+                           class="isolated-emoji-picker"
+                         />
+                      </div>
+                    </transition>
+                  </teleport>
                 </div>
 
                 <button class="tool-btn" title="Add Image (Coming Soon)">
@@ -142,7 +147,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useAuthStore } from '@/store/auth'
 import { commentAPI } from '@/api/comment'
 import { getAuthorAvatarUrl } from '@/utils/avatar-helper'
@@ -165,15 +170,39 @@ const loading = ref(true)
 const replyingTo = ref(null)
 const isFocused = ref(false)
 const showEmojiPicker = ref(false)
+const commentTextarea = ref(null)
+const pickerStyle = ref({ top: '0px', left: '0px' })
 
-const onSelectEmoji = (emoji) => {
-  newComment.value += emoji.i
-  showEmojiPicker.value = false // Auto-close
+const toggleEmojiPicker = (event) => {
+  if (!showEmojiPicker.value) {
+    // Calculate position before showing
+    const rect = event.currentTarget.getBoundingClientRect()
+    pickerStyle.value = {
+      top: `${rect.bottom + window.scrollY + 8}px`,
+      left: `${rect.left + window.scrollX}px`
+    }
+    showEmojiPicker.value = true
+    
+    // Add one-time click-away listener
+    setTimeout(() => {
+      window.addEventListener('click', closeField)
+    }, 10)
+  } else {
+    showEmojiPicker.value = false
+    window.removeEventListener('click', closeField)
+  }
 }
 
-const toggleEmojiPicker = () => {
-  showEmojiPicker.value = !showEmojiPicker.value
+const closeField = (e) => {
+  if (!e.target.closest('.isolated-emoji-picker')) {
+    showEmojiPicker.value = false
+    window.removeEventListener('click', closeField)
+  }
 }
+
+onUnmounted(() => {
+  window.removeEventListener('click', closeField)
+})
 
 // Focus handlers
 const handleFocus = () => {
@@ -284,6 +313,31 @@ const handleReply = (commentId) => {
 onMounted(() => {
   loadComments()
 })
+
+const onSelectEmoji = (emoji) => {
+  console.log('TELEPORTED Emoji interaction detected:', emoji)
+  
+  let char = ''
+  if (typeof emoji === 'string') {
+    char = emoji
+  } else if (emoji) {
+    // vue3-emoji-picker 1.1.8+ uses 'i' for character in most cases
+    char = emoji.i || emoji.native || emoji.emoji || emoji.data || ''
+  }
+  
+  if (char) {
+    newComment.value += char
+  }
+  
+  showEmojiPicker.value = false
+  window.removeEventListener('click', closeField)
+  
+  setTimeout(() => {
+    if (commentTextarea.value) {
+      commentTextarea.value.focus()
+    }
+  }, 100)
+}
 </script>
 
 <style scoped>
@@ -575,6 +629,8 @@ onMounted(() => {
   font-size: 4rem;
   color: #cbd5e0;
   margin-bottom: 1rem;
+  pointer-events: none; /* Crucial: prevent icon from stealing clicks from floating popovers */
+  user-select: none;
 }
 
 .empty-text {
@@ -649,27 +705,29 @@ onMounted(() => {
   top: 120%; /* Show below instead of above to avoid clipping */
   left: 0;
   margin-top: 8px; /* replaced margin-bottom */
-  z-index: 100;
+  z-index: 10000 !important; /* Extremely high to overrule everything */
   border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-  /* Glassmorphism already provided by glass-panel class but we ensure overrides */
-  background: rgba(255, 255, 255, 0.95) !important; /* Slightly more opaque to insure visibility */
-  border: 1px solid rgba(0,0,0,0.05); /* Ensure border for visibility */
+  box-shadow: 0 12px 48px rgba(0,0,0,0.2);
+  /* Use solid background to ensure it's not transparent to clicks/visibility */
+  background: white !important; 
+  border: 1px solid rgba(0,0,0,0.1);
+  overflow: hidden;
 }
 
-/* Customizing the internal CSS vars of vue3-emoji-picker */
-.custom-emoji-picker {
-  --ep-color-bg: transparent !important; /* Transparent for glass effect */
-  --ep-color-sbg: rgba(0,0,0,0.03) !important; /* Search bg */
-  --ep-color-active: var(--hive-gold-light, #fef3c7) !important;
-  --ep-color-hover: rgba(246, 185, 59, 0.1) !important;
-  --ep-color-border: transparent !important;
-  
+.fixed-picker {
+  position: absolute !important;
+  z-index: 999999 !important; /* Maximum possible */
+  background: white !important;
+  border-radius: 16px;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.25);
+  border: 1px solid rgba(0,0,0,0.1);
+}
+
+.isolated-emoji-picker {
+  --ep-color-bg: #ffffff !important;
   height: 320px !important;
-  width: 300px !important;
+  width: 320px !important;
   border-radius: 16px !important;
-  font-family: inherit !important;
-  box-shadow: none !important;
 }
 
 /* Transition for Popover */

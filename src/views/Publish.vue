@@ -266,7 +266,7 @@
                             :class="{ 'selected': selectedPortfolioId === portfolio.id }"
                             @click.stop="selectPortfolio(portfolio.id)"
                           >
-                            {{ portfolio.title }}
+                            {{ portfolio.name }}
                           </div>
                         </div>
                       </div>
@@ -313,52 +313,21 @@
                   </div>
                 </div>
 
-                <!-- 发布确认 -->
+                <!-- 发布设置 -->
                 <div class="setting-card">
                   <h6 class="setting-title">
-                    <i class="fas fa-check-circle me-2"></i>发布确认
+                    <i class="fas fa-cog me-2"></i>发布设置
                   </h6>
-                  <div class="publish-confirmation">
-                    <p class="text-muted mb-3">
-                      请确认以下信息无误后点击发布：
-                    </p>
-                    <ul class="confirmation-list">
-                      <li :class="getStatusClass('title')">
-                        <i class="fas fa-check me-2"></i>
-                        标题：{{ articleForm.title || '未填写' }}
-                      </li>
-                      <li :class="getStatusClass('content')">
-                        <i class="fas fa-check me-2"></i>
-                        内容：{{ articleForm.content ? `${wordCount} 字` : '未填写' }}
-                      </li>
-                      <li :class="getStatusClass('excerpt')">
-                        <i class="fas fa-check me-2"></i>
-                        摘要：{{ getStatusText('excerpt') }}
-                      </li>
-                      <li :class="getStatusClass('portfolio')">
-                        <i class="fas fa-briefcase me-2"></i>
-                        作品集：{{ getStatusText('portfolio') }}
-                      </li>
-                      <li :class="getStatusClass('tags')">
-                        <i class="fas fa-tags me-2"></i>
-                        标签：{{ getStatusText('tags') }}
-                      </li>
-                    </ul>
-
-                    <!-- 发布设置 -->
-                    <div class="publish-settings mt-3 pt-3 border-top">
-                      <div class="form-check">
-                        <input
-                          type="checkbox"
-                          id="allowComments"
-                          v-model="articleForm.allowComments"
-                          class="form-check-input"
-                        />
-                        <label class="form-check-label" for="allowComments">
-                          <i class="fas fa-comments me-2"></i>允许评论
-                        </label>
-                      </div>
-                    </div>
+                  <div class="form-check">
+                    <input
+                      type="checkbox"
+                      id="allowComments"
+                      v-model="articleForm.allowComments"
+                      class="form-check-input"
+                    />
+                    <label class="form-check-label" for="allowComments">
+                      <i class="fas fa-comments me-2"></i>允许评论
+                    </label>
                   </div>
                 </div>
               </div>
@@ -487,6 +456,27 @@ const initEditor = async () => {
       height: '100%',
       mode: 'ir',
       placeholder: '在这里开始你的创作...',
+      upload: {
+        accept: 'image/*',
+        max: 5 * 1024 * 1024, // 5MB
+        handler: async (files) => {
+          try {
+            const file = files[0]
+            const imgUrl = await articleAPI.uploadArticleImage(file)
+            
+            // 直接向编辑器插入图片 Markdown
+            const imageMarkdown = `![${file.name}](${imgUrl})`
+            editorInstance.insertValue(imageMarkdown)
+            
+            // 返回空字符串，防止 Vditor 插入额外内容
+            return ''
+          } catch (error) {
+            console.error('图片上传失败:', error)
+            showNotification('图片上传失败，请重试', 'danger')
+            return ''
+          }
+        }
+      },
       after: () => {
         if (articleForm.value.content) {
           editorInstance.setValue(articleForm.value.content);
@@ -622,7 +612,7 @@ const togglePortfolioDropdown = () => {
 const getPortfolioSelectText = () => {
     if (selectedPortfolioId.value) {
         const portfolio = portfolios.value.find(p => p.id === selectedPortfolioId.value);
-        return portfolio ? portfolio.title : '-- 选择现有作品集 --';
+        return portfolio ? portfolio.name : '-- 选择现有作品集 --';
     }
     return '-- 选择现有作品集 --';
 };
@@ -634,26 +624,26 @@ const selectPortfolio = (id) => {
 };
 
 const createNewPortfolio = async () => {
-    const name = newPortfolioName.value.trim();
-    if (name) {
-        isCreatingPortfolio.value = true;
-        try {
-            const newPortfolio = await portfolioAPI.createPortfolio({ name });
-            portfolios.value.push(newPortfolio);
-            selectPortfolio(newPortfolio.id);
-            newPortfolioName.value = '';
-        } catch (error) {
-            // handle error
-        } finally {
-            isCreatingPortfolio.value = false;
-        }
+  const name = newPortfolioName.value.trim();
+  if (name) {
+    isCreatingPortfolio.value = true;
+    try {
+      const newPortfolio = await portfolioAPI.createPortfolio({ title: name });
+      portfolios.value.push(newPortfolio);
+      selectPortfolio(newPortfolio.id);
+      newPortfolioName.value = '';
+    } catch (error) {
+      showNotification('创建作品集失败', 'danger');
+    } finally {
+      isCreatingPortfolio.value = false;
     }
+  }
 };
 
 const getSelectedPortfolioName = () => {
     if (articleForm.value.portfolioId) {
         const portfolio = portfolios.value.find(p => p.id === articleForm.value.portfolioId);
-        return portfolio ? portfolio.title : '';
+        return portfolio ? portfolio.name : '';
     }
     return newPortfolioName.value || '';
 };
@@ -662,23 +652,6 @@ const clearPortfolio = () => {
     selectedPortfolioId.value = '';
     articleForm.value.portfolioId = '';
     newPortfolioName.value = '';
-};
-
-const getStatusClass = (field) => {
-    return 'text-success';
-};
-
-const getStatusText = (field) => {
-    switch(field) {
-        case 'excerpt':
-            return articleForm.value.excerpt.trim() ? '已填写' : '未填写';
-        case 'portfolio':
-            return getSelectedPortfolioName() ? getSelectedPortfolioName() : '未选择';
-        case 'tags':
-            return articleForm.value.tags.length > 0 ? articleForm.value.tags.join(', ') : '未添加';
-        default:
-            return '';
-    }
 };
 
 const handleClickOutside = (event) => {
@@ -1002,5 +975,139 @@ watch(() => route.query, (query) => {
   to {
     transform: rotate(360deg);
   }
+}
+
+/* AI Summary Section Styles */
+.setting-header-with-buttons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.ai-summary-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+/* Portfolio Dropdown Styles */
+.custom-select {
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+}
+
+.select-display {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.select-display:hover {
+  border-color: #adb5bd;
+  background: #f8f9fa;
+}
+
+.select-text {
+  flex: 1;
+  color: #495057;
+}
+
+.select-arrow {
+  margin-left: 0.5rem;
+  color: #6c757d;
+  transition: transform 0.2s ease;
+  font-size: 0.875rem;
+}
+
+.select-arrow.rotated {
+  transform: rotate(180deg);
+}
+
+.select-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 0.25rem;
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+}
+
+.select-option {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  color: #495057;
+}
+
+.select-option:hover {
+  background-color: #f8f9fa;
+}
+
+.select-option.selected {
+  background-color: #e9ecef;
+  font-weight: 500;
+  color: #0d6efd;
+}
+
+.select-option:first-child {
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+}
+
+.select-option:last-child {
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
+/* Portfolio Input Group Styles */
+.portfolio-input-group {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Excerpt Textarea Styles */
+.excerpt-textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.excerpt-textarea.is-invalid {
+  border-color: #dc3545;
+}
+
+/* Publish Confirmation Styles */
+.confirmation-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.confirmation-list li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.confirmation-list li:last-child {
+  border-bottom: none;
+}
+
+/* Selected Portfolio Display */
+.selected-portfolio .alert {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 </style>

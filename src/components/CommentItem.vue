@@ -31,7 +31,7 @@
             class="comment-action-btn comment-like-btn" 
             :class="{ 'liked': isLiked }"
             @click="toggleLike"
-            title="Like"
+            title="点赞"
           >
             <i :class="isLiked ? 'fas fa-heart' : 'far fa-heart'"></i>
           </button>
@@ -78,13 +78,42 @@
           <span class="reply-form-username">回复 {{ comment.userName }}</span>
         </div>
         <div class="reply-form-body">
-          <textarea
-            v-model="replyContent"
-            class="reply-input"
-            placeholder="写下你的回复..."
-            rows="3"
-            :disabled="submitting"
-          ></textarea>
+          <div class="reply-input-wrapper">
+            <textarea
+              v-model="replyContent"
+              class="reply-input"
+              placeholder="写下你的回复..."
+              rows="3"
+              :disabled="submitting"
+              ref="replyTextarea"
+            ></textarea>
+            
+            <div class="reply-tools">
+              <div class="emoji-wrapper">
+                <button 
+                  class="tool-btn" 
+                  title="添加表情" 
+                  @click.stop="toggleEmojiPicker"
+                  :class="{ 'active': showEmojiPicker }"
+                >
+                  <i class="far fa-smile"></i>
+                </button>
+                
+                <transition name="pop-up">
+                  <div v-if="showEmojiPicker" class="emoji-popover glass-panel">
+                     <EmojiPicker 
+                       :native="true" 
+                       @select="onSelectEmoji"
+                       @emoji-click="onSelectEmoji"
+                       theme="light"
+                       :hide-group-names="true"
+                       class="custom-emoji-picker"
+                     />
+                  </div>
+                </transition>
+              </div>
+            </div>
+          </div>
           <div class="reply-form-footer">
             <button
               @click="cancelReply"
@@ -141,6 +170,8 @@ import { useAuthStore } from '@/store/auth'
 import { commentAPI } from '@/api/comment'
 import { getAuthorAvatarUrl } from '@/utils/avatar-helper'
 import ConfirmDeleteModal from '@/components/ConfirmDeleteModal.vue'
+import EmojiPicker from 'vue3-emoji-picker'
+import 'vue3-emoji-picker/css'
 
 const props = defineProps({
   comment: {
@@ -166,6 +197,35 @@ const submitting = ref(false)
 const deleting = ref(false)
 const showDeleteModal = ref(false)
 const isLiked = ref(false)
+const showEmojiPicker = ref(false)
+const replyTextarea = ref(null)
+
+const onSelectEmoji = (emoji) => {
+  console.log('Emoji selected in reply interaction:', emoji)
+  let char = ''
+  if (typeof emoji === 'string') {
+    char = emoji
+  } else if (emoji) {
+    char = emoji.i || emoji.native || emoji.emoji || emoji.data || ''
+  }
+  
+  if (char) {
+    console.log('Inserting emoji character into reply:', char)
+    replyContent.value += char
+  }
+  showEmojiPicker.value = false
+  
+  // Refocus
+  setTimeout(() => {
+    if (replyTextarea.value) {
+      replyTextarea.value.focus()
+    }
+  }, 100)
+}
+
+const toggleEmojiPicker = () => {
+  showEmojiPicker.value = !showEmojiPicker.value
+}
 
 // Toggle Like (Visual Only)
 const toggleLike = () => {
@@ -719,5 +779,74 @@ const handleDeleteConfirm = async () => {
   to { transform: rotate(360deg); }
 }
 
+
+/* 回复表情相关样式 */
+.reply-input-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.reply-tools {
+  display: flex;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 0 0 12px 12px;
+  margin-top: -1px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-top: none;
+}
+
+.reply-input {
+  border-radius: 12px 12px 0 0 !important;
+}
+
+.tool-btn {
+  background: none;
+  border: none;
+  color: #999;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.tool-btn:hover, .tool-btn.active {
+  color: var(--hive-gold);
+  background: rgba(246, 185, 59, 0.1);
+}
+
+.emoji-wrapper {
+  position: relative;
+}
+
+.emoji-popover {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 10000 !important;
+  margin-top: 8px;
+  border-radius: 16px;
+  background: white !important;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.2);
+  border: 1px solid rgba(0,0,0,0.1);
+}
+
+.custom-emoji-picker {
+  height: 300px !important;
+  width: 280px !important;
+}
+
+.pop-up-enter-active,
+.pop-up-leave-active {
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.pop-up-enter-from,
+.pop-up-leave-to {
+  opacity: 0;
+  transform: translateY(10px) scale(0.95);
+}
 </style>
 

@@ -31,7 +31,7 @@ export const portfolioAPI = {
    */
   createPortfolio(portfolioData) {
     return request({
-      url: '/portfolio',
+      url: '/portfolio/create',
       method: 'post',
       data: portfolioData
     })

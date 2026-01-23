@@ -1,67 +1,62 @@
 <template>
-  <div class="article-page-apple">
+  <div class="article-page-argon">
     <!-- 顶部阅读进度条 (Hive Gold) -->
     <div class="reading-progress" :style="{ width: readingProgress + '%' }"></div>
 
     <!-- 导航栏占位 (防止内容被遮挡) -->
     <div class="nav-spacer"></div>
 
-    <!-- 核心内容区域 -->
-    <main class="apple-container" v-if="article">
+    <!-- 1. Argon 风格 Banner -->
+    <header class="argon-banner" v-if="article">
+      <!-- 背景图 (模糊处理) -->
+      <div class="banner-bg" :style="{ backgroundImage: `url(${getBackgroundUrl(article.backgroundUrl) || article.coverImageUrl || defaultCover})` }"></div>
+      <div class="banner-overlay"></div>
       
-      <!-- 1. 沉浸式磨砂玻璃 Hero 卡片 -->
-      <header class="hero-card glass-panel" data-aos="fade-up" data-aos-duration="800">
-        <!-- 背景图 (模糊处理) -->
-        <div class="hero-bg" :style="{ backgroundImage: `url(${getBackgroundUrl(article.backgroundUrl) || article.coverImageUrl || defaultCover})` }"></div>
-        <div class="hero-overlay"></div>
-        
-        <div class="hero-content">
+      <div class="banner-container">
+        <div class="banner-content" data-aos="zoom-in" data-aos-duration="1000">
           <!-- 标签 Pills -->
-          <div class="hero-tags" v-if="article.tags && article.tags.length">
+          <div class="banner-tags" v-if="article.tags && article.tags.length">
             <router-link 
               v-for="tag in article.tags" 
               :key="tag.tagId" 
               :to="`/tags/${tag.slug}`"
-              class="apple-pill"
+              class="argon-tag-pill"
             >
-              # {{ tag.name }}
+              {{ tag.name }}
             </router-link>
           </div>
 
           <!-- 标题 -->
-          <h1 class="hero-title">{{ article.title }}</h1>
+          <h1 class="banner-title">{{ article.title }}</h1>
+          
+          <!-- 副标题/摘要 (可选) -->
+          <p class="banner-subtitle" v-if="article.summary">{{ article.summary }}</p>
 
-          <!-- 作者信息 (Hexagon Avatar) -->
-          <div class="hero-meta">
-            <router-link :to="`/profile/${article.userName}`" class="meta-author">
-              <div class="hexagon-avatar-wrapper">
-                <img :src="getAuthorAvatarUrl(article.avatarUrl)" alt="Author" class="hexagon-avatar">
-              </div>
-              <div class="meta-text">
-                <span class="author-name">{{ article.userName }}</span>
-                <span class="publish-date">{{ formatDate(article.gmtCreate) }}</span>
-              </div>
+          <!-- 作者 & 日期 -->
+          <div class="banner-meta">
+            <router-link :to="`/profile/${article.userName}`" class="banner-author">
+              <img :src="getAuthorAvatarUrl(article.avatarUrl)" alt="Author" class="author-img">
+              <span class="author-name">{{ article.userName }}</span>
             </router-link>
-            
-            <!-- 关注按钮 (Pill Style) -->
-            <button 
-              v-if="authStore.isAuthenticated && article.userId !== authStore.user?.id"
-              @click="toggleFollow"
-              class="apple-btn-sm"
-              :class="{ 'active': article.isFollowed }"
-            >
-              {{ article.isFollowed ? '已关注' : '关注' }}
-            </button>
+            <span class="meta-divider">|</span>
+            <span class="publish-date"><i class="far fa-calendar-alt"></i> {{ formatDate(article.gmtModified) }}</span>
+            <span class="meta-divider">|</span>
+            <span class="view-count"><i class="far fa-eye"></i> {{ article.viewCount || 0 }} 次阅读</span>
           </div>
         </div>
-      </header>
+      </div>
+    </header>
 
+    <!-- 核心内容区域 -->
+    <main class="argon-container" v-if="article">
       <div class="article-layout">
         <!-- 左侧：文章主体 -->
         <div class="layout-main">
-          <!-- 2. 文章正文 (极简阅读模式) -->
-          <article class="article-body" data-aos="fade-up" data-aos-delay="200">
-            <div v-html="renderedContent" class="markdown-content apple-typography"></div>
+          <!-- 2. 文章正文 (Argon Card) -->
+          <article class="article-card argon-card" data-aos="fade-up" data-aos-delay="200">
+            <div class="post-content" id="post_content">
+              <div v-html="renderedContent" class="markdown-content"></div>
+            </div>
           </article>
 
           <!-- 3. 底部相关推荐 (Grid Layout) -->
@@ -94,24 +89,22 @@
         <!-- 右侧：作者侧边栏 -->
         <aside class="layout-sidebar">
           <div class="sidebar-sticky-wrapper">
-            <!-- 3.5 关于作者 (Interactive 3D Flip Card) -->
+            <!-- 3.5 关于作者 (Argon Card) -->
             <section 
-              class="author-section-container"
+              class="author-card-container"
               data-aos="fade-left" 
               data-aos-delay="300"
-              @click="toggleCardFlip"
             >
-              <div class="flip-card-inner" :class="{ 'flipped': isCardFlipped }">
-                
-                <!-- Front Face -->
-                <div class="flip-card-front glass-panel interactive-card-face">
+              <div class="argon-card author-card">
                   <div class="author-card-content">
                     <div class="author-header">
                       <div class="hexagon-avatar-wrapper lg">
                         <img :src="getAuthorAvatarUrl(article.avatarUrl)" alt="Author" class="hexagon-avatar">
                       </div>
                       <div class="author-info-lg">
-                        <h3 class="author-name-lg">{{ article.userName }}</h3>
+                        <router-link :to="`/profile/${article.userName}`" class="author-name-link">
+                          <h3 class="author-name-lg">{{ article.userName }}</h3>
+                        </router-link>
                         <p class="author-bio">{{ article.userBio || '这位作者很神秘，什么都没写...' }}</p>
                       </div>
                     </div>
@@ -120,7 +113,7 @@
                       <button 
                         v-if="authStore.isAuthenticated && article.userId !== authStore.user?.id"
                         @click.stop="toggleFollow"
-                        class="apple-btn-outline full-width"
+                        class="argon-btn-outline full-width"
                         :class="{ 'active': article.isFollowed }"
                       >
                         {{ article.isFollowed ? '已关注' : '关注作者' }}
@@ -144,48 +137,6 @@
                   </div>
                 </div>
 
-                <!-- Back Face (Same Content for now) -->
-                <div class="flip-card-back glass-panel interactive-card-face">
-                  <div class="author-card-content">
-                    <div class="author-header">
-                      <div class="hexagon-avatar-wrapper lg">
-                        <img :src="getAuthorAvatarUrl(article.avatarUrl)" alt="Author" class="hexagon-avatar">
-                      </div>
-                      <div class="author-info-lg">
-                        <h3 class="author-name-lg">{{ article.userName }}</h3>
-                        <p class="author-bio">{{ article.userBio || '这位作者很神秘，什么都没写...' }}</p>
-                      </div>
-                    </div>
-                    
-                    <div class="author-actions">
-                      <button 
-                        v-if="authStore.isAuthenticated && article.userId !== authStore.user?.id"
-                        @click.stop="toggleFollow"
-                        class="apple-btn-outline full-width"
-                        :class="{ 'active': article.isFollowed }"
-                      >
-                        {{ article.isFollowed ? '已关注' : '关注作者' }}
-                      </button>
-                    </div>
-
-                    <div class="author-stats">
-                      <div class="stat-box">
-                        <span class="stat-val">{{ article.userArticleCount || 0 }}</span>
-                        <span class="stat-label">文章</span>
-                      </div>
-                      <div class="stat-box">
-                        <span class="stat-val">{{ article.userFollowersCount || 0 }}</span>
-                        <span class="stat-label">粉丝</span>
-                      </div>
-                      <div class="stat-box">
-                        <span class="stat-val">{{ article.userFollowingCount || 0 }}</span>
-                        <span class="stat-label">关注</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
             </section>
           </div>
         </aside>
@@ -313,7 +264,7 @@ const zoomedImageSrc = ref('')
 const zoomedImageAlt = ref('')
 const showFavoriteModal = ref(false)
 const defaultCover = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop'
-const isCardFlipped = ref(false)
+const isCardFlipped = ref(false) // Keeping for compatibility if needed, but unused in new UI
 const isLiking = ref(false) // 防止重复点击
 
 let lastScrollTop = 0
@@ -519,7 +470,14 @@ const scrollToComments = () => {
 }
 
 const formatDate = (date) => {
-  return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  if (!date) return ''
+  const d = new Date(date)
+  if (isNaN(d.getTime())) return ''
+  return d.toLocaleDateString('zh-CN', { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  })
 }
 
 const cleanText = (html) => {
@@ -528,8 +486,9 @@ const cleanText = (html) => {
   return div.textContent || div.innerText || ''
 }
 
+// 3D Flip logic removed in favor of Argon Cards
 const toggleCardFlip = () => {
-  isCardFlipped.value = !isCardFlipped.value
+  // isCardFlipped.value = !isCardFlipped.value
 }
 
 // === Image Zoom (Lightbox) ===
@@ -594,53 +553,43 @@ watch(() => route.params.slug, (newSlug) => {
 </script>
 
 <style scoped>
-/* === Variables (Apple x Hive Theme) === */
-.article-page-apple {
-  --apple-bg: #fbfbfd;
-  --apple-text: #1d1d1f;
-  --apple-gray: #86868b;
-  --hive-gold: #f6b93b;
-  --hive-gold-hover: #e5a52a;
-  --glass-bg: rgba(255, 255, 255, 0.65);
-  --glass-border: rgba(255, 255, 255, 0.4);
-  --glass-highlight: rgba(255, 255, 255, 0.5);
-  --glass-shadow: rgba(0, 0, 0, 0.05);
+/* === Variables (Argon Theme) === */
+.article-page-argon {
+  --argon-primary: #5e72e4;
+  --argon-success: #2dce89;
+  --argon-info: #11cdef;
+  --argon-warning: #fb6340;
+  --argon-danger: #f5365c;
+  --argon-text: #364863;
+  --argon-text-muted: #8898aa;
+  --argon-bg: #f4f5f7;
+  --card-radius: 15px;
   
-  /* Noise Texture (Base64 SVG) */
-  --noise-pattern: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
-
-  --shadow-sm: 0 4px 24px -4px var(--glass-shadow);
-  --shadow-lg: 0 24px 48px -12px rgba(0, 0, 0, 0.1);
-  
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background-color: var(--apple-bg);
-  color: var(--apple-text);
+  font-family: 'echo', Georgia, -apple-system, 'Nimbus Roman No9 L', 'PingFang SC', 'Hiragino Sans GB', 'Noto Serif SC', 'Microsoft Yahei', 'WenQuanYi Micro Hei', 'ST Heiti', sans-serif;
+  background-color: var(--argon-bg);
+  color: var(--argon-text);
   min-height: 100vh;
-  padding-bottom: 120px; /* Space for Dock */
-  
-  /* 页面背景纹理增强 */
-  background-image: 
-    radial-gradient(circle at 10% 20%, rgba(246, 185, 59, 0.08) 0%, transparent 40%),
-    radial-gradient(circle at 90% 80%, rgba(66, 153, 225, 0.08) 0%, transparent 40%);
+  padding-bottom: 120px;
 }
 
 /* === Layout === */
-.apple-container {
-  max-width: 1200px; /* 增加宽度以容纳侧边栏 */
-  margin: 0 auto;
-  padding: 0 20px;
+.argon-container {
+  max-width: 1140px;
+  margin: -100px auto 0;
+  padding: 0 15px;
+  position: relative;
+  z-index: 10;
 }
 
 .article-layout {
   display: flex;
-  gap: 60px; /* Increased gap for breathability */
+  gap: 30px;
   align-items: flex-start;
 }
 
 .layout-main {
   flex: 1;
-  min-width: 0; /* 防止 flex 子项溢出 */
-  max-width: 720px; /* Limit content width for readability */
+  min-width: 0;
 }
 
 .layout-sidebar {
@@ -650,23 +599,20 @@ watch(() => route.params.slug, (newSlug) => {
 
 .sidebar-sticky-wrapper {
   position: sticky;
-  top: 120px; /* 距离顶部距离 */
+  top: 100px;
 }
 
-.nav-spacer { height: 100px; }
-
-/* === Glass Panel Utility (Glassmorphism 2.0) === */
-.glass-panel {
-  position: relative;
-  background: var(--glass-bg);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid var(--glass-border);
-  box-shadow: 
-    var(--shadow-sm),
-    inset 0 1px 0 0 var(--glass-highlight),
-    inset 0 -1px 0 0 rgba(0,0,0,0.05); /* Edge Highlight */
+/* === Argon Card (Glassmorphism) === */
+.argon-card {
+  background: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: var(--card-radius);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 15px 35px rgba(50, 50, 93, 0.1), 0 5px 15px rgba(0, 0, 0, 0.07);
   overflow: hidden;
+  margin-bottom: 30px;
+  padding: 30px;
 }
 
 /* Noise Overlay */
@@ -687,51 +633,109 @@ watch(() => route.params.slug, (newSlug) => {
   z-index: 1;
 }
 
-/* === 1. Hero Card === */
-.hero-card {
+/* === 1. Argon Banner === */
+.argon-banner {
   position: relative;
-  border-radius: 24px;
+  height: 500px;
+  width: 100%;
+  display: flex;
+  align-items: center;
   overflow: hidden;
-  margin-bottom: 40px;
-  padding: 40px;
-  text-align: center;
-  color: #fff; /* Always white text on hero */
+  color: #fff;
 }
 
-.hero-bg {
+.banner-bg {
   position: absolute;
   top: 0; left: 0; width: 100%; height: 100%;
   background-size: cover;
   background-position: center;
-  filter: blur(10px) brightness(0.8); /* Reduced blur for "Cinematic" feel */
-  transform: scale(1.1);
-  z-index: 0;
+  filter: brightness(0.7);
+  transform: scale(1.05);
+  transition: transform 0.5s ease;
 }
 
-.hero-overlay {
+.banner-overlay {
   position: absolute;
   top: 0; left: 0; width: 100%; height: 100%;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.6)); /* Cinematic Gradient */
+  background: linear-gradient(150deg, rgba(var(--themecolor-R), var(--themecolor-G), var(--themecolor-B), 0.6) 15%, rgba(var(--themecolor-R), var(--themecolor-G), var(--themecolor-B), 0.8) 70%, rgba(var(--themecolor-R), var(--themecolor-G), var(--themecolor-B), 0.9) 94%);
   z-index: 1;
 }
 
-.hero-content {
+.banner-container {
+  width: 100%;
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 0 15px;
   position: relative;
   z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 24px;
-  padding: 60px 20px;
 }
 
-.hero-title {
-  font-size: 2.5rem; /* Reduced from 3.5rem */
-  font-weight: 800;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
-  text-shadow: 0 4px 20px rgba(0,0,0,0.5);
+.banner-content {
   max-width: 800px;
+}
+
+.banner-title {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+.banner-subtitle {
+  font-size: 1.25rem;
+  opacity: 0.9;
+  margin-bottom: 30px;
+  line-height: 1.6;
+}
+
+.banner-tags {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 25px;
+}
+
+.argon-tag-pill {
+  padding: 5px 15px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 30px;
+  font-size: 0.85rem;
+  color: #fff;
+  text-decoration: none;
+  backdrop-filter: blur(5px);
+  transition: all 0.3s ease;
+}
+
+.argon-tag-pill:hover {
+  background: #fff;
+  color: var(--argon-primary);
+}
+
+.banner-meta {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-size: 0.95rem;
+  opacity: 0.9;
+}
+
+.banner-author {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.author-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.8);
+}
+
+.meta-divider {
+  opacity: 0.5;
 }
 
 .apple-pill {
@@ -794,10 +798,25 @@ watch(() => route.params.slug, (newSlug) => {
   color: #fff;
 }
 
+.publish-date {
+  font-size: 0.85rem;
+  opacity: 0.8;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.modified-date {
+  font-size: 0.75rem;
+  opacity: 0.6;
+  font-style: italic;
+}
+
 .meta-text {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  gap: 2px;
 }
 
 .author-name { font-weight: 600; font-size: 1.1rem; }
@@ -820,40 +839,80 @@ watch(() => route.params.slug, (newSlug) => {
 /* === 2. Article Body === */
 /* === 2. Article Body (Rhythm) === */
 .article-body {
-  font-size: 1.05rem; /* Reduced from 1.2rem */
-  line-height: 1.75; /* Slightly tighter line height */
-  color: #333;
+  font-size: 1.25rem;
+  line-height: 1.8;
+  color: #364863;
 }
 
 /* Typography Overrides */
 :deep(.markdown-content) {
-  max-width: 680px; /* Narrower for focus */
-  margin: 0 auto; /* Center content within layout-main if needed */
+  max-width: 720px;
+  margin: 0 auto;
 }
-:deep(.markdown-content h2) {
-  font-size: 1.75rem; /* Reduced from 2rem */
+
+:deep(.post-content h1) {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-top: 3rem;
+  margin-bottom: 1.5rem;
+  color: #111;
+}
+
+:deep(.post-content h2) {
+  font-size: 1.75rem;
   font-weight: 700;
   margin-top: 2.5rem;
   margin-bottom: 1.25rem;
   letter-spacing: -0.01em;
   color: #111;
 }
-:deep(.markdown-content p) { 
-  margin-bottom: 1.6em; /* Reduced from 2em */
-  opacity: 0.9;
+
+:deep(.post-content h3) {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
 }
-:deep(.markdown-content img) {
+
+:deep(.post-content p) { 
+  margin-bottom: 1.5rem;
+  font-size: 1.25rem;
+  line-height: 1.8;
+}
+
+:deep(.post-content li) {
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+:deep(.post-content blockquote) {
+  background: rgba(94, 114, 228, 0.1) !important;
+  border-left: 4px solid #5e72e4;
+  padding: 1rem 1.5rem;
+  margin: 1.5rem 0;
+  border-radius: 4px;
+}
+
+:deep(.post-content code:not(pre code)) {
+  color: #5e72e4;
+  background: rgba(94, 114, 228, 0.05);
+  padding: 0.2em 0.4em;
+  border-radius: 4px;
+}
+
+:deep(.post-content img) {
   max-width: 100%;
   height: auto;
   display: block;
-  margin: 3rem auto;
-  border-radius: 16px;
+  margin: 2rem auto;
+  border-radius: 12px;
   cursor: zoom-in;
   transition: transform 0.3s ease;
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
 }
-:deep(.markdown-content img:hover) {
-  transform: scale(1.02);
+
+:deep(.post-content img:hover) {
+  transform: scale(1.01);
 }
 
 /* Lightbox Styles */
@@ -1067,61 +1126,92 @@ watch(() => route.params.slug, (newSlug) => {
   margin: 0 4px;
 }
 
-/* === 6. TOC Drawer === */
+/* === 6. TOC Drawer (Argon Style) === */
 .toc-drawer {
   position: fixed;
-  top: 100px; /* 给 Navbar 留出空间 */
+  top: 100px;
   right: 20px;
   width: 280px;
   max-height: calc(100vh - 120px);
-  border-radius: 20px;
-  padding: 20px;
-  z-index: 90; /* 略低于 Dock 和 Modal */
+  border-radius: var(--card-radius);
+  padding: 24px;
+  z-index: 100;
   overflow-y: auto;
-  transition: transform 0.3s ease, opacity 0.3s ease;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 15px 35px rgba(50, 50, 93, 0.1);
+  transition: all 0.3s ease;
 }
+
 .toc-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
+
+.toc-header h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--hive-gold);
+  margin: 0;
+}
+
 .toc-close-btn {
-  width: 32px; height: 32px;
+  width: 28px; height: 28px;
   border-radius: 50%;
-  border: 1px solid rgba(0,0,0,0.1);
-  background: rgba(255,255,255,0.5);
-  color: var(--apple-gray);
+  border: none;
+  background: rgba(0,0,0,0.05);
+  color: var(--argon-text-muted);
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
   transition: all 0.2s;
 }
+
 .toc-close-btn:hover {
-  background: var(--hive-gold);
+  background: var(--argon-danger);
   color: #fff;
-  border-color: transparent;
 }
 .toc-list { list-style: none; padding: 0; margin: 0; }
 .toc-item {
-  padding: 8px 12px;
-  border-radius: 8px;
+  padding: 8px 0;
   cursor: pointer;
-  font-size: 0.9rem;
-  color: var(--apple-gray);
+  font-size: 0.95rem;
+  color: var(--argon-text-muted);
   transition: all 0.2s;
+  border-bottom: 1px solid rgba(0,0,0,0.03);
 }
-.toc-item:hover { background: rgba(0,0,0,0.03); color: var(--apple-text); }
+
+.toc-item:last-child { border-bottom: none; }
+
+.toc-item:hover { color: var(--hive-gold); }
+
 .toc-item.active {
-  background: rgba(246, 185, 59, 0.1);
   color: var(--hive-gold);
   font-weight: 600;
+  padding-left: 5px;
   border-left: 3px solid var(--hive-gold);
 }
-.level-2 { padding-left: 24px; }
-.level-3 { padding-left: 36px; }
+
+.level-2 { padding-left: 15px; }
+.level-3 { padding-left: 25px; }
 
 /* Transitions */
+.slide-fade-enter-active,
+.slide-fade-leave-active {
+  transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
 
+.slide-fade-enter-from {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+.slide-fade-leave-to {
+  transform: translateX(100%);
+  opacity: 0;
+}
 
 /* Responsive */
 @media (max-width: 1200px) {
@@ -1201,122 +1291,81 @@ watch(() => route.params.slug, (newSlug) => {
   }
 }
 
-/* === Author Section Styles === */
-/* === Author Section Styles (3D Flip) === */
-.author-section-container {
-  perspective: 1000px;
+/* === Author Card (Argon Style) === */
+.author-card-container {
   width: 100%;
-  cursor: pointer;
+  margin-bottom: 30px;
 }
 
-.flip-card-inner {
-  position: relative;
-  width: 100%;
-  /* We need a set height or aspect ratio usually, but here content defines it. 
-     Since front/back are absolute, we might need a trick or fixed height. 
-     Better approach: Let front be relative to define height, back absolute. */
-  transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
-  transform-style: preserve-3d;
+.author-card.argon-card {
+  padding: 25px;
+  text-align: center;
 }
 
-.flip-card-inner.flipped {
-  transform: rotateY(180deg);
-}
-
-.interactive-card-face {
-  width: 100%;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  border-radius: 20px;
-  padding: 24px;
-}
-
-/* Front Face */
-.flip-card-front {
-  position: relative;
-  z-index: 2;
-  /* Re-add hover effects from previous interactive-card */
-  transition: box-shadow 0.3s, transform 0.3s;
-}
-
-/* Back Face */
-.flip-card-back {
-  position: absolute;
-  top: 0; left: 0;
-  height: 100%; /* Match front height */
-  transform: rotateY(180deg);
-  z-index: 1;
-}
-
-/* Hover Effects (Only on container hover to lift the whole thing) */
-.author-section-container:hover .flip-card-inner {
-  /* Simple lift effect might conflict with rotation, so apply to face or container */
-  transform: translateY(-5px) rotateY(0deg); 
-}
-.author-section-container:hover .flip-card-inner.flipped {
-  transform: translateY(-5px) rotateY(180deg);
-}
-
-.author-section-container:hover .flip-card-front,
-.author-section-container:hover .flip-card-back {
-  box-shadow: 
-    0 20px 40px -12px rgba(0, 0, 0, 0.12),
-    0 0 0 1px rgba(246, 185, 59, 0.4);
-  border-color: rgba(246, 185, 59, 0.6);
-}
-
-.author-section-container:active .flip-card-inner {
-   /* scale effect handled carefully */
-}
-
-/* Avatar scale on hover */
-.author-section-container:hover .hexagon-avatar-wrapper.lg {
-  transform: scale(1.1);
-  box-shadow: 0 0 20px rgba(246, 185, 59, 0.3);
-}
-
-/* Ensure inner interactive elements don't trigger flip wildly */
-.author-actions button {
-  position: relative;
-  z-index: 10;
-}
 .author-header {
   display: flex;
   flex-direction: column;
   align-items: center;
-  text-align: center;
-  gap: 16px;
+  gap: 15px;
   margin-bottom: 20px;
 }
-.hexagon-avatar-wrapper.lg { 
-  width: 90px; 
-  height: 90px; 
-  /* Inherits mask from base class */
+
+.hexagon-avatar-wrapper.lg {
+  width: 100px;
+  height: 100px;
 }
-.author-info-lg { width: 100%; }
-.author-name-lg { font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; }
-.author-bio { font-size: 0.9rem; color: var(--apple-gray); line-height: 1.5; }
+
+.author-name-link {
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s ease;
+}
+
+.author-name-link:hover {
+  opacity: 0.7;
+}
+
+.author-name-lg {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--argon-text);
+  margin: 0;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.author-name-link:hover .author-name-lg {
+  color: var(--hive-gold);
+}
+
+.author-bio {
+  font-size: 0.9rem;
+  color: var(--argon-text-muted);
+  line-height: 1.5;
+  margin: 10px 0 0;
+}
 
 .author-actions {
-  margin-bottom: 20px;
+  margin-bottom: 25px;
 }
 
-.apple-btn-outline {
-  padding: 8px 20px;
-  border-radius: 100px;
-  border: 1px solid var(--hive-gold);
-  background: transparent;
-  color: var(--hive-gold-hover);
+.argon-btn-outline {
+  width: 100%;
+  padding: 10px 20px;
+  border-radius: 50px;
+  border: 1px solid var(--argon-primary);
+  background: #fff;
+  color: var(--argon-primary);
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
 }
-.apple-btn-outline.full-width {
-  width: 100%;
-  display: block;
+
+.apple-btn-outline:hover {
+  background: var(--argon-primary);
+  color: #fff;
+  box-shadow: 0 4px 11px rgba(94, 114, 228, 0.35);
 }
-.apple-btn-outline:hover { background: var(--hive-gold); color: #fff; }
-.apple-btn-outline.active { background: rgba(0,0,0,0.05); border-color: transparent; color: var(--apple-gray); }
 
 .author-stats {
   display: flex;
@@ -1324,20 +1373,42 @@ watch(() => route.params.slug, (newSlug) => {
   padding-top: 20px;
   border-top: 1px solid rgba(0,0,0,0.05);
 }
-.stat-box { display: flex; flex-direction: column; align-items: center; }
-.stat-val { font-size: 1.1rem; font-weight: 700; color: var(--apple-text); }
-.stat-label { font-size: 0.8rem; color: var(--apple-gray); margin-top: 4px; }
 
-@media (max-width: 992px) {
-  .article-layout {
-    flex-direction: column;
-  }
-  .layout-sidebar {
-    width: 100%;
-    order: 2; /* 移动端放在底部，或者可以改成 0 放在顶部 */
-  }
-  .author-header { flex-direction: row; text-align: left; }
-  .author-info-lg { width: auto; flex: 1; }
-  .apple-btn-outline.full-width { width: auto; }
+.stat-box {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-val {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--argon-text);
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--argon-text-muted);
+  text-transform: uppercase;
+  margin-top: 5px;
+}
+
+/* === Responsive Argon === */
+@media (max-width: 991px) {
+  .argon-banner { height: 400px; }
+  .banner-title { font-size: 2.2rem; }
+  
+  .argon-container { margin-top: -50px; }
+  
+  .article-layout { flex-direction: column; }
+  .layout-sidebar { width: 100%; }
+}
+
+@media (max-width: 767px) {
+  .argon-banner { height: 350px; }
+  .banner-title { font-size: 1.8rem; }
+  .banner-meta { font-size: 0.85rem; flex-wrap: wrap; }
+  
+  .argon-card { padding: 20px; }
+  .post-content { font-size: 1.15rem; }
 }
 </style>

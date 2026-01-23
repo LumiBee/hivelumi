@@ -110,7 +110,7 @@ export const articleAPI = {
    */
   async publishArticle(articleData) {
     console.log('API调用: publishArticle', articleData)
-    
+
     // 检查token是否需要刷新（只有在即将过期时才刷新）
     const authStore = useAuthStore()
     if (authStore.user?.token) {
@@ -132,14 +132,14 @@ export const articleAPI = {
         // 不抛出错误，继续尝试发布文章
       }
     }
-    
+
     // 调用API
     const response = await request({
       url: '/article/publish',
       method: 'post',
       data: articleData
     });
-    
+
     console.log('发布文章API响应:', response);
     return response;
   },
@@ -151,16 +151,16 @@ export const articleAPI = {
    */
   async updateArticle(articleId, articleData) {
     console.log('API调用: updateArticle', articleId, articleData)
-    
+
     // 注意：由于使用Session认证，不需要JWT token刷新机制
-    
+
     // 调用API
     const response = await request({
       url: `/article/${articleId}/edit`,
       method: 'put',
       data: articleData
     });
-    
+
     console.log('更新文章API响应:', response);
     return response;
   },
@@ -182,7 +182,7 @@ export const articleAPI = {
    */
   async saveDraft(draftData) {
     console.log('API调用: saveDraft', draftData)
-    
+
     // 准备请求数据，确保字段名与后端DTO匹配
     const requestData = {
       title: draftData.title,
@@ -191,7 +191,7 @@ export const articleAPI = {
       tagsName: draftData.tags || [],
       portfolioName: draftData.portfolioName || null
     };
-    
+
     // 如果有草稿ID，则添加到请求数据中（用于更新现有草稿）
     if (draftData.id) {
       requestData.articleId = draftData.id;
@@ -199,9 +199,9 @@ export const articleAPI = {
     } else {
       console.log('创建新草稿');
     }
-    
+
     console.log('请求数据:', requestData);
-    
+
     // 检查token是否需要刷新（只有在即将过期时才刷新）
     const authStore = useAuthStore()
     if (authStore.user?.token) {
@@ -223,14 +223,14 @@ export const articleAPI = {
         // 不抛出错误，继续尝试保存草稿
       }
     }
-    
+
     // 调用API
     const response = await request({
       url: '/article/save-draft',
       method: 'post',
       data: requestData
     });
-    
+
     console.log('保存草稿API响应:', response);
     return response;
   },
@@ -259,5 +259,22 @@ export const articleAPI = {
    */
   deleteDraft(draftId) {
     return this.deleteArticle(draftId)
+  },
+
+  /**
+   * 上传文章图片
+   * @param {File} file - 图片文件
+   */
+  uploadArticleImage(file) {
+    const formData = new FormData()
+    formData.append('imgFile', file)
+    return request({
+      url: '/article/upload-img',
+      method: 'post',
+      data: formData,
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
   }
 }
