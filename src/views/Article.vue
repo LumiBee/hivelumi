@@ -576,6 +576,11 @@ watch(() => route.params.slug, (newSlug) => {
   --argon-bg: #f4f5f7;
   --card-radius: 15px;
   
+  /* Hive Gold Theme */
+  --hive-gold: #f6b93b;
+  --hive-gold-hover: #e5a52a;
+  --hive-gold-glow: rgba(246, 185, 59, 0.3);
+  
   font-family: 'echo', Georgia, -apple-system, 'Nimbus Roman No9 L', 'PingFang SC', 'Hiragino Sans GB', 'Noto Serif SC', 'Microsoft Yahei', 'WenQuanYi Micro Hei', 'ST Heiti', sans-serif;
   background-color: var(--argon-bg);
   color: var(--argon-text);
@@ -1368,18 +1373,25 @@ watch(() => route.params.slug, (newSlug) => {
   width: 100%;
   padding: 10px 20px;
   border-radius: 50px;
-  border: 1px solid var(--argon-primary);
-  background: #fff;
-  color: var(--argon-primary);
+  border: 2px solid var(--hive-gold);
+  background: transparent;
+  color: var(--hive-gold);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
-.apple-btn-outline:hover {
-  background: var(--argon-primary);
+.argon-btn-outline:hover {
+  background: var(--hive-gold);
   color: #fff;
-  box-shadow: 0 4px 11px rgba(94, 114, 228, 0.35);
+  box-shadow: 0 8px 20px rgba(246, 185, 59, 0.3);
+  transform: translateY(-2px);
+}
+
+.argon-btn-outline.active {
+  background: var(--hive-gold);
+  color: #fff;
+  border-color: var(--hive-gold);
 }
 
 .author-stats {
