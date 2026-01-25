@@ -21,17 +21,17 @@ const getApiBaseUrl = () => {
 
     return envApiUrl
   }
-  
+
   // 开发环境默认
   if (import.meta.env.DEV) {
     return 'http://localhost:8090/api'
   }
-  
+
   // Preview模式：使用相对路径，让vite代理处理
   if (import.meta.env.MODE === 'preview') {
     return '/api'
   }
-  
+
   // 生产环境：使用当前域名下的API路径，避免CORS问题
   if (typeof window !== 'undefined') {
     const protocol = window.location.protocol
@@ -39,7 +39,7 @@ const getApiBaseUrl = () => {
     const port = window.location.port ? `:${window.location.port}` : ''
     return `${protocol}//${hostname}${port}/api`
   }
-  
+
   // 备用方案：使用默认域名
   return 'https://api.hivelumi.com/api'
 }
@@ -80,7 +80,7 @@ request.interceptors.request.use(
   config => {
     // 从本地存储中获取用户信息，如果存在则添加JWT认证头
     const storedUser = getSafeUserFromStorage()
-    
+
     if (storedUser && storedUser.token) {
       config.headers['Authorization'] = `Bearer ${storedUser.token}`
     }
@@ -91,7 +91,7 @@ request.interceptors.request.use(
         sessionStorage.setItem('__warn_no_token_once', '1')
       }
     }
-    
+
     return config
   },
   error => {
@@ -108,21 +108,21 @@ request.interceptors.response.use(
   },
   async error => {
     console.error('响应错误：', error)
-    
+
     // 实现请求重试逻辑
     const config = error.config;
-    
+
     // 如果配置了重试，且未设置重试计数器，则初始化计数器
     if (config && config.retry && !config._retryCount) {
       config._retryCount = 0;
     }
-    
+
     // 检查是否可以重试
     if (config && config.retry && config._retryCount < config.retry) {
       config._retryCount++;
-      
+
       console.log(`请求重试中 (${config._retryCount}/${config.retry}): ${config.url}`);
-      
+
       // 创建新的Promise来处理重试延迟
       return new Promise(resolve => {
         setTimeout(() => {
@@ -131,10 +131,10 @@ request.interceptors.response.use(
         }, config.retryDelay || 1000);
       });
     }
-    
+
     if (error.response) {
       const { status, data } = error.response
-      
+
       switch (status) {
         case 400:
           console.error('请求参数错误：', data)
@@ -142,7 +142,7 @@ request.interceptors.response.use(
         case 401:
           // 未登录或认证过期
           console.error('认证失败：', data)
-          
+
           // 对于登录请求，我们不重定向，而是在页面上显示错误信息
           if (error.config.url.includes('/login')) {
             return Promise.reject({
@@ -151,42 +151,54 @@ request.interceptors.response.use(
               data
             })
           }
-          
+
           // 对于其他请求，处理 token 过期
           try {
             const authStore = useAuthStore()
-            
-            // 检查是否是 token 过期（而不是未登录）
+
+            // 只要收到401，无论当前状态如何，都清除登录信息
             if (authStore.isAuthenticated) {
               console.warn('检测到 token 过期，正在清除用户状态...')
-              
+
               // 显示用户友好的过期提示
               if (window.$toast) {
                 window.$toast.warning('登录已过期，请重新登录')
               } else {
                 console.warn('登录已过期，请重新登录')
               }
-              
-              // 清除用户状态，但不显示登出成功提示
-              authStore.setUser(null)
-              
-              // 如果是重要操作（如点赞、收藏），可以引导用户到登录页面
-              if (error.config.url.includes('/like') || 
-                  error.config.url.includes('/favorite') || 
-                  error.config.url.includes('/follow')) {
-                // 延迟跳转，让用户看到提示
-                setTimeout(() => {
-                  if (window.$router) {
-                    window.$router.push('/login')
-                  }
-                }, 2000)
-              }
-            } else {
-              // 用户未登录，静默处理
-              console.log('用户未登录，静默处理 401 错误')
+
+              // 完整清除登录状态（包括token）
+              await authStore.logout()
+
+              // 立即跳转到登录页，保存当前路径以便登录后返回
+              setTimeout(() => {
+                if (window.$router) {
+                  const currentPath = window.$router.currentRoute.value.fullPath
+                  window.$router.push({
+                    path: '/login',
+                    query: currentPath !== '/' && currentPath !== '/login'
+                      ? { redirect: currentPath }
+                      : {}
+                  })
+                } else {
+                  // 备用方案：直接跳转
+                  window.location.href = '/login'
+                }
+              }, 1500) // 稍微延迟让用户看到提示
             }
           } catch (logoutError) {
             console.error('清除用户信息失败:', logoutError)
+            // 即使出错也要确保清除本地存储
+            try {
+              localStorage.removeItem('hive_auth_user')
+              tokenManager.removeToken()
+            } catch (e) {
+              console.error('强制清除本地存储失败:', e)
+            }
+            // 强制跳转到登录页
+            setTimeout(() => {
+              window.location.href = '/login'
+            }, 1500)
           }
           break
         case 403:
@@ -201,7 +213,7 @@ request.interceptors.response.use(
         default:
           console.error(`HTTP错误 ${status}：`, data)
       }
-      
+
       // 返回格式化的错误信息
       return Promise.reject({
         status,

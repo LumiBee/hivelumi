@@ -15,6 +15,14 @@
         />
         <div class="title-actions">
           <button
+            @click="triggerMarkdownImport"
+            class="btn btn-outline-primary me-2"
+            title="导入Markdown文件"
+          >
+            <i class="fas fa-file-import me-1"></i>
+            导入Markdown
+          </button>
+          <button
             @click="saveDraft"
             class="btn btn-outline-secondary me-2"
             :disabled="isSaving"
@@ -91,6 +99,15 @@
       accept="image/*"
       class="d-none"
       @change="handleImageUpload"
+    />
+
+    <!-- 隐藏的Markdown文件输入框 -->
+    <input
+      ref="markdownInput"
+      type="file"
+      accept=".md,.markdown"
+      class="d-none"
+      @change="handleMarkdownImport"
     />
 
     <!-- 发布设置模态框 -->
@@ -359,6 +376,12 @@
 </template>
 
 <script setup>
+import { Buffer } from 'buffer'
+// 确保Buffer在全局可用
+if (typeof window !== 'undefined') {
+  window.Buffer = Buffer
+}
+
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
@@ -367,6 +390,7 @@ import { portfolioAPI } from '@/api/portfolio'
 import { aiAPI } from '@/api/ai'
 import Vditor from 'vditor'
 import 'vditor/dist/index.css'
+import matter from 'gray-matter'
 
 const router = useRouter()
 const route = useRoute()
@@ -404,6 +428,7 @@ const notification = ref({ show: false, message: '', type: 'success' })
 const editorContainer = ref(null)
 let editorInstance = null;
 const imageUploadInput = ref(null);
+const markdownInput = ref(null);
 
 const canPublish = computed(() => {
   return articleForm.value.title.trim() !== '' && articleForm.value.content.trim() !== '';
@@ -657,6 +682,89 @@ const clearPortfolio = () => {
 const handleClickOutside = (event) => {
   if (portfolioSelectContainer.value && !portfolioSelectContainer.value.contains(event.target)) {
     isPortfolioDropdownOpen.value = false;
+  }
+};
+
+// 触发Markdown文件选择
+const triggerMarkdownImport = () => {
+  markdownInput.value.click();
+};
+
+// 处理Markdown文件导入
+const handleMarkdownImport = async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  try {
+    showNotification('正在读取文件...', 'info');
+    
+    // 读取文件内容
+    const text = await file.text();
+    
+    showNotification('正在解析内容...', 'info');
+    
+    // 解析Front Matter和内容
+    const parsed = matter(text);
+    const { data: frontMatter, content: rawContent } = parsed;
+    
+    // 提取标题（优先级：Front Matter > 第一个H1 > 文件名）
+    let title = frontMatter.title || '';
+    let content = rawContent;
+    
+    if (!title) {
+      // 尝试从内容中提取第一个H1标题
+      const h1Match = content.match(/^#\s+(.+)$/m);
+      if (h1Match) {
+        title = h1Match[1].trim();
+        // 从内容中移除第一个H1标题
+        content = content.replace(/^#\s+.+$/m, '').trim();
+      } else {
+        // 使用文件名作为标题
+        title = file.name.replace(/\.(md|markdown)$/i, '');
+      }
+    }
+    
+    // 填充表单
+    articleForm.value.title = title;
+    articleForm.value.content = content;
+    articleForm.value.excerpt = frontMatter.excerpt || frontMatter.description || '';
+    
+    // 解析标签
+    if (frontMatter.tags) {
+      if (Array.isArray(frontMatter.tags)) {
+        articleForm.value.tags = frontMatter.tags;
+      } else if (typeof frontMatter.tags === 'string') {
+        articleForm.value.tags = frontMatter.tags.split(',').map(t => t.trim()).filter(t => t);
+      }
+    }
+    
+    // 解析作品集
+    if (frontMatter.portfolio) {
+      // 尝试匹配现有作品集
+      const existingPortfolio = portfolios.value.find(
+        p => p.name.toLowerCase() === frontMatter.portfolio.toLowerCase()
+      );
+      if (existingPortfolio) {
+        selectPortfolio(existingPortfolio.id);
+      } else {
+        // 设置为新作品集名称
+        newPortfolioName.value = frontMatter.portfolio;
+      }
+    }
+    
+    // 更新编辑器内容
+    if (editorInstance) {
+      editorInstance.setValue(articleForm.value.content);
+      updateWordCount();
+    }
+    
+    showNotification('Markdown文件导入成功！', 'success');
+  } catch (error) {
+    console.error('导入Markdown失败:', error);
+    showNotification('导入失败：' + error.message, 'danger');
+  } finally {
+    // 清空input，允许重复导入同一文件
+    markdownInput.value.value = '';
   }
 };
 

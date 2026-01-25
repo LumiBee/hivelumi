@@ -44,6 +44,17 @@ export default defineConfig(({ mode }) => {
         '@': resolve(__dirname, 'src'),
       },
     },
+    define: {
+      // 为浏览器环境提供Buffer polyfill
+      global: 'globalThis',
+    },
+    optimizeDeps: {
+      esbuildOptions: {
+        define: {
+          global: 'globalThis'
+        },
+      },
+    },
     server: {
       port: 3000,
       open: true, // 自动打开浏览器
