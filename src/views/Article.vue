@@ -413,9 +413,20 @@ const toggleFollow = async () => {
   try {
     const userId = ensureBigIntAsString(article.value.userId)
     const res = await userAPI.toggleFollow(userId)
+    
+    // 更新关注状态
+    const wasFollowed = article.value.isFollowed
     article.value.isFollowed = res.isFollowing
+    
+    // 显示用户反馈
+    if (res.isFollowing) {
+      window.$toast?.success('关注成功')
+    } else {
+      window.$toast?.info('已取消关注')
+    }
   } catch (e) {
-    console.error(e)
+    console.error('关注操作失败:', e)
+    window.$toast?.error('操作失败，请重试')
   }
 }
 
