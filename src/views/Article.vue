@@ -678,14 +678,17 @@ watch(() => route.params.slug, (newSlug) => {
   font-size: 3rem;
   font-weight: 700;
   margin-bottom: 20px;
-  text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  color: #ffffff;
+  text-shadow: 0 3px 15px rgba(0,0,0,0.5), 0 1px 3px rgba(0,0,0,0.7);
 }
 
 .banner-subtitle {
   font-size: 1.25rem;
-  opacity: 0.9;
+  opacity: 0.95;
   margin-bottom: 30px;
   line-height: 1.6;
+  color: #ffffff;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.6);
 }
 
 .banner-tags {
@@ -715,7 +718,8 @@ watch(() => route.params.slug, (newSlug) => {
   align-items: center;
   gap: 15px;
   font-size: 0.95rem;
-  opacity: 0.9;
+  opacity: 0.95;
+  text-shadow: 0 1px 5px rgba(0,0,0,0.4);
 }
 
 .banner-author {

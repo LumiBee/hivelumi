@@ -63,11 +63,31 @@ export default defineConfig(({ mode }) => {
         allow: ['..']
       },
       proxy: {
-        // API接口代理
+        // API接口代理 - 包括静态资源
         '/api': {
           target: backendUrl,
           changeOrigin: true,
           secure: isHttps,
+          // 启用WebSocket支持
+          ws: true,
+          // 配置代理事件处理和调试
+          configure: (proxy, options) => {
+            proxy.on('error', (err, req, res) => {
+              console.log('❌ Proxy error:', err);
+            });
+            proxy.on('proxyReq', (proxyReq, req, res) => {
+              // 记录代理请求（可选，用于调试）
+              if (req.url.includes('/uploads/')) {
+                console.log('📤 Proxying static:', req.method, req.url, '→', backendUrl + req.url);
+              }
+            });
+            proxy.on('proxyRes', (proxyRes, req, res) => {
+              // 记录代理响应（可选，用于调试）
+              if (req.url.includes('/uploads/') && proxyRes.statusCode !== 200) {
+                console.log('📥 Proxy response:', req.url, '→', proxyRes.statusCode);
+              }
+            });
+          }
         }
       }
     },
